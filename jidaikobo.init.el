@@ -28,33 +28,23 @@
 ;;; usage: 利用前の準備
 ;;; このinit.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
 ;;; @ terminal
-;; mkdir -p ~/.emacs.d/elisp
-;; cd ~/.emacs.d/elisp
-;; wget http://www.emacswiki.org/emacs/download/auto-install.el
-;; wget http://www.ne.jp/asahi/alpha/kazu/pub/emacs/phpdoc.el
 ;; sudo port install global
+;; mkdir -p ~/.emacs.d/elisp
 ;;
 ;;; @ emacs
 ;;; S式はC-x C-eで反映すること
 ;;; 下記コマンド類はM-;でコメントを外してからやるとよい
-;; M-x byte-compile-file RET ~/.emacs.d/elisp/auto-install.el RET
-;; (add-to-list 'load-path "~/.emacs.d/elisp")
-;; (require 'auto-install)
-;; (setq auto-install-directory "~/.emacs.d/elisp")
-;; (auto-install-update-emacswiki-package-name t)
-;; (auto-install-compatibility-setup)
 ;; (require 'package)
 ;; (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 ;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 ;; (add-to-list 'package-archives  '("marmalade" . "http://marmalade-repo.org/packages/") t)
 ;; (package-initialize)
-;; M-x auto-install-batch RET anything RET
+;; M-x package-install RET anything RET
 ;; M-x package-install RET descbinds-anything RET
 ;; M-x package-install RET auto-complete RET
 ;; M-x package-install RET undohist RET
 ;; M-x package-install RET undo-tree RET
 ;; M-x package-install RET point-undo RET
-;; M-x package-install RET recentf RET
 ;; M-x package-install RET recentf-ext RET
 ;; M-x package-install RET cursor-chg RET
 ;; M-x package-install RET smart-tab
@@ -72,18 +62,6 @@
 ;; M-x package-install RET magit RET
 ;; M-x package-install RET gist RET
 ;; M-x package-install RET elscreen RET
-;; M-x auto-install-from-gist RET 467982 ; anything-gist.el
-
-;;; Memo:
-;; M-x install-packageで、入らないものがあるが、
-;; M-x list-packagesで、C-sで探し、ページ移動の後installでなら入る。
-;; anything-gistは、auto-install-from-gistで入らないときは、
-;; https://gist.github.com/myuhe/467982 から持ってくる。
-
-;;; Memo2:
-;; tempbuf（idle buffer）を自動的にkill-bufferしてくれるelispだけど、
-;; 結構不意に必要なbufferをkillしていることがあるので、使わない方向で。
-;; multi-termもよさそうだけど、やっぱりterminalを使う。
 
 ;;; Code:
 ;;; ------------------------------------------------------------
@@ -92,21 +70,27 @@
 (if (file-exists-p "~/.emacs.d/package.override.el")
 		(load "~/.emacs.d/package.override.el")
 
-;;; load-pathの追加
+	;; load-pathの追加
 	(add-to-list 'load-path "~/.emacs.d/elisp")
 
-;;; auto-install
-	(require 'auto-install)
-	(setq auto-install-directory "~/.emacs.d/elisp")
-	(auto-install-update-emacswiki-package-name t)
-	(auto-install-compatibility-setup)
-
-;;; packages
+	;; packages
 	(require 'package)
 	(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 	(add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 	(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
 	(package-initialize))
+
+;;; ------------------------------------------------------------
+;;; 編集可能な検索置換仕組み
+;;; editable-search
+(custom-set-variables
+ '(es-is-use-super t))
+(require 'editable-search)
+
+;;; ------------------------------------------------------------
+;;; HTMLのマークアップのキーバインド集
+;;; jidaikobo web authoring set
+(require 'jidaikobo-web-authoring-set)
 
 ;;; ------------------------------------------------------------
 ;;; 全体設定
@@ -155,7 +139,7 @@
 
 ;; ファイルが #! から始まる場合、+xを付けて保存する
 (add-hook 'after-save-hook
-    'executable-make-buffer-file-executable-if-script-p)
+					'executable-make-buffer-file-executable-if-script-p)
 
 ;;; ツールバーを非表示
 (tool-bar-mode -1)
@@ -167,12 +151,12 @@
 (savehist-mode 1)
 
 ;;; タブ幅
-(setq default-tab-width 2)
+(setq-default tab-width 2)
 (setq-default indent-tabs-mode t)
 
 ;;; cua-modeの設定
 (cua-mode t) ; cua-modeをオン
-(setq cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
+(setq-default cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
 
 ;;; emacsclient（使いたいのだけど、今のところうまくいかない）
 (if (eq window-system 'ns) (server-start))
@@ -213,7 +197,7 @@
 
 ;;; escでM-g
 ;; http://emacswiki.org/emacs/CancelingInEmacs
-(setq normal-escape-enabled t)
+(setq-default normal-escape-enabled t)
 (define-key isearch-mode-map [escape] 'isearch-abort) ; isearch
 (define-key isearch-mode-map "\e" 'isearch-abort) ; \e seems to work better for terminals
 (bind-key* "<escape>" 'keyboard-quit) ; everywhere else
@@ -302,43 +286,10 @@
 (bind-key* "<M-s-up>" (lambda () (interactive) (next-block "prev")))
 
 ;;; ------------------------------------------------------------
-;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
-;; macふうの挙動だが、Emacsふうでないので、ちょっと様子見しつつ運用
-(defcustom is-deactivate-region-by-cursor t
-	"*Mac-like behavior."
-	:group 'Convenience
-	:type 'boolean)
-
-(unless is-deactivate-region-by-cursor
-	;; regionの解除advice版 - Hookよりこちらのほうが軽い!?
-	(defadvice previous-line (before deactivate-region activate)
-		"Deactivate Region by cursor."
-		(my-deactivate-region))
-	(defadvice next-line (before deactivate-region activate)
-		"Deactivate Region by cursor."
-		(my-deactivate-region))
-	(defadvice left-char (before deactivate-region activate)
-		"Deactivate Region by cursor."
-		(my-deactivate-region))
-	(defadvice right-char (before deactivate-region activate)
-		"Deactivate Region by cursor."
-		(my-deactivate-region))
-
-	;; undo in regionしない
-	(defadvice undo-tree-undo (before deactivate-region activate)
-		"Deactivate Region when attempt to undo."
-		(my-deactivate-region))
-
-	;; リージョン解除関数
-	(defun my-deactivate-region ()
-		"Logic of deactivate region by cursor."
-		(when (and (region-active-p) (not (memq last-input-event '(S-left S-right S-down S-up))))
-			(cond
-			 ((memq last-input-event '(right down))
-				(goto-char (region-end)))
-			 ((memq this-command '(left-char previous-line))
-				(goto-char (region-beginning))))
-			(deactivate-mark))))
+;; undo in regionしない
+(defadvice undo-tree-undo (before deactivate-region activate)
+	"Deactivate Region when attempt to undo."
+	(deactivate-mark))
 
 ;;; ------------------------------------------------------------
 ;;; 一行目と最終行での上下キーの振る舞い（行末と行頭へ）
@@ -428,7 +379,6 @@
 (require 'anything-config)
 (require 'anything-gtags)
 (require 'anything-grep)
-(require 'anything-gist)
 
 (bind-key* "C-;" (lambda ()
 									 (interactive)
@@ -572,7 +522,7 @@
 (setq gtags-path-style 'relative)
 
 ;;; キーバインド
-(setq gtags-mode-hook
+(setq-default gtags-mode-hook
 			'(lambda ()
 				 (local-set-key "\M-t" 'gtags-find-tag)
 				 (local-set-key "\M-r" 'gtags-find-rtag)
@@ -595,8 +545,7 @@
 		(when rootdir
 			(let* ((default-directory rootdir)
 						 (buffer (get-buffer-create "*update GTAGS*")))
-				(save-excursion
-					(set-buffer buffer)
+				(with-current-buffer
 					(erase-buffer)
 					(let ((result (process-file "gtags" nil buffer nil args)))
 						(if (= 0 result)
@@ -692,7 +641,7 @@
 	(let ((global-hl-line-mode t))
 		(set-face-attribute 'hl-line nil :foreground nil :background "#3e3e3e" :underline nil)
 		(global-hl-line-highlight)))
-(setq global-hl-line-timer
+(setq-default global-hl-line-timer
 			(run-with-idle-timer 0.03 t 'global-hl-line-timer-function))
 ;; (cancel-timer global-hl-line-timer)
 
@@ -705,11 +654,11 @@
 	"Show line number."
 	(interactive)
 	(require 'linum)
-	(setq linum-delay t)
+	(setq-default linum-delay t)
 	(defadvice linum-schedule (around my-linum-schedule () activate)
 		(run-with-idle-timer 0.2 nil #'linum-update-current))
 	(global-linum-mode t)
-	(setq linum-format "%5d: "))
+	(setq-default linum-format "%5d: "))
 (show-line-number)
 
 ;;; ------------------------------------------------------------
@@ -749,7 +698,7 @@
 ;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
 (require 'mic-paren)
 (paren-activate)
-(setq paren-face '(underline paren-match-face))
+(setq-default paren-face '(underline paren-match-face))
 (setq paren-match-face '(underline paren-face))
 (setq paren-sexp-mode t)
 
@@ -802,7 +751,7 @@
 						 (cons tramp-file-name-regexp nil))
 
 ;; FTPではパッシブモードでの接続を試みる（使わないけど）
-(setq ange-ftp-try-passive-mode t)
+(setq-default ange-ftp-try-passive-mode t)
 
 ;; (setq explicit-shell-file-name "bash")
 ;; (add-to-list 'tramp-remote-path "/usr/local/bin/bash")
@@ -881,7 +830,7 @@
 ;;; ------------------------------------------------------------
 ;;; 全角数字を半角数字に
 (defun convert-to-single-byte-number ()
-	"Convert multi-byte numbers in region into single-byte number."
+	"Convert multi-byte numbers in region into single-byte number.  replace-strings-in-region-by-list is depend on jidaikobo-web-authoring-set."
 	(interactive)
 	(replace-strings-in-region-by-list
 	 '(("１" . "1")
@@ -908,26 +857,28 @@
 	"Normarize UTF-8."
 	(interactive)
 	;; 選択範囲があればそこを対象にする
-	(if (region-active-p)
+	(let (type
+				beg
+				end)
+		(if (region-active-p)
+				(progn
+					(setq beg (region-beginning))
+					(setq end (region-end)))
 			(progn
-				(setq beg (region-beginning))
-				(setq end (region-end)))
-		(progn
-			(setq type (read-string "normalize whole buffer?(y, n): " nil))
-			(if (string= type "y")
-					(progn
-						(setq beg (point-min))
-						(setq end (point-max)))
-				(error "Error: no target region"))))
-	(ucs-normalize-NFC-region beg end))
+				(setq type (read-string "normalize whole buffer?(y, n): " nil))
+				(if (string= type "y")
+						(progn
+							(setq beg (point-min))
+							(setq end (point-max)))
+					(error "Error: no target region"))))
+		(ucs-normalize-NFC-region beg end)))
 (bind-key* "C-s-u" 'ucs-normalize-NFC-buffer)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を1行にする
 (defun join-multi-lines-to-one ()
-	"Join multi lines."
+	"Join multi lines.  es-replace-region is depend on editable-search."
 	(interactive)
-	(require 'editable-search)
 	(let ((beg (region-beginning))
 				(end (region-end)))
 		(goto-char beg)
@@ -943,17 +894,15 @@
 ;;; ------------------------------------------------------------
 ;;; メール整形
 (defun add-mail-quotation ()
-	"Add mail quotation."
+	"Add mail quotation.  es-replace-region is depend on editable-search."
 	(interactive)
-	(require 'editable-search)
 	(mail-mode)
 	(if (string-match "^>" (buffer-substring-no-properties (region-beginning) (region-end)))
 			(es-replace-region "^" ">" t)
 		(es-replace-region "^" "> " t)))
 (defun remove-mail-quotation ()
-	"Add mail quotation."
+	"Add mail quotation.  es-replace-region is depend on editable-search."
 	(interactive)
-	(require 'editable-search)
 	(mail-mode)
 	(es-replace-region "^>+ +" "" t))
 (bind-key* "s-}" 'add-mail-quotation)
@@ -1004,6 +953,7 @@
 ;;; ------------------------------------------------------------
 ;;; flycheck
 (load "flycheck")
+(setq-default flycheck-emacs-lisp-load-path 'inherit)
 (add-hook 'after-init-hook #'global-flycheck-mode)
 (add-hook 'php-mode-hook 'flycheck-mode)
 (bind-key* "<M-up>" 'flycheck-previous-error) ; previous error (M+up)
@@ -1130,18 +1080,6 @@
 ;;; ------------------------------------------------------------
 ;; gist
 (require 'gist)
-
-;;; ------------------------------------------------------------
-;;; 編集可能な検索置換仕組み
-;;; editable-search
-(custom-set-variables
- '(es-is-use-super t))
-(require 'editable-search)
-
-;;; ------------------------------------------------------------
-;;; HTMLのマークアップのキーバインド集
-;;; jidaikobo web authoring set
-(require 'jidaikobo-web-authoring-set)
 
 
 
