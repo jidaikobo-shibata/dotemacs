@@ -1,8 +1,7 @@
 ;;; jidaikobo.init.el --- jidaikobo.init.el for jidaikobo
 ;; Copyright (C) 2015 by jidaikobo-shibata
-;; Author: jidaikobo
+;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
-;; thx 『Emacs実践入門』『Emacs LISP バイブル』『Emacs テクニック バイブル』
 
 ;;; ------------------------------------------------------------
 ;;; Commentary:
@@ -25,9 +24,9 @@
 ;; cp -r mac/Emacs.app ~/Applications
 
 ;;; ------------------------------------------------------------
-;;; usage: 利用前の準備
+;;; Usage: 利用前の準備
 ;;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
-;;; @ terminal
+;; @ terminal
 ;; sudo port install global
 ;; mkdir -p ~/.emacs.d/elisp
 ;; emacs --batch -l ~/.emacs.d/jidaikobo.init.el
@@ -35,12 +34,12 @@
 ;;; Code:
 ;;; ------------------------------------------------------------
 ;;; package類のロード等
+;; how to update package
+;; M-x package-list-packages RET U x
 
+;;; load packages
 (if (file-exists-p "~/.emacs.d/package.override.el")
 		(load "~/.emacs.d/package.override.el")
-
-	;; how to update package
-	;; M-x package-list-packages RET U x
 
 	;; load-pathの追加
 	(add-to-list 'load-path "~/.emacs.d/elisp")
