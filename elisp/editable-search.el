@@ -271,6 +271,13 @@
 		(if (windowp window-obj)
 				(with-selected-window window-obj (buffer-string)) nil)))
 
+;; 空行の検索を特別扱い
+(defun es-replace-empty-line-regex (str)
+	"Get str from window.  STR is regex."
+	(interactive)
+	(if (string= str "^$") "^
+" str))
+
 ;;; ------------------------------------------------------------
 ;;; 検索用バッファの文字列で検索する
 (declare-function es-move-region "es-move-region" ())
@@ -308,6 +315,9 @@
 		(unless search-str
 			(setq search-str (if (boundp 'es-previous-searched-str) es-previous-searched-str nil)))
 		(unless search-str (error "Error: search word is empty"))
+
+		;; 空行表現（^$）を特別扱い
+		(when is-re (setq search-str (es-replace-empty-line-regex search-str)))
 
 		;; 置換用文字列の取得（置換時必須）
 		(setq replace-str (es-get-str-from-window "replace"))
@@ -374,6 +384,9 @@
 		(unless search-str
 			(setq search-str (if (boundp 'es-previous-searched-str) es-previous-searched-str nil)))
 		(unless search-str (error "Error: search word is empty"))
+
+		;; 空行表現（^$）を特別扱い
+		(when is-re (setq search-str (es-replace-empty-line-regex search-str)))
 
 		;; 置換用文字列の取得
 		(setq replace-str (es-get-str-from-window "replace"))
