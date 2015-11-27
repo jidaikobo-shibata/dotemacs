@@ -26,42 +26,11 @@
 
 ;;; ------------------------------------------------------------
 ;;; usage: 利用前の準備
-;;; このinit.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
+;;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
 ;;; @ terminal
 ;; sudo port install global
 ;; mkdir -p ~/.emacs.d/elisp
-;;
-;;; @ emacs
-;;; S式はC-x C-eで反映すること
-;;; 下記コマンド類はM-;でコメントを外してからやるとよい
-;; (require 'package)
-;; (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
-;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
-;; (add-to-list 'package-archives  '("marmalade" . "http://marmalade-repo.org/packages/") t)
-;; (package-initialize)
-;; M-x package-install RET anything RET
-;; M-x package-install RET descbinds-anything RET
-;; M-x package-install RET auto-complete RET
-;; M-x package-install RET undohist RET
-;; M-x package-install RET undo-tree RET
-;; M-x package-install RET point-undo RET
-;; M-x package-install RET recentf-ext RET
-;; M-x package-install RET cursor-chg RET
-;; M-x package-install RET smart-tab
-;; M-x package-install RET google-translate RET
-;; M-x package-install RET auto-async-byte-compile RET
-;; M-x package-install RET multiple-cursors RET
-;; M-x package-install RET smartrep RET
-;; M-x package-install RET flycheck RET
-;; M-x package-install RET php-mode RET
-;; M-x package-install RET web-mode RET
-;; M-x package-install RET js2-mode RET
-;; M-x package-install RET mic-paren RET
-;; M-x package-install RET gtags RET
-;; M-x package-install RET bind-key RET
-;; M-x package-install RET magit RET
-;; M-x package-install RET gist RET
-;; M-x package-install RET elscreen RET
+;; emacs --batch -l ~/.emacs.d/jidaikobo.init.el
 
 ;;; Code:
 ;;; ------------------------------------------------------------
@@ -70,33 +39,79 @@
 (if (file-exists-p "~/.emacs.d/package.override.el")
 		(load "~/.emacs.d/package.override.el")
 
+	;; how to update package
+	;; M-x package-list-packages RET U x
+
 	;; load-pathの追加
 	(add-to-list 'load-path "~/.emacs.d/elisp")
 
 	;; packages
 	(require 'package)
 	(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
-	(add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
-	(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
-	(package-initialize))
+	;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+	;; (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
+	(package-initialize)
+
+	;; 1日一回package-refresh-contentsする
+	(let ((ftime (float-time
+								(time-subtract
+								 ;; 今日の0時
+								 (encode-time 0 0 0 (nth 3 (decode-time)) (nth 4 (decode-time)) (nth 5 (decode-time)) (nth 6 (decode-time)) (nth 7 (decode-time)) (nth 8 (decode-time)))
+								 ;; recentfファイルの最終更新時
+								 (nth 5 (file-attributes "~/.emacs.d/recentf"))))))
+		(when (> ftime 0) (package-refresh-contents)))
+
+	;; my-packages
+	(defvar my-packages
+		'(anything
+			descbinds-anything
+			auto-complete
+			undohist
+			undo-tree
+			point-undo
+			recentf-ext
+			cursor-chg
+			smart-tab
+			google-translate
+			auto-async-byte-compile
+			multiple-cursors
+			smartrep
+			flycheck
+			php-mode
+			web-mode
+			js2-mode
+			mic-paren
+			gtags
+			bind-key
+			magit
+			gist
+			elscreen))
+
+	;; my-packagesからインストールしていないパッケージをインストール
+	(dolist (package my-packages)
+		(unless (package-installed-p package)
+			(package-install package))))
 
 ;;; ------------------------------------------------------------
+;;; jidaikobo's elisp.
+
 ;;; 編集可能な検索置換仕組み
 ;;; editable-search
 (custom-set-variables
  '(es-is-use-super t))
 (require 'editable-search)
 
-;;; ------------------------------------------------------------
 ;;; HTMLのマークアップのキーバインド集
 ;;; jidaikobo web authoring set
 (require 'jidaikobo-web-authoring-set)
 
 ;;; ------------------------------------------------------------
-;;; 全体設定
-
 ;;; キーバインド用
+
 (require 'bind-key)
+
+;;; ------------------------------------------------------------
+;;; 全体設定
 
 ;;; リージョンを上書きできるようにする
 (delete-selection-mode t)
@@ -222,6 +237,7 @@
 ;;; ------------------------------------------------------------
 ;;; control+shift+cursorでウィンドウ内バッファ履歴
 ;; thx http://pc12.2ch.net/test/read.cgi/unix/1261307488/
+
 (bind-key* "<C-S-left>" 'my-switch-to-prev-buffer)
 (bind-key* "<C-S-right>" 'my-switch-to-next-buffer)
 
@@ -286,13 +302,8 @@
 (bind-key* "<M-s-up>" (lambda () (interactive) (next-block "prev")))
 
 ;;; ------------------------------------------------------------
-;; undo in regionしない
-(defadvice undo-tree-undo (before deactivate-region activate)
-	"Deactivate Region when attempt to undo."
-	(deactivate-mark))
-
-;;; ------------------------------------------------------------
 ;;; 一行目と最終行での上下キーの振る舞い（行末と行頭へ）
+
 (defcustom is-goto-the-edge t
 	"*Mac-like behavior."
 	:group 'Convenience
@@ -304,10 +315,10 @@
 	(defun es-goto-the-edge ()
 		"Go to the edge of the line."
 		;; (message "this-event:  %s\nthis-command:%s" last-input-event this-command)
-		(when (and (eq prev-line-num 1) (memq last-input-event '(up)))
+		(when (and (eq prev-line-num 1) (memq last-input-event '(up S-up)))
 			(beginning-of-line))
 		(when (and (eq prev-line-num (count-lines 1 (point-max)))
-							 (memq last-input-event '(down)))
+							 (memq last-input-event '(down S-down)))
 			(end-of-line))
 		(setq prev-line-num (line-number-at-pos))))
 
@@ -359,9 +370,15 @@
 (bind-key* "<S-s-left>" 'point-undo)
 (bind-key* "<S-s-right>" 'point-redo)
 
+;; undo in regionしない
+(defadvice undo-tree-undo (before deactivate-region activate)
+	"Deactivate Region when attempt to undo."
+	(deactivate-mark))
+
 ;;; ------------------------------------------------------------
 ;;; recentf
 ;; 最近開いたファイルの履歴
+
 (require 'recentf-ext)
 (recentf-mode 1)
 (setq recentf-exclude '("/TAGS$"
@@ -379,12 +396,6 @@
 (require 'anything-config)
 (require 'anything-gtags)
 (require 'anything-grep)
-
-(bind-key* "C-;" (lambda ()
-									 (interactive)
-									 (when (< (frame-width) 110)
-										 (set-frame-size (selected-frame) (+ (frame-width) 80) (frame-height)))
-									 (my-anything-for-files)))
 
 ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
 (defvar anything-c-source-find-by-gtags
@@ -438,35 +449,21 @@
 	"Tramp open.  PATH is path."
 	(find-file path))
 
-(defun anything-tramp-close (path)
-	"Tramp close.  PATH is path."
-	(find-file path))
+;; (defun anything-tramp-close (path)
+;; 	"Tramp close.  PATH is path."
+;; 	(find-file path))
 
 ;;; よく使うプロジェクトに対する操作
 (defvar anything-c-source-cd-to-projects
 	'((name . "cd to projects")
 		(candidates . (lambda () (split-string (shell-command-to-string "find ~/Sites -maxdepth 1 -type d") "\n")))
 		(action . (("Change internal directory" . anything-change-internal-directory)
-							 ("Change internal directory to app if exists" . anything-change-internal-directory-to-app-if-exists)
-							 ("Change internal directory to locomo if exists" . anything-change-internal-directory-to-locomo-if-exists)
 							 ("Dired" . anything-project-dired)
 							 ("Generate gtags at project" . anything-generate-gtags-at-project)))))
 
 (defun anything-change-internal-directory (dir)
 	"Change internal directory at Sites.  DIR is path."
 	(cd dir))
-
-(defun anything-change-internal-directory-to-app-if-exists (dir)
-	"Change internal directory at Sites.  DIR is path."
-	(if (file-directory-p (concat dir "/fuel"))
-			(cd (concat dir "/fuel/app/"))
-		(cd dir)))
-
-(defun anything-change-internal-directory-to-locomo-if-exists (dir)
-	"Change internal directory at Sites.  DIR is path."
-	(if (file-directory-p (concat dir "/fuel"))
-			(cd (concat dir "/fuel/packages/locomo/"))
-		(cd dir)))
 
 (defun anything-project-dired (dir)
 	"Dired.  DIR is path."
@@ -497,6 +494,11 @@
 		 anything-c-source-recentf
 		 anything-c-source-my-fetch)
 	 "*my-anything-for-files*"))
+(bind-key* "C-;" (lambda ()
+									 (interactive)
+									 (when (< (frame-width) 110)
+										 (set-frame-size (selected-frame) (+ (frame-width) 80) (frame-height)))
+									 (my-anything-for-files)))
 
 ;;; my-anything-for-functions
 (defun my-anything-for-functions ()
@@ -508,7 +510,6 @@
 		 anything-c-source-emacs-functions)
 	 "*my-anything-for-functions*"))
 (bind-key* "C-," 'my-anything-for-functions)
-;; anything-c-source-google-suggest（面白いのだけど使いどころがない）
 
 ;;; descbinds-anythingの乗っ取り
 ;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
@@ -518,6 +519,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; gtags
+
 (require 'gtags)
 (setq gtags-path-style 'relative)
 
@@ -574,8 +576,7 @@
 									 (elscreen-create)
 									 (switch-to-buffer (generate-new-buffer "new"))))
 
-;;; ウィンドウ/スクリーン/フレームを閉じる
-(bind-key* "s-w" 'my-delete-windows)
+;;; ウィンドウ/スクリーンを閉じる
 (defun my-delete-windows ()
 	"Contexual delete windows."
 	(interactive)
@@ -596,12 +597,9 @@
 		(unless (elscreen-one-screen-p) (elscreen-kill)))
 	 ;; screenがひとつだったらkill-buffer
 	 ((elscreen-one-screen-p) (kill-buffer))
-	 ;; もう閉じるバッファがない場合は、frameを閉じる
-	 ;; うまくいかないし、frameをそもそもあまりたくさん作らないので、使わないかも？
-	 ;; ((and (= 0 (length (eliminated-buffers))) (> (length (frame-list)) 1))
-	 ;; 		 (delete-frame))
 	 ;; ここまで来る条件てあるのかしら。とりあえずkill
 	 (t (elscreen-kill-screen-and-buffers))))
+(bind-key* "s-w" 'my-delete-windows)
 
 ;;; ------------------------------------------------------------
 ;;; カーソル関連
@@ -687,6 +685,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; s+RETでeval-bufferかeval-region
+
 (bind-key* "<s-return>" (lambda () (interactive)
 														 (if (region-active-p)
 																 (eval-region (region-beginning) (region-end))
@@ -695,6 +694,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 釣り合いのとれる括弧のハイライト
+
 ;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
 (require 'mic-paren)
 (paren-activate)
@@ -704,6 +704,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; ファイラ (dired)
+
 ;; diredでファイル編集（rで編集モードに）
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 
@@ -744,6 +745,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
+
 (require 'tramp)
 
 ;; TRAMPでは自動バックアップしない
@@ -799,6 +801,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 行／選択範囲の複製 (cmd+d)
+
 ;; duplicate-region-or-line
 (defun duplicate-region-or-line ()
 	"Duplicate region or line."
@@ -821,6 +824,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を[大文字|小文字|キャピタライズ]に
+
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (global-set-key (kbd "s-U") 'upcase-region)
@@ -829,6 +833,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 全角数字を半角数字に
+
 (defun convert-to-single-byte-number ()
 	"Convert multi-byte numbers in region into single-byte number.  replace-strings-in-region-by-list is depend on jidaikobo-web-authoring-set."
 	(interactive)
@@ -849,6 +854,7 @@
 ;; ucs-normalize-NFC-region で濁点分離を直す
 ;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
 ;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
+
 (require 'ucs-normalize)
 (prefer-coding-system 'utf-8)
 (setq file-name-coding-system 'utf-8-hfs)
@@ -876,6 +882,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を1行にする
+
 (defun join-multi-lines-to-one ()
 	"Join multi lines.  es-replace-region is depend on editable-search."
 	(interactive)
@@ -893,6 +900,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; メール整形
+
 (defun add-mail-quotation ()
 	"Add mail quotation.  es-replace-region is depend on editable-search."
 	(interactive)
@@ -910,6 +918,7 @@
 
 ;;; ------------------------------------------------------------
 ;;現在バッファのファイルのフルパスを取得
+
 (defun get-current-path ()
 	"Get current file path."
 	(interactive)
@@ -918,6 +927,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲の言語を確認して翻訳 (C-c t)
+
 ;;; google-translate
 ;;; http://rubikitch.com/2014/12/07/google-translate/
 (require 'google-translate)
@@ -952,6 +962,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; flycheck
+
 (load "flycheck")
 (setq-default flycheck-emacs-lisp-load-path 'inherit)
 (add-hook 'after-init-hook #'global-flycheck-mode)
@@ -961,10 +972,12 @@
 
 ;;; ------------------------------------------------------------
 ;;; web-mode
+
 (require 'web-mode)
 
 ;;; ------------------------------------------------------------
 ;;; js2-mode
+
 (require 'js2-mode)
 (add-hook 'js2-mode-hook '(flycheck-mode t))
 ;; (autoload 'js2-mode "js2" nil t)
@@ -974,6 +987,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; php-mode
+
 (require 'php-mode)
 
 ;;; php-modeのタブ幅
@@ -985,6 +999,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; text-mode
+
 ;;; テキストモードでもすこしカラーリングする
 ;; thx http://lioon.net/how-to-customize-face-emacs
 ;; M-x list-faces-display
@@ -994,6 +1009,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; kontiki-mode
+
 ;;; ワイアフレームモード
 (easy-mmode-define-minor-mode kontiki-mode
 															"This is a Mode for Kontiki-Draft."
@@ -1010,6 +1026,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; mail-mode
+
 ;;; メールモード（mail-mode）のカラーリング
 (add-hook 'mail-mode-hook
 					'(lambda()
@@ -1019,6 +1036,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; フレームの大きさと位置を変更 (cmd+shift+w)
+
 (defun resize-selected-frame ()
 	"Resize frame to jidaikobo's default."
 	(interactive)
@@ -1031,6 +1049,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; auto-complete
+
 ;; オートコンプリート
 (require 'auto-complete)
 (require 'auto-complete-config)
@@ -1071,6 +1090,7 @@
 
 ;;; ------------------------------------------------------------
 ;; magit
+
 ;; (setq my-emacsclient "/Applications/Emacs.app/Contents/MacOS/bin/emacsclient")
 ;; (set-variable 'magit-emacsclient-executable (lambda () (if (file-exists-p my-emacsclient) nil)))
 (set-variable 'magit-push-always-verify nil)
@@ -1079,6 +1099,7 @@
 
 ;;; ------------------------------------------------------------
 ;; gist
+
 (require 'gist)
 
 
@@ -1092,6 +1113,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; フレーム初期値
+
 (add-to-list 'default-frame-alist '(alpha . (1.00 1.00)))
 (add-to-list 'default-frame-alist '(width . 108))
 (add-to-list 'default-frame-alist '(height . 55))
@@ -1106,6 +1128,7 @@
 ;;; Todo:
 ;; doctypeを見てのbrやタグの挿入
 ;; 単語境界をもうちょっと細かくしたい
+;; editable-search で正規表現による空行の検索がうまくいかない
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
@@ -1123,6 +1146,7 @@
 ;; 小文字に大文字が続く場合を単語境界とする。
 ;; (add-to-list 'word-separating-categories (cons ?L ?U))
 
+;;; ------------------------------------------------------------
 ;; my-anything-c-source-buffers-list
 ;; (defvar my-anything-c-source-buffers-list
 ;; 	`((name . "Buffers")
