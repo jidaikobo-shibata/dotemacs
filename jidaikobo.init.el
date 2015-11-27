@@ -304,23 +304,17 @@
 ;;; ------------------------------------------------------------
 ;;; 一行目と最終行での上下キーの振る舞い（行末と行頭へ）
 
-(defcustom is-goto-the-edge t
-	"*Mac-like behavior."
-	:group 'Convenience
-	:type 'boolean)
-
-(when is-goto-the-edge
-	(defvar prev-line-num (line-number-at-pos))
-	(add-hook 'post-command-hook 'es-goto-the-edge)
-	(defun es-goto-the-edge ()
-		"Go to the edge of the line."
-		;; (message "this-event:  %s\nthis-command:%s" last-input-event this-command)
-		(when (and (eq prev-line-num 1) (memq last-input-event '(up S-up)))
-			(beginning-of-line))
-		(when (and (eq prev-line-num (count-lines 1 (point-max)))
-							 (memq last-input-event '(down S-down)))
-			(end-of-line))
-		(setq prev-line-num (line-number-at-pos))))
+(defvar prev-line-num (line-number-at-pos))
+(add-hook 'post-command-hook 'es-goto-the-edge)
+(defun es-goto-the-edge ()
+	"Go to the edge of the line."
+	;; (message "this-event:  %s\nthis-command:%s" last-input-event this-command)
+	(when (and (eq prev-line-num 1) (memq last-input-event '(up S-up)))
+		(beginning-of-line))
+	(when (and (eq prev-line-num (count-lines 1 (point-max)))
+						 (memq last-input-event '(down S-down)))
+		(end-of-line))
+	(setq prev-line-num (line-number-at-pos)))
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
