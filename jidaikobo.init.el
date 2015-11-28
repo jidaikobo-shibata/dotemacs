@@ -178,6 +178,9 @@
 (cua-mode t) ; cua-modeをオン
 (setq-default cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
 
+;;複数フレームを開かないようにする
+(setq-default ns-pop-up-frames nil)
+
 ;;; emacsclient（使いたいのだけど、今のところうまくいかない）
 (if (eq window-system 'ns) (server-start))
 
@@ -496,7 +499,7 @@
 (bind-key* "C-;" (lambda ()
 									 (interactive)
 									 (when (< (frame-width) 110)
-										 (set-frame-size (selected-frame) (+ (frame-width) 80) (frame-height)))
+										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
 									 (my-anything-for-files)))
 
 ;;; my-anything-for-functions
@@ -508,13 +511,21 @@
 		 anything-c-source-emacs-commands
 		 anything-c-source-emacs-functions)
 	 "*my-anything-for-functions*"))
-(bind-key* "C-," 'my-anything-for-functions)
+(bind-key* "C-," (lambda ()
+									 (interactive)
+									 (when (< (frame-width) 110)
+										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
+									 (my-anything-for-functions)))
 
 ;;; descbinds-anythingの乗っ取り
 ;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
 (require 'descbinds-anything)
 (descbinds-anything-install)
-(bind-key* "C-." 'descbinds-anything)
+(bind-key* "C-." (lambda ()
+									 (interactive)
+									 (when (< (frame-width) 110)
+										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
+									 (descbinds-anything)))
 
 ;;; ------------------------------------------------------------
 ;;; gtags
@@ -1116,7 +1127,7 @@
 ;;; フレーム初期値
 
 (add-to-list 'default-frame-alist '(alpha . (1.00 1.00)))
-(add-to-list 'default-frame-alist '(width . 108))
+(add-to-list 'default-frame-alist '(width . 100))
 (add-to-list 'default-frame-alist '(height . 55))
 (add-to-list 'default-frame-alist '(top . 0))
 (add-to-list 'default-frame-alist '(left . 0))

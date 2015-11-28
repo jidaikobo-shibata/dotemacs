@@ -20,9 +20,7 @@
 ;; (auto-install-compatibility-setup)
 ;; M-x auto-install-batch RET anything RET
 
-
 ;; wget http://www.ne.jp/asahi/alpha/kazu/pub/emacs/phpdoc.el
-
 
 ;; ;;; ------------------------------------------------------------
 ;; ;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
