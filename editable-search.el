@@ -218,7 +218,7 @@
 							 (insert word)
 							 (select-window es-target-window)))
 	(when (< (frame-width) 110)
-			(set-frame-size (selected-frame) (+ (frame-width) 80) (frame-height)))
+			(set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
 			(setq es-ignore-delete-window-hook nil)))
 
 ;;; ------------------------------------------------------------

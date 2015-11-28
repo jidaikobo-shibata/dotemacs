@@ -1048,10 +1048,10 @@
 	"Resize frame to jidaikobo's default."
 	(interactive)
 	(set-frame-position (selected-frame) 0 0)
-	;; 大きかったら小さく、小さかったら大きくする
-	(if (= (frame-width) 216)
-			(set-frame-size (selected-frame) 108 55)
-		(set-frame-size (selected-frame) 216 55)))
+	;; フレームを適当なサイズに変更
+	(if (= (frame-width) 200)
+			(set-frame-size (selected-frame) 100 55)
+		(set-frame-size (selected-frame) 200 55)))
 (bind-key* "s-W" 'resize-selected-frame)
 
 ;;; ------------------------------------------------------------
