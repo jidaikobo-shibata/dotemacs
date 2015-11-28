@@ -567,7 +567,9 @@
 ;;; 新しいスクリーン
 (bind-key* "s-t" (lambda () (interactive)
 									 (elscreen-create)
-									 (switch-to-buffer (generate-new-buffer "new"))))
+									 ;; (switch-to-buffer (generate-new-buffer "new"))
+									 (switch-to-buffer "*scratch*")
+									 (text-mode)))
 
 ;;; ウィンドウ/スクリーンを閉じる
 (defun my-delete-windows ()
@@ -576,20 +578,26 @@
 	(cond
 	 ;; ウィンドウ構成が多ければまず他のウィンドウを消す
 	 ((not (one-window-p)) (delete-other-windows))
+
 	 ;; ウィンドウ構成がひとつでバッファに変更があれば破棄を確認する
-	 ((and (buffer-modified-p)
+	 ((or (and (buffer-modified-p)
 				 ;; read-onlyなら無視
 				 (not buffer-read-only)
-				 ;; アスタリスクで始まるバッファ名も保存を尋ねない
+				 ;; スクラッチ以外でアスタリスクで始まるバッファ名も保存を尋ねない
 				 (not (string=
 							 (substring (buffer-name (current-buffer)) 0 1)
 							 "*")))
+				 ;; スクラッチバッファでメモ代わりに使っていたら保存を尋ねる
+				 (and (buffer-modified-p) (string= (buffer-name) "*scratch*")))
 		(unless (yes-or-no-p "Buffer is modified. Close anyway?")
 			(call-interactively (save-buffer)))
 		(kill-buffer)
+		;; screenが複数だったらelscreen-kill
 		(unless (elscreen-one-screen-p) (elscreen-kill)))
+
 	 ;; screenがひとつだったらkill-buffer
 	 ((elscreen-one-screen-p) (kill-buffer))
+
 	 ;; ここまで来る条件てあるのかしら。とりあえずkill
 	 (t (elscreen-kill-screen-and-buffers))))
 (bind-key* "s-w" 'my-delete-windows)
@@ -1066,20 +1074,14 @@
 (defvar ac-technical-term-dict
 	'((candidates . ac-technical-term-cache)))
 
-;; FuelPHP
-(defvar ac-fuelphp-cache
-	(ac-file-dictionary (concat ac-user-dict-dir "fuelphp")))
-(defvar ac-fuelphp-dict
-	'((candidates . ac-fuelphp-cache)))
-
 ;;; 条件の追加
 (add-to-list 'ac-modes 'text-mode)
 (add-to-list 'ac-modes 'fundamental-mode)
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
-													 ac-source-symbols
-													 ac-source-filename
-													 ac-english-dict
-													 ac-technical-term-dict))
+													 ;; ac-source-filename
+													 ac-technical-term-dict
+													 ;; ac-source-symbols
+													 ac-english-dict))
 
 ;;; ------------------------------------------------------------
 ;; magit
@@ -1121,7 +1123,6 @@
 ;;; Todo:
 ;; doctypeを見てのbrやタグの挿入
 ;; 単語境界をもうちょっと細かくしたい
-;; editable-search で正規表現による空行の検索がうまくいかない
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
