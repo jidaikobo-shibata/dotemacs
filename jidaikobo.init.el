@@ -37,14 +37,14 @@
 ;; how to update package
 ;; M-x package-list-packages RET U x
 
+;; load-pathの追加
+(add-to-list 'load-path "~/.emacs.d/jidaikobo")
+
 ;;; load packages
 (if (file-exists-p "~/.emacs.d/package.override.el")
 		(load "~/.emacs.d/package.override.el")
 
-	;; load-pathの追加
-	(add-to-list 'load-path "~/.emacs.d/elisp")
-
-	;; packages
+	;; Packages
 	(require 'package)
 	(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 	;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
@@ -101,8 +101,8 @@
 (require 'editable-search)
 
 ;;; HTMLのマークアップのキーバインド集
-;;; jidaikobo web authoring set
-(require 'jidaikobo-web-authoring-set)
+;;; web-authoring-set
+(require 'web-authoring-set)
 
 ;;; ------------------------------------------------------------
 ;;; キーバインド用
@@ -1059,7 +1059,7 @@
 (setq ac-disable-faces nil)
 
 ;;; ユーザ辞書ディレクトリ
-(defvar ac-user-dict-dir (expand-file-name "~/.emacs.d/ac-dict/"))
+(defvar ac-user-dict-dir (expand-file-name "~/.emacs.d/jidaikobo/ac-dict/"))
 
 ;;; 辞書追加
 ;; 英語

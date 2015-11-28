@@ -1,4 +1,4 @@
-;;; jidaikobo-web-authoring-set.el --- jidaikobo web authoring
+;;; web-authoring-set.el --- jidaikobo web authoring
 ;; Copyright (C) 2015 by jidaikobo-shibata
 ;; Author: jidaikobo
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
@@ -436,6 +436,6 @@
 ;;; ------------------------------------------------------------
 ;;; Provide
 
-(provide 'jidaikobo-web-authoring-set)
+(provide 'web-authoring-set)
 
-;;; jidaikobo-web-authoring-set.el ends here
+;;; web-authoring-set.el ends here
