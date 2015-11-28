@@ -37,6 +37,18 @@
 ;; how to update package
 ;; M-x package-list-packages RET U x
 
+;; is-once-in-a-day
+(defun is-once-in-a-day ()
+	"Check is once in a day depend on a recentf."
+	(interactive)
+	(let ((ftime (float-time
+								(time-subtract
+								 ;; 今日の0時
+								 (encode-time 0 0 0 (nth 3 (decode-time)) (nth 4 (decode-time)) (nth 5 (decode-time)) (nth 6 (decode-time)) (nth 7 (decode-time)) (nth 8 (decode-time)))
+								 ;; recentfファイルの最終更新時
+								 (nth 5 (file-attributes "~/.emacs.d/recentf"))))))
+		(if (> ftime 0) t nil)))
+
 ;; load-pathの追加
 (add-to-list 'load-path "~/.emacs.d/jidaikobo")
 
@@ -52,13 +64,7 @@
 	(package-initialize)
 
 	;; 1日一回package-refresh-contentsする
-	(let ((ftime (float-time
-								(time-subtract
-								 ;; 今日の0時
-								 (encode-time 0 0 0 (nth 3 (decode-time)) (nth 4 (decode-time)) (nth 5 (decode-time)) (nth 6 (decode-time)) (nth 7 (decode-time)) (nth 8 (decode-time)))
-								 ;; recentfファイルの最終更新時
-								 (nth 5 (file-attributes "~/.emacs.d/recentf"))))))
-		(when (> ftime 0) (package-refresh-contents)))
+	(when (is-once-in-a-day) (package-refresh-contents))
 
 	;; my-packages
 	(defvar my-packages
