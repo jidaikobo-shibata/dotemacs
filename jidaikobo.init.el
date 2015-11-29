@@ -37,6 +37,78 @@
 ;; how to update package
 ;; M-x package-list-packages RET U x
 
+;;; ------------------------------------------------------------
+;;; 最小限設定 - 以降でエラーがあっても、最小限保証される設定
+
+;;; リージョンを上書きできるようにする
+(delete-selection-mode t)
+
+;;; 選択範囲を可視化
+(setq transient-mark-mode t)
+
+;;; inline patchを有効に
+(setq default-input-method "MacOSX")
+
+;;; optキーをMetaキーに
+(setq mac-pass-command-to-system nil)
+(setq mac-command-modifier 'super)
+(setq mac-option-modifier 'meta)
+
+;; yes/noをy/nへ
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;;; 起動画面を抑止
+(setq inhibit-startup-message t)
+
+;;; スクラッチメッセージ（起動時注意書き）を抑止
+(setq initial-scratch-message nil)
+
+;;; オートインデント無効
+(electric-indent-mode -1)
+
+;;; 警告音とフラッシュを無効
+(setq ring-bell-function 'ignore)
+
+;;; バックアップファイルを作らないようにする
+(setq make-backup-files nil)
+
+;;; 自動保存を無効
+(setq auto-save-default nil)
+(setq delete-auto-save-files t)
+
+;;; ツールバーを非表示
+(tool-bar-mode -1)
+
+;;; タイトルバーにファイル名表示
+(setq frame-title-format (format "%%f %%* Emacs@%s" (system-name)))
+
+;;; ミニバッファ履歴を保存
+(savehist-mode 1)
+
+;;; タブ幅
+(setq-default tab-width 2)
+(setq-default indent-tabs-mode t)
+
+;;; cua-modeの設定
+(cua-mode t) ; cua-modeをオン
+(setq-default cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
+
+;;複数フレームを開かないようにする
+(setq-default ns-pop-up-frames nil)
+
+;;; 自動分割は原則左右で
+(setq split-height-threshold nil)
+
+;; ファイルが #! から始まる場合、+xを付けて保存する
+(add-hook 'after-save-hook
+					'executable-make-buffer-file-executable-if-script-p)
+
+;;; emacsclient（使いたいのだけど、今のところうまくいかない）
+(if (eq window-system 'ns) (server-start))
+
+;;; ------------------------------------------------------------
+;;; 1日1回のチェック
+
 ;; is-once-in-a-day
 (defun is-once-in-a-day ()
 	"Check is once in a day depend on a recentf."
@@ -48,6 +120,9 @@
 								 ;; recentfファイルの最終更新時
 								 (nth 5 (file-attributes "~/.emacs.d/recentf"))))))
 		(if (> ftime 0) t nil)))
+
+;;; ------------------------------------------------------------
+;;; Packages
 
 ;; load-pathの追加
 (add-to-list 'load-path "~/.emacs.d/jidaikobo")
@@ -115,75 +190,6 @@
 ;;; キーバインド用
 
 (require 'bind-key)
-
-;;; ------------------------------------------------------------
-;;; 全体設定
-
-;;; リージョンを上書きできるようにする
-(delete-selection-mode t)
-
-;;; 選択範囲を可視化
-(setq transient-mark-mode t)
-
-;;; 自動分割は原則左右で
-(setq split-height-threshold nil)
-
-;;; inline patchを有効に
-(setq default-input-method "MacOSX")
-
-;;; optキーをMetaキーに
-(setq mac-pass-command-to-system nil)
-(setq mac-command-modifier 'super)
-(setq mac-option-modifier 'meta)
-
-;; yes/noをy/nへ
-(fset 'yes-or-no-p 'y-or-n-p)
-
-;;; 起動画面を抑止
-(setq inhibit-startup-message t)
-
-;;; スクラッチメッセージ（起動時注意書き）を抑止
-(setq initial-scratch-message nil)
-
-;;; オートインデント無効
-(electric-indent-mode -1)
-
-;;; 警告音とフラッシュを無効
-(setq ring-bell-function 'ignore)
-
-;;; バックアップファイルを作らないようにする
-(setq make-backup-files nil)
-
-;;; 自動保存を無効
-(setq auto-save-default nil)
-(setq delete-auto-save-files t)
-
-;; ファイルが #! から始まる場合、+xを付けて保存する
-(add-hook 'after-save-hook
-					'executable-make-buffer-file-executable-if-script-p)
-
-;;; ツールバーを非表示
-(tool-bar-mode -1)
-
-;;; タイトルバーにファイル名表示
-(setq frame-title-format (format "%%f %%* Emacs@%s" (system-name)))
-
-;;; ミニバッファ履歴を保存
-(savehist-mode 1)
-
-;;; タブ幅
-(setq-default tab-width 2)
-(setq-default indent-tabs-mode t)
-
-;;; cua-modeの設定
-(cua-mode t) ; cua-modeをオン
-(setq-default cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
-
-;;複数フレームを開かないようにする
-(setq-default ns-pop-up-frames nil)
-
-;;; emacsclient（使いたいのだけど、今のところうまくいかない）
-(if (eq window-system 'ns) (server-start))
 
 ;;; ------------------------------------------------------------
 ;;; キーボード操作
@@ -666,7 +672,6 @@
 (set-default 'line-spacing 3)
 
 ;;; 行番号を表示する
-;; 表示切替はM-x wb-line-number-toggleと入力。
 (defun show-line-number ()
 	"Show line number."
 	(interactive)
