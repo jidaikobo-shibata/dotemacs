@@ -314,8 +314,8 @@
 ;;; 一行目と最終行での上下キーの振る舞い（行末と行頭へ）
 
 (defvar prev-line-num (line-number-at-pos))
-(add-hook 'post-command-hook 'es-goto-the-edge)
-(defun es-goto-the-edge ()
+(add-hook 'post-command-hook 'my-goto-the-edge)
+(defun my-goto-the-edge ()
 	"Go to the edge of the line."
 	;; (message "this-event:  %s\nthis-command:%s" last-input-event this-command)
 	(when (and (eq prev-line-num 1) (memq last-input-event '(up S-up)))
