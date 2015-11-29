@@ -90,6 +90,7 @@
 			bind-key
 			magit
 			gist
+			foreign-regexp
 			elscreen))
 
 	;; my-packagesからインストールしていないパッケージをインストール
@@ -103,7 +104,7 @@
 ;;; 編集可能な検索置換仕組み
 ;;; editable-search
 (custom-set-variables
- '(es-is-use-super t))
+'(es-is-use-super t))
 (require 'editable-search)
 
 ;;; HTMLのマークアップのキーバインド集
@@ -1140,6 +1141,9 @@
 ;;; Todo:
 ;; doctypeを見てのbrやタグの挿入
 ;; 単語境界をもうちょっと細かくしたい
+;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる。
+;; 複数の検索置換セット
+;; 複数ファイルの検索置換
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
