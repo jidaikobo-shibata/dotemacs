@@ -28,8 +28,7 @@
 ;;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
 ;; @ terminal
 ;; sudo port install global
-;; mkdir -p ~/.emacs.d/elisp
-;; emacs --batch -l ~/.emacs.d/jidaikobo.init.el
+;; emacs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
 
 ;;; Code:
 ;;; ------------------------------------------------------------
@@ -135,11 +134,11 @@
 	(require 'package)
 	(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
 	;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
-	;; (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
+	(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
 	(package-initialize)
 
 	;; 1日一回package-refresh-contentsする
-	(when (is-once-in-a-day) (package-refresh-contents))
+	(when (or noninteractive (is-once-in-a-day)) (package-refresh-contents))
 
 	;; my-packages
 	(defvar my-packages
@@ -165,6 +164,7 @@
 			bind-key
 			magit
 			gist
+			tabbar
 			foreign-regexp
 			elscreen))
 
@@ -1212,6 +1212,13 @@
 													 ;; ac-source-symbols
 													 ac-english-dict))
 
+;; thx http://torotoki.hatenablog.com/entry/2013/06/05/032527
+(set-face-background 'ac-completion-face "Black")
+(set-face-foreground 'ac-candidate-face "Black")
+(set-face-background 'ac-selection-face "grey40")
+(set-face-background 'popup-face "grey20")
+(set-face-foreground 'popup-face "grey40")
+
 ;;; ------------------------------------------------------------
 ;; magit
 
@@ -1247,6 +1254,7 @@
 (add-to-list 'default-frame-alist '(background-color . "#201f1f"))
 (add-to-list 'default-frame-alist '(foreground-color . "white"))
 (add-to-list 'default-frame-alist '(cursor-color . "gray"))
+(add-to-list 'default-frame-alist '(region . "#b2d7ff"))
 
 ;;; ------------------------------------------------------------
 ;;; Todo:
