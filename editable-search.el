@@ -81,16 +81,8 @@
 
 ;; 現在のモードラインを保存しておく
 (unless es-modeline-saved
-	(let (face-alist
-				face-key)
-		(setq face-alist (face-all-attributes 'mode-line))
-		(while face-alist
-			(setq face-key (car (car face-alist)))
-			(when (string= face-key ":background")
-				(setq es-modeline-background (cdr (car face-alist))))
-			(when (string= face-key ":foreground")
-				(setq es-modeline-foreground (cdr (car face-alist))))
-			(setq face-alist (cdr face-alist))))
+	(setq es-modeline-background (face-attribute 'mode-line :background))
+	(setq es-modeline-foreground (face-attribute 'mode-line :foreground))
 	(setq es-modeline-saved t))
 
 ;; モードラインを戻す
