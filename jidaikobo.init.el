@@ -574,28 +574,111 @@
 (add-hook 'after-save-hook 'update-gtags)
 
 ;;; ------------------------------------------------------------
-;;; タブ関連 - elscreen
+;;; タブ関連 - elscreen or tabbar
 
-(require 'elscreen)
-(elscreen-start)
+;; elscreen or tabbar
+(defvar is-use-tabbar nil)
+(defvar is-use-elscreen t)
 
-;;; タブの先頭に[X]を表示しない
-(setq elscreen-tab-display-kill-screen nil)
+;;; ------------------------------------------------------------
+;;; tabbar
 
-;;; header-lineの先頭に[<->]を表示しない
-(setq elscreen-tab-display-control nil)
+(when is-use-tabbar
+	(require 'tabbar)
+	(tabbar-mode 1)
 
-;;; キーバインド
-(bind-key* "<M-s-right>" 'elscreen-next)
-(bind-key* "<M-s-left>" 'elscreen-previous)
+	;; my-tabbar-buffer-list
+	;; thx http://ser1zw.hatenablog.com/entry/2012/12/31/022359
+	(defun my-tabbar-buffer-list ()
+		"My tabbar buffer list."
+		(delq nil
+					(mapcar #'(lambda (b)
+											(cond
+											 ;; Always include the current buffer.
+											 ((eq (current-buffer) b) b)
+											 ((buffer-file-name b) b)
+											 ((char-equal ?\  (aref (buffer-name b) 0)) nil)
+											 ;; *scratch*バッファは表示する
+											 ((equal "*scratch*" (buffer-name b)) b)
+											 ;; それ以外の * で始まるバッファは表示しない
+											 ((char-equal ?* (aref (buffer-name b) 0)) nil)
+											 ((buffer-live-p b) b)))
+									(buffer-list))))
+	(setq-default tabbar-buffer-list-function 'my-tabbar-buffer-list)
 
-;;; 新しいスクリーン
-(bind-key* "s-t" (lambda () (interactive)
-									 (elscreen-create)
-									 ;; (switch-to-buffer (generate-new-buffer "new"))
-									 (switch-to-buffer "*scratch*")
-									 (text-mode)))
+	;; 変更をラベルで可視化
+	;; thx http://www.emacswiki.org/emacs/TabBarMode
+	(defadvice tabbar-buffer-tab-label (after fixup_tab_label_space_and_flag activate)
+		(setq ad-return-value
+					(if (and (buffer-modified-p (tabbar-tab-value tab))
+									 (buffer-file-name (tabbar-tab-value tab)))
+							(concat " + " (concat ad-return-value " "))
+						(concat " " (concat ad-return-value " ")))))
+	(defun ztl-modification-state-change ()
+		(tabbar-set-template tabbar-current-tabset nil)
+		(tabbar-display-update))
+	(defun ztl-on-buffer-modification ()
+		(set-buffer-modified-p t)
+		(ztl-modification-state-change))
+	(add-hook 'after-save-hook 'ztl-modification-state-change)
+	(add-hook 'first-change-hook 'ztl-on-buffer-modification)
 
+	;; タブ同士の間隔
+	(setq-default tabbar-separator '(0.7))
+
+	;; 外観変更
+	(set-face-attribute
+	 'tabbar-default nil
+	 :family (face-attribute 'default :family)
+	 :background "Black"
+	 :height 0.9)
+	(set-face-attribute
+	 'tabbar-unselected nil
+	 :background "Black"
+	 :foreground "grey50"
+	 :box nil)
+	(set-face-attribute
+	 'tabbar-selected nil
+	 :background "grey90"
+	 :foreground "black"
+	 :box nil)
+
+	;; グループ化しない
+	(setq-default tabbar-buffer-groups-function nil)
+
+	;; 画像を使わない
+	(setq-default tabbar-use-images nil)
+
+	;; キーバインド
+	(bind-key* "M-s-<right>" 'tabbar-forward-tab)
+	(bind-key* "M-s-<left>" 'tabbar-backward-tab)
+	(bind-key* "s-t" (lambda () (interactive)
+											 (switch-to-buffer "*scratch*"))))
+
+;;; ------------------------------------------------------------
+;;; elscreen
+
+(when is-use-elscreen
+	(require 'elscreen)
+	(elscreen-start)
+
+	;; タブの先頭に[X]を表示しない
+	(setq-default elscreen-tab-display-kill-screen nil)
+
+	;; header-lineの先頭に[<->]を表示しない
+	(setq-default elscreen-tab-display-control nil)
+
+	;; キーバインド
+	(bind-key* "<M-s-right>" 'elscreen-next)
+	(bind-key* "<M-s-left>" 'elscreen-previous)
+
+	;; 新しいスクリーン
+	(bind-key* "s-t" (lambda () (interactive)
+										 (elscreen-create)
+										 (switch-to-buffer "*scratch*")
+										 (text-mode))))
+
+;;; ------------------------------------------------------------
 ;;; ウィンドウ/スクリーンを閉じる
 (defun my-delete-windows ()
 	"Contexual delete windows."
@@ -618,13 +701,13 @@
 			(call-interactively (save-buffer)))
 		(kill-buffer)
 		;; screenが複数だったらelscreen-kill
-		(unless (elscreen-one-screen-p) (elscreen-kill)))
-
+		(unless (and is-use-elscreen (elscreen-one-screen-p)) (elscreen-kill)))
 	 ;; screenがひとつだったらkill-buffer
-	 ((elscreen-one-screen-p) (kill-buffer))
-
-	 ;; ここまで来る条件てあるのかしら。とりあえずkill
-	 (t (elscreen-kill-screen-and-buffers))))
+	 ((and is-use-elscreen (elscreen-one-screen-p)) (kill-buffer))
+	 ;; とりあえずkill
+	 (is-use-elscreen (elscreen-kill-screen-and-buffers))
+	 ;; kill-buffer for is-use-tabbar and other situation
+	 (t (kill-buffer))))
 (bind-key* "s-w" 'my-delete-windows)
 
 ;;; ------------------------------------------------------------
@@ -859,21 +942,22 @@
 ;;; ------------------------------------------------------------
 ;;; 全角数字を半角数字に
 
-(defun convert-to-single-byte-number ()
-	"Convert multi-byte numbers in region into single-byte number.  replace-strings-in-region-by-list is depend on jidaikobo-web-authoring-set."
-	(interactive)
-	(replace-strings-in-region-by-list
-	 '(("１" . "1")
-		 ("２" . "2")
-		 ("３" . "3")
-		 ("４" . "4")
-		 ("５" . "5")
-		 ("６" . "6")
-		 ("７" . "7")
-		 ("８" . "8")
-		 ("９" . "9")
-		 ("０" . "0"))))
-(bind-key* "s-u" 'convert-to-single-byte-number)
+(when (file-exists-p "~/.emacs.d/jidaikobo/web-authoring-set.el")
+	(defun convert-to-single-byte-number ()
+		"Convert multi-byte numbers in region into single-byte number.  replace-strings-in-region-by-list is depend on web-authoring-set."
+		(interactive)
+		(replace-strings-in-region-by-list
+		 '(("１" . "1")
+			 ("２" . "2")
+			 ("３" . "3")
+			 ("４" . "4")
+			 ("５" . "5")
+			 ("６" . "6")
+			 ("７" . "7")
+			 ("８" . "8")
+			 ("９" . "9")
+			 ("０" . "0"))))
+	(bind-key* "s-u" 'convert-to-single-byte-number))
 
 ;;; ------------------------------------------------------------
 ;; ucs-normalize-NFC-region で濁点分離を直す
@@ -940,6 +1024,27 @@
 	(es-replace-region "^>+ +" "" t))
 (bind-key* "s-}" 'add-mail-quotation)
 (bind-key* "s-{" 'remove-mail-quotation)
+
+;;; ------------------------------------------------------------
+;;; インデント操作
+
+(defun my-manupilate-indentation (depth)
+	"Manupilate indentation.  DEPTH can be minus."
+	(interactive)
+	(let (beg
+				end)
+		(when (not (region-active-p))
+				(progn
+					(setq is-line t)
+					(beginning-of-line)
+					(set-mark-command nil)
+					(end-of-line)
+					(setq deactivate-mark nil)))
+		(setq beg (region-beginning))
+		(setq end (region-end))
+		(increase-left-margin beg end depth)))
+(bind-key* "s-]" (lambda () (interactive) (my-manupilate-indentation 2)))
+(bind-key* "s-[" (lambda () (interactive) (my-manupilate-indentation -2)))
 
 ;;; ------------------------------------------------------------
 ;;現在バッファのファイルのフルパスを取得
