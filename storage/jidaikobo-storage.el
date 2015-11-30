@@ -1,3 +1,9 @@
+;; (bind-key* "s-t" (lambda () (interactive)
+;; 									 (let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
+;; 										 (get-buffer-create bufname)
+;; 										 (switch-to-buffer bufname)
+;; 										 (text-mode))))
+
 ;;; Memo:
 ;; anything-c-source-google-suggest（面白いのだけど使いどころがない）
 ;; M-x install-packageで、入らないものがあるが、
