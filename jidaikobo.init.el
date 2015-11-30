@@ -642,12 +642,24 @@
 	 :background "grey90"
 	 :foreground "black"
 	 :box nil)
+	(set-face-attribute
+	 'tabbar-modified nil
+	 :background "Black"
+	 :foreground "grey50"
+	 :box nil)
 
 	;; グループ化しない
 	(setq-default tabbar-buffer-groups-function nil)
 
 	;; 画像を使わない
 	(setq-default tabbar-use-images nil)
+
+	;; hide buttons
+	(dolist (btn '(tabbar-buffer-home-button
+								 tabbar-scroll-left-button
+								 tabbar-scroll-right-button))
+		(set btn (cons (cons "" nil)
+									 (cons "" nil))))
 
 	;; キーバインド
 	(bind-key* "M-s-<right>" 'tabbar-forward-tab)
