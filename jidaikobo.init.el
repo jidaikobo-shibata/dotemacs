@@ -564,7 +564,8 @@
 		(when rootdir
 			(let* ((default-directory rootdir)
 						 (buffer (get-buffer-create "*update GTAGS*")))
-				(with-current-buffer
+				(save-excursion
+					(set-buffer buffer)
 					(erase-buffer)
 					(let ((result (process-file "gtags" nil buffer nil args)))
 						(if (= 0 result)
