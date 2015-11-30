@@ -1,27 +1,12 @@
 ;;; editable-search.el --- search by other window buffer
 ;; Copyright (C) 2015 by jidaikobo-shibata
-;; Author: jidaikobo
+;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
 ;;; Commentary:
 ;; あたらしいウィンドウを開いて、そこで編集した文字列で検索や置換を行います。
 
 ;;; Code:
-
-;;; ------------------------------------------------------------
-;;; dependencies
-
-;; re-builder
-(require 're-builder)
-(setq reb-re-syntax 'string)
-
-;; foreign-regexp
-(eval-after-load "foreign-regexp"
-	(progn
-		(require 'foreign-regexp)
-		(custom-set-variables
-		 '(foreign-regexp/regexp-type 'perl)
-		 '(reb-re-syntax 'foreign-regexp))))
 
 ;;; ------------------------------------------------------------
 ;;; defgroup
@@ -58,6 +43,29 @@
 (defvar es-ignore-delete-window-hook nil)
 (defvar editable-search-mode-map (make-keymap))
 (defvar editable-re-search-mode-map (make-keymap))
+(defvar es-modeline-saved nil)
+(defvar es-modeline-background)
+(defvar es-modeline-foreground)
+(defvar es-is-foregin-regexp nil)
+
+;;; ------------------------------------------------------------
+;;; dependencies
+
+;; re-builder
+(require 're-builder)
+(setq reb-re-syntax 'string)
+
+;; foreign-regexp
+(eval-after-load "foreign-regexp"
+	(progn
+		(require 'foreign-regexp)
+		(custom-set-variables
+		 '(foreign-regexp/regexp-type 'perl)
+		 '(reb-re-syntax 'foreign-regexp))
+		(setq es-is-foregin-regexp t)))
+(declare-function foreign-regexp/search/forward  "foreign-regexp")
+(declare-function foreign-regexp/search/backward "foreign-regexp")
+(declare-function foreign-regexp/replace/perform-replace "foreign-regexp")
 
 ;;; ------------------------------------------------------------
 ;;; 検索置換用のマイナーモードを設定する
@@ -71,10 +79,25 @@
 	:keymap
 	editable-search-mode-map)
 
+;; 現在のモードラインを保存しておく
+(unless es-modeline-saved
+	(let (face-alist
+				face-key)
+		(setq face-alist (face-all-attributes 'mode-line))
+		(while face-alist
+			(setq face-key (car (car face-alist)))
+			(when (string= face-key ":background")
+				(setq es-modeline-background (cdr (car face-alist))))
+			(when (string= face-key ":foreground")
+				(setq es-modeline-foreground (cdr (car face-alist))))
+			(setq face-alist (cdr face-alist))))
+	(setq es-modeline-saved t))
+
+;; モードラインを戻す
 (defun es-search-modeline ()
 	"Search modeline."
 	(set-face-attribute 'mode-line nil
-											:foreground "black" :background "grey60"))
+											:foreground es-modeline-background :background es-modeline-foreground))
 
 ;;; 正規表現モード
 (define-minor-mode editable-re-search-mode
@@ -202,8 +225,8 @@
 (define-key es-keybind-map (kbd "R") 'es-alias-replace-region)
 
 ;;; smartrep
-(eval-after-load "smartrep"
-	(progn
+(declare-function package-installed-p "package")
+(when (package-installed-p 'smartrep)
 		(require 'smartrep)
 		(declare-function smartrep-define-key "smartrep")
 		(smartrep-define-key global-map "C-F"
@@ -211,7 +234,7 @@
 				("G" . 'es-alias-search-prev)
 				("l" . 'es-alias-replace-next)
 				("r" . 'es-alias-replace-here)
-				("R" . 'es-alias-replace-region)))))
+				("R" . 'es-alias-replace-region))))
 
 ;;; ------------------------------------------------------------
 ;;; 正規表現モードのトグル
@@ -247,24 +270,9 @@
 								(with-selected-window (get-buffer-window es-search-str-window)
 									(reb-delete-overlays)
 									(fundamental-mode)
+									(linum-mode -1)
 									(es-search-modeline))))
 					(message (concat "turned off RE with " es-target-buffer)))))))
-
-;; reb-target-buffer
-;; (setq es-target-window (selected-window))
-;; (setq es-target-buffer (buffer-name))
-;; (reb-update-overlays)
-;; "search-mode"
-;; (lisp-mode)
-;; (reb-do-update)
-;; (reb-update-regexp)
-;; (reb-delete-overlays)
-;;(buffer-live-p reb-target-buffer)
-;; (setq reb-subexp-mode nil
-;; 	reb-subexp-displayed nil)
-;;(with-current-buffer reb-target-buffer
-;;      (mapc 'delete-overlay reb-overlays)
-;;      (setq reb-overlays nil))
 
 ;;; ------------------------------------------------------------
 ;;; 検索と置換用のウィンドウをdeleteして、editable-seach-modeを抜ける
@@ -276,7 +284,8 @@
 			(delete-window (get-buffer-window es-search-str-window)))
 	(if (windowp (get-buffer-window es-replace-str-window))
 			(delete-window (get-buffer-window es-replace-str-window)))
-	(editable-search-mode -1))
+	(editable-search-mode -1)
+	(editable-re-search-mode -1))
 
 ;;; 検索と置換用のウィンドウを用意してサーチモードに入る
 (declare-function global-auto-complete-mode "global-auto-complete-mode" (bool))
@@ -310,8 +319,9 @@
 			(setq es-target-window (selected-window))
 			(setq es-target-buffer (buffer-name))
 			(delete-other-windows)
-			(es-search-modeline)
-			(editable-search-mode t)
+			(if (eq editable-re-search-mode nil)
+					(es-search-modeline)
+				(es-re-search-modeline))
 
 			;; 検索窓を用意
 			(split-window-horizontally)
@@ -376,15 +386,22 @@
 	"(string)SEARCH-STR, (string)REPLACE-STR, (bool)IS-RE."
 	(when mark-active
 		(let ((beg (region-beginning))
-					(end (region-end)))
+					(end (region-end))
+					(is-replaced nil))
 			(progn
 				(when is-re
-					(setq replace-str (replace-regexp-in-string
-														 search-str
-														 replace-str
-														 (buffer-substring-no-properties beg end))))
-				(delete-region beg end)
-				(insert replace-str)))))
+					(if es-is-foregin-regexp
+							(progn
+								(foreign-regexp/replace/perform-replace
+								 search-str replace-str nil nil nil nil nil beg end)
+								(setq is-replaced t))
+						(setq replace-str (replace-regexp-in-string
+															 search-str
+															 replace-str
+															 (buffer-substring-no-properties beg end)))))
+				(unless is-replaced
+					(delete-region beg end)
+					(insert replace-str))))))
 
 ;; 選択範囲の作成用関数
 ;; 検索方向に応じて、キャレットの位置を適切にする
@@ -481,9 +498,13 @@
 			 ((and (not is-re) is-prev)
 				(search-backward search-str))
 			 ((and is-re is-next)
-				(re-search-forward search-str))
+				(if es-is-foregin-regexp
+						(foreign-regexp/search/forward search-str)
+					(re-search-forward search-str)))
 			 ((and is-re is-prev)
-				(re-search-backward search-str)))
+				(if es-is-foregin-regexp
+						(foreign-regexp/search/backward search-str)
+					(re-search-backward search-str))))
 			;; ヒットした文字長の取得
 			(if is-re
 					(setq len-search-string (length (match-string-no-properties 0)))
@@ -566,7 +587,9 @@
 						(progn
 							;; 文字列を走査
 							(if is-re
-									(re-search-forward search-str)
+									(if es-is-foregin-regexp
+											(foreign-regexp/search/forward search-str)
+										(re-search-forward search-str))
 								(search-forward search-str))
 							(progn
 								;; ヒットした文字長の取得
