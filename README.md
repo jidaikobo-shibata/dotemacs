@@ -11,7 +11,9 @@ add few lines to init.el:
 
     ;;; load jidaikobo/jidaikobo.init.el
     (when (file-exists-p "~/.emacs.d/jidaikobo/jidaikobo.init.el")
-        (load "~/.emacs.d/jidaikobo/jidaikobo.init.el"))
+      (setq-default is-use-tabbar t)
+      (setq-default is-use-elscreen nil)
+      (load "~/.emacs.d/jidaikobo/jidaikobo.init.el"))
 
 ## Installation global (gtags) and Packages from shell
 
@@ -23,5 +25,6 @@ Macintosh example:
 ## little bit useful
 
 after load jidaikobo.init.el.
+or use [once-in-a-day](https://gist.github.com/jidaikobo-shibata/33e072cea6aa96a19f58).
 
     (when (or noninteractive (is-once-in-a-day)) (package-refresh-contents))
