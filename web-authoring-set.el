@@ -69,7 +69,7 @@
 	(interactive)
 	(let* ((beg (if mark-active (region-beginning) 0))
 				 (end (if mark-active (region-end) 0))
-				 (word (buffer-substring-no-properties beg end))
+				 (word (if mark-active (buffer-substring-no-properties beg end) ""))
 				 ret)
 		(when (string= word "") (setq word "$vals"))
 		(cond
