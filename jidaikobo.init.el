@@ -45,7 +45,19 @@
 ;;; 選択範囲を可視化
 (setq transient-mark-mode t)
 
-;;; inline patchを有効に
+;;; C-kで行全体を対象にする
+(setq kill-whole-line t)
+
+;;; スクロールを一行ずつにする
+(setq scroll-step 1)
+
+;; クリップボードを他のアプリケーションと共用にする
+(setq x-select-enable-clipboard t)
+
+;; font-lock-mode
+(global-font-lock-mode t)
+
+;;; default-input-method
 (setq default-input-method "MacOSX")
 
 ;;; optキーをMetaキーに
@@ -106,6 +118,16 @@
 (if (eq window-system 'ns) (server-start))
 
 ;;; ------------------------------------------------------------
+;;; フレーム初期値
+
+(add-to-list 'default-frame-alist '(alpha . (1.00 1.00)))
+(add-to-list 'default-frame-alist '(width . 100))
+(add-to-list 'default-frame-alist '(height . 55))
+(add-to-list 'default-frame-alist '(top . 0))
+(add-to-list 'default-frame-alist '(left . 0))
+(add-to-list 'default-frame-alist '(font . "ricty-16"))
+
+;;; ------------------------------------------------------------
 ;;; 1日1回のチェック
 
 ;; is-once-in-a-day
@@ -125,8 +147,7 @@
 
 ;; load-pathの追加
 (add-to-list 'load-path "~/.emacs.d/jidaikobo")
-
-;;; load packages
+;;; 1日一回 load packages
 (if (file-exists-p "~/.emacs.d/package.override.el")
 		(load "~/.emacs.d/package.override.el")
 
@@ -136,8 +157,6 @@
 	;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 	(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
 	(package-initialize)
-
-	;; 1日一回package-refresh-contentsする
 	(when (or noninteractive (is-once-in-a-day)) (package-refresh-contents))
 
 	;; my-packages
@@ -166,6 +185,7 @@
 			gist
 			tabbar
 			foreign-regexp
+			rainbow-mode
 			elscreen))
 
 	;; my-packagesからインストールしていないパッケージをインストール
@@ -185,6 +205,13 @@
 ;;; HTMLのマークアップのキーバインド集
 ;;; web-authoring-set
 (require 'web-authoring-set)
+
+;;; ------------------------------------------------------------
+;;; theme
+
+(add-to-list 'custom-theme-load-path
+						 (file-name-as-directory "~/.emacs.d/jidaikobo/themes/"))
+(load-theme 'jidaikobo-dark t)
 
 ;;; ------------------------------------------------------------
 ;;; キーバインド用
@@ -224,6 +251,17 @@
 (bind-key* "<C-down>" 'forward-paragraph) ; Control-down
 ;; (bind-key* "M-right" 'forward-symbol)
 ;; (bind-key* "M-left" (lambda () (interactive) (forward-symbol -1)))
+
+;;; window操作
+(bind-key* "C-o" 'other-window)
+(bind-key* "C-1" 'delete-other-windows)
+(bind-key* "<C-kp-1>" 'delete-other-windows)
+(bind-key* "C-2" 'split-window-horizontally)
+(bind-key* "<C-kp-2>" 'split-window-horizontally)
+(bind-key* "C-3" 'split-window-vertically)
+(bind-key* "<C-kp-3>" 'split-window-vertically)
+(bind-key* "C-0" 'delete-window)
+(bind-key* "<C-kp-3>" 'delete-window)
 
 ;;; escでM-g
 ;; http://emacswiki.org/emacs/CancelingInEmacs
@@ -288,6 +326,15 @@
 									 (setq blist (cdr blist)))
 								 (switch-to-buffer (car blist) t)
 								 (setq blist nil))))))
+
+;;; ------------------------------------------------------------
+;;; バッファの状態を保存
+;; thx http://d.hatena.ne.jp/katsu_w/20080319/1205923300
+
+;; (autoload 'save-current-configuration "revive" "Save status" t)
+;; (autoload 'resume "revive" "Resume Emacs" t)
+;; (autoload 'wipe "revive" "Wipe emacs" t)
+;; (add-hook 'kill-emacs-hook 'save-current-configuration)   ; 終了時に状態保存
 
 ;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
@@ -665,7 +712,10 @@
 	(bind-key* "M-s-<right>" 'tabbar-forward-tab)
 	(bind-key* "M-s-<left>" 'tabbar-backward-tab)
 	(bind-key* "s-t" (lambda () (interactive)
-											 (switch-to-buffer "*scratch*"))))
+									 (let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
+										 (get-buffer-create bufname)
+										 (switch-to-buffer bufname)
+										 (text-mode)))))
 
 ;;; ------------------------------------------------------------
 ;;; elscreen
@@ -943,6 +993,30 @@
 (bind-key* "s-d" 'duplicate-region-or-line)
 
 ;;; ------------------------------------------------------------
+;;; isearchに文字列をセット
+;; http://blog.livedoor.jp/tek_nishi/archives/2831992.html
+
+(defun my-isearch-get-word()
+	"カーソル位置の単語をisearch"
+	(interactive)
+	(if(not isearch-mode)
+			(call-interactively 'isearch-forward)))
+
+(defun my-isearch-get-word-hook()
+	"Hook of isearch."
+	(when (equal this-command 'my-isearch-get-word)
+		(let ((string
+					 (if (and transient-mark-mode mark-active)
+							 (buffer-substring (region-beginning) (region-end))
+						 "")))
+			(deactivate-mark)
+			(setq isearch-string string
+						isearch-yank-flag t)
+			(isearch-search-and-update))))
+(add-hook 'isearch-mode-hook 'my-isearch-get-word-hook)
+(bind-key* "C-S-s" 'my-isearch-get-word)
+
+;;; ------------------------------------------------------------
 ;;; 選択範囲を[大文字|小文字|キャピタライズ]に
 
 (put 'upcase-region 'disabled nil)
@@ -1113,9 +1187,35 @@
 (bind-key* "<M-down>" 'flycheck-next-error) ; next error (M+down)
 
 ;;; ------------------------------------------------------------
+;;; rainbow-mode
+;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
+
+(require 'rainbow-mode)
+(add-hook 'fundamental-mode-hook 'rainbow-mode)
+(add-hook 'text-mode-hook 'rainbow-mode)
+(add-hook 'lisp-mode-hook 'rainbow-mode)
+(add-hook 'css-mode-hook 'rainbow-mode)
+(add-hook 'scss-mode-hook 'rainbow-mode)
+(add-hook 'php-mode-hook 'rainbow-mode)
+(add-hook 'html-mode-hook 'rainbow-mode)
+
+;; 16進数だけカラーリング
+(font-lock-remove-keywords
+   nil
+   `(,@rainbow-x-colors-font-lock-keywords
+     ,@rainbow-latex-rgb-colors-font-lock-keywords
+     ,@rainbow-r-colors-font-lock-keywords
+     ,@rainbow-html-colors-font-lock-keywords
+     ,@rainbow-html-rgb-colors-font-lock-keywords))
+;;; ------------------------------------------------------------
 ;;; web-mode
 
 (require 'web-mode)
+
+(defun web-mode-hook ()
+	"Hooks for Web mode."
+	(setq web-mode-markup-indent-offset 2))
+(add-hook 'web-mode-hook 'web-mode-hook)
 
 ;;; ------------------------------------------------------------
 ;;; js2-mode
@@ -1190,6 +1290,19 @@
 (bind-key* "s-W" 'resize-selected-frame)
 
 ;;; ------------------------------------------------------------
+;; カラーリングをテストする
+;; http://d.hatena.ne.jp/buzztaiki/20111209/1323444755
+
+(defun font-lock-user-keywords (mode &optional keywords)
+  "Add user highlighting to MODE to KEYWORDS.
+See `font-lock-add-keywords' and `font-lock-defaults'."
+  (unless mode
+    (error "Mode should be non-nil"))
+  (font-lock-remove-keywords mode (get mode 'font-lock-user-keywords))
+  (font-lock-add-keywords mode keywords)
+  (put mode 'font-lock-user-keywords keywords))
+
+;;; ------------------------------------------------------------
 ;;; auto-complete
 
 ;; オートコンプリート
@@ -1244,29 +1357,6 @@
 ;; gist
 
 (require 'gist)
-
-
-
-
-
-
-
-
-
-
-;;; ------------------------------------------------------------
-;;; フレーム初期値
-
-(add-to-list 'default-frame-alist '(alpha . (1.00 1.00)))
-(add-to-list 'default-frame-alist '(width . 100))
-(add-to-list 'default-frame-alist '(height . 55))
-(add-to-list 'default-frame-alist '(top . 0))
-(add-to-list 'default-frame-alist '(left . 0))
-(add-to-list 'default-frame-alist '(font . "ricty-16"))
-(add-to-list 'default-frame-alist '(background-color . "#201f1f"))
-(add-to-list 'default-frame-alist '(foreground-color . "white"))
-(add-to-list 'default-frame-alist '(cursor-color . "gray"))
-(add-to-list 'default-frame-alist '(region . "#b2d7ff"))
 
 ;;; ------------------------------------------------------------
 ;;; Todo:

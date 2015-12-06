@@ -602,8 +602,70 @@
 ;;; experiment マルチファイル検索
 ;;; 対象ディレクトリと拡張子を指定したら検索する
 
-(defvar es-file-list)
-(setq es-file-list (shell-command-to-string "cd ~/Desktop/test/; find ./ -name \"*.txt\" -type f"))
+(require 'anything)
+
+(defvar es-anything-c-source-files
+	'((name . "Path")
+		(candidates . (lambda ()
+										(with-temp-buffer
+											(insert (shell-command-to-string
+															 (concat "cd " es-multifile-target-dir " ; find . -type f")))
+											(ucs-normalize-NFC-region (point-min) (point-max))
+											(split-string (buffer-string) "\n"))))
+		(type . file)
+		(action . (("search or replace file" . es-multifile-search-replace)))))
+
+;;; es-anything-files-list
+(defun es-anything-files-list ()
+	"Anything command for editable-search."
+	(interactive)
+	(anything
+	 :buffer
+	 "*es-multifile-search-replace*"
+	 :sources
+	 'es-anything-c-source-files))
+
+;;; es-call-anything-files-list
+(defvar es-multifile-target-dir default-directory)
+(defun es-call-anything-files-list ()
+	"Anything command for editable-search."
+	(interactive)
+		(setq es-multifile-target-dir (read-file-name (concat "Path: ")))
+		(unless (file-directory-p es-multifile-target-dir)
+			(error "Error: invalid path"))
+		(es-anything-files-list))
+
+;;; es-multifile-search-replace
+;; stolen from anything-c-find-file-or-marked
+(defun es-multifile-search-replace (paths)
+	"Search/Replace files.  PATHS can be directory or file's path."
+  (let ((marked (anything-marked-candidates)))
+		(insert (format "%s" marked))
+    (if (> (length marked) 1)
+        ;; Open all marked files in background and display
+        ;; the first one.
+        (progn (mapc 'find-file-noselect (cdr marked))
+               (insert (format "%s" (car marked))))
+        (error "Error: invalid path")
+			)))
+
+
+
+;; (insert (format "%s" paths))
+				;; (with-temp-buffer
+				;; 	(insert-file-contents es-history-filename)
+				;; 	(setq history (es-hist-load))
+				;; 	(add-to-list 'history (list search-str replace-str))
+				;; 	(insert (format "%s" history))
+				;; 	(write-region (point-min) (point-max) es-history-filename nil 0)))
+
+
+
+
+
+;; (bind-key* "C--" 'es-call-anything-files-list)
+
+
 
 ;;; ------------------------------------------------------------
 ;;; experiment 検索履歴
