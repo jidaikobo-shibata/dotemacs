@@ -3,7 +3,8 @@
 ;; 										 (get-buffer-create bufname)
 ;; 										 (switch-to-buffer bufname)
 ;; 										 (text-mode))))
-
+	;; (bind-key* "s-t" (lambda () (interactive)
+	;; 										 (switch-to-buffer "*scratch*")))
 ;;; Memo:
 ;; anything-c-source-google-suggest（面白いのだけど使いどころがない）
 ;; M-x install-packageで、入らないものがあるが、
