@@ -1,3 +1,23 @@
+;; ;;; 接続先Hostを書いた情報源を探して、tramp接続
+;; (defvar anything-c-source-my-hosts
+;; 	'((name . "hosts")
+;; 		(candidates . (lambda ()
+;; 										(split-string
+;; 										 (with-temp-buffer
+;; 											 (insert-file-contents "~/.emacs.d/anything/hosts.txt")
+;; 											 (buffer-string)))))
+;; 										;; (split-string (shell-command-to-string "find /Users/jidaikobo/FTP/ -name \"*_NON*\" -prune -o -type f -name \"destination.txt\""))))
+;; 		(type . file)
+;; 		(action . (("Tramp" . anything-tramp-open)))))
+
+;; (defun anything-tramp-open (path)
+;; 	"Tramp open.  PATH is path."
+;; 	(find-file path))
+
+;; (defun anything-tramp-close (path)
+;; 	"Tramp close.  PATH is path."
+;; 	(find-file path))
+
 ;; (bind-key* "s-t" (lambda () (interactive)
 ;; 									 (let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
 ;; 										 (get-buffer-create bufname)

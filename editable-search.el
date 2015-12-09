@@ -79,17 +79,11 @@
 	:keymap
 	editable-search-mode-map)
 
-;; 現在のモードラインを保存しておく
-(unless es-modeline-saved
-	(setq es-modeline-background (face-attribute 'mode-line :background))
-	(setq es-modeline-foreground (face-attribute 'mode-line :foreground))
-	(setq es-modeline-saved t))
-
 ;; モードラインを戻す
 (defun es-search-modeline ()
 	"Search modeline."
 	(set-face-attribute 'mode-line nil
-											:foreground es-modeline-background :background es-modeline-foreground))
+											:foreground es-modeline-foreground :background es-modeline-background))
 
 ;;; 正規表現モード
 (define-minor-mode editable-re-search-mode
@@ -290,6 +284,12 @@
 				 (beg (if mark-active (region-beginning)))
 				 (end (if mark-active (region-end)))
 				 (word (if mark-active (buffer-substring-no-properties beg end) "")))
+
+		;; 現在のモードラインを保存しておく
+		(unless es-modeline-saved
+			(setq es-modeline-background (face-attribute 'mode-line :background))
+			(setq es-modeline-foreground (face-attribute 'mode-line :foreground))
+			(setq es-modeline-saved t))
 
 		;; 検索窓、置換窓がすでに開いている場合は、キャレットを移動
 		(if (and is-search-window-exist is-replace-window-exist)

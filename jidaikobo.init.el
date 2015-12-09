@@ -108,7 +108,7 @@
 (setq-default ns-pop-up-frames nil)
 
 ;;; 自動分割は原則左右で
-(setq split-height-threshold nil)
+;; (setq split-height-threshold nil)
 
 ;; ファイルが #! から始まる場合、+xを付けて保存する
 (add-hook 'after-save-hook
@@ -489,26 +489,6 @@
 	"Fetch open.  APP is path."
 	(shell-command (concat "open " app)))
 
-;;; 接続先Hostを書いた情報源を探して、tramp接続
-(defvar anything-c-source-my-hosts
-	'((name . "hosts")
-		(candidates . (lambda ()
-										(split-string
-										 (with-temp-buffer
-											 (insert-file-contents "~/.emacs.d/anything/hosts.txt")
-											 (buffer-string)))))
-										;; (split-string (shell-command-to-string "find /Users/jidaikobo/FTP/ -name \"*_NON*\" -prune -o -type f -name \"destination.txt\""))))
-		(type . file)
-		(action . (("Tramp" . anything-tramp-open)))))
-
-(defun anything-tramp-open (path)
-	"Tramp open.  PATH is path."
-	(find-file path))
-
-;; (defun anything-tramp-close (path)
-;; 	"Tramp close.  PATH is path."
-;; 	(find-file path))
-
 ;;; よく使うプロジェクトに対する操作
 (defvar anything-c-source-cd-to-projects
 	'((name . "cd to projects")
@@ -544,7 +524,6 @@
 		 ;; anything-c-source-files-in-current-dir+
 		 anything-c-source-buffers-list
 		 anything-c-source-find-by-gtags
-		 ;; anything-c-source-my-hosts
 		 anything-c-source-cd-to-projects
 		 anything-c-source-bookmarks
 		 anything-c-source-recentf
@@ -708,14 +687,20 @@
 		(set btn (cons (cons "" nil)
 									 (cons "" nil))))
 
+	;; new tab
+	(defun my-new-tab ()
+		"My new tab"
+		(interactive)
+		(let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
+										 (get-buffer-create bufname)
+										 (switch-to-buffer bufname)
+										 (text-mode)))
+
 	;; キーバインド
 	(bind-key* "M-s-<right>" 'tabbar-forward-tab)
 	(bind-key* "M-s-<left>" 'tabbar-backward-tab)
-	(bind-key* "s-t" (lambda () (interactive)
-									 (let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
-										 (get-buffer-create bufname)
-										 (switch-to-buffer bufname)
-										 (text-mode)))))
+	(bind-key* "s-t" 'my-new-tab)
+	(bind-key* "M-s-t" 'my-new-tab))
 
 ;;; ------------------------------------------------------------
 ;;; elscreen
@@ -994,26 +979,20 @@
 
 ;;; ------------------------------------------------------------
 ;;; isearchに文字列をセット
-;; http://blog.livedoor.jp/tek_nishi/archives/2831992.html
+;; http://blog.livedoor.jp/tek_nishi/archives/4866943.html
 
 (defun my-isearch-get-word()
-	"カーソル位置の単語をisearch"
+	"Set region to isearch."
 	(interactive)
 	(if(not isearch-mode)
-			(call-interactively 'isearch-forward)))
-
-(defun my-isearch-get-word-hook()
-	"Hook of isearch."
-	(when (equal this-command 'my-isearch-get-word)
-		(let ((string
-					 (if (and transient-mark-mode mark-active)
-							 (buffer-substring (region-beginning) (region-end))
-						 "")))
-			(deactivate-mark)
-			(setq isearch-string string
-						isearch-yank-flag t)
-			(isearch-search-and-update))))
-(add-hook 'isearch-mode-hook 'my-isearch-get-word-hook)
+			(progn
+				(call-interactively 'isearch-forward)
+				(let ((string
+							 (if (and transient-mark-mode mark-active)
+									 (buffer-substring (region-beginning) (region-end))
+								 (thing-at-point 'symbol))))
+					(deactivate-mark)
+					(isearch-yank-string string)))))
 (bind-key* "C-S-s" 'my-isearch-get-word)
 
 ;;; ------------------------------------------------------------
@@ -1100,14 +1079,40 @@
 	"Add mail quotation.  es-replace-region is depend on editable-search."
 	(interactive)
 	(mail-mode)
-	(if (string-match "^>" (buffer-substring-no-properties (region-beginning) (region-end)))
-			(es-replace-region "^" ">" t)
-		(es-replace-region "^" "> " t)))
+	(let ((beg (if mark-active (region-beginning) (point)))
+				(end (if mark-active (region-end) (point)))
+				is-line)
+		(when (not (region-active-p))
+				(progn
+					(setq is-line t)
+					(beginning-of-line)
+					(set-mark-command nil)
+					(end-of-line)))
+		(if (string-match "^>" (buffer-substring-no-properties beg end))
+				(es-replace-region "^" ">" t)
+			(es-replace-region "^" "> " t))
+		(goto-char beg)
+		(set-mark-command nil)
+		(goto-char end)))
+
 (defun remove-mail-quotation ()
 	"Add mail quotation.  es-replace-region is depend on editable-search."
 	(interactive)
 	(mail-mode)
-	(es-replace-region "^>+ +" "" t))
+	(let ((beg (if mark-active (region-beginning) (point)))
+				(end (if mark-active (region-end) (point)))
+				(is-line))
+		(when (not (region-active-p))
+				(progn
+					(setq is-line t)
+					(beginning-of-line)
+					(set-mark-command nil)
+					(end-of-line)))
+		(es-replace-region "^>+ +" "" t)
+		(goto-char beg)
+		(set-mark-command nil)
+		(goto-char end)))
+
 (bind-key* "s-}" 'add-mail-quotation)
 (bind-key* "s-{" 'remove-mail-quotation)
 
@@ -1118,7 +1123,8 @@
 	"Manupilate indentation.  DEPTH can be minus."
 	(interactive)
 	(let (beg
-				end)
+				end
+				is-line)
 		(when (not (region-active-p))
 				(progn
 					(setq is-line t)
@@ -1365,13 +1371,20 @@ See `font-lock-add-keywords' and `font-lock-defaults'."
 ;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる。
 ;; 複数の検索置換セット
 ;; 複数ファイルの検索置換
+;; 「isearchに文字列をセット」で、messageをきちんと書く
+;; M-%の振る舞いを理解したい。置換文字列にセットはできないものか。
+;; なるべく余計なことをしないphpモード。シンタックステーブルだけ持ってきて、用語とタブキーの振る舞いは自分で設定する
+;; やっぱりタブキーではタブを入力したい。選択範囲があるときだけシンタックステーブルに沿ったインデントをするようにする
+;; editable-searchが二つウィンドウを開くのが少々大仰に思える
+;; editable-searchのtypeをなおす（seachだったか？）
+;; portのEmacsを試してみる？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
 ;; (thing-at-point)
 
 ;;; ------------------------------------------------------------
-;; 単語境界を細かく
+;; 単語境界を細かく。どうもシンタックステーブルの問題らしい。
 ;; 文字カテゴリの作成
 ;; http://smallsteps.seesaa.net/article/123661899.html
 ;; (define-category ?U "Upper case")
