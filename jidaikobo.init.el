@@ -1378,6 +1378,8 @@ See `font-lock-add-keywords' and `font-lock-defaults'."
 ;; editable-searchが二つウィンドウを開くのが少々大仰に思える
 ;; editable-searchのtypeをなおす（seachだったか？）
 ;; portのEmacsを試してみる？
+;; whitespace設定をthemeにもっていくかどうかで背景色に配慮した振る舞いにする。
+;; once-in-a-dayを修正
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
