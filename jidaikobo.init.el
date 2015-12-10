@@ -132,15 +132,23 @@
 
 ;; is-once-in-a-day
 (defun is-once-in-a-day ()
-	"Check is once in a day depend on a recentf."
+	"Is once in a day."
 	(interactive)
-	(let ((ftime (float-time
-								(time-subtract
-								 ;; 今日の0時
-								 (encode-time 0 0 0 (nth 3 (decode-time)) (nth 4 (decode-time)) (nth 5 (decode-time)) (nth 6 (decode-time)) (nth 7 (decode-time)) (nth 8 (decode-time)))
-								 ;; recentfファイルの最終更新時
-								 (nth 5 (file-attributes "~/.emacs.d/recentf"))))))
-		(if (> ftime 0) t nil)))
+	(let* ((target-file "~/.emacs.d/.is-once-in-a-day")
+				 (target-update-at (if (file-exists-p target-file)
+															 (nth 5 (file-attributes target-file))
+														 nil))
+				 (criteria-time (encode-time 0 0 0 (nth 3 (decode-time)) (nth 4 (decode-time)) (nth 5 (decode-time)) (nth 6 (decode-time)) (nth 7 (decode-time)) (nth 8 (decode-time))))
+				 (ftime (float-time (time-subtract criteria-time target-update-at))))
+		(cond ((and target-update-at (> ftime 0))
+					 (with-temp-file target-file (insert "."))
+					 ;; (message "first boot")
+					 t)
+					((and target-update-at (< ftime 0))
+					 nil)
+					((not target-update-at)
+					 (with-temp-file target-file (insert "."))
+					 t))))
 
 ;;; ------------------------------------------------------------
 ;;; Packages
