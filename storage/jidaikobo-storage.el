@@ -1,3 +1,29 @@
+;; (setq hl-line-face 'underline)
+;; (global-hl-line-mode)
+;; 下線だと、日本語入力時の候補領域がわかりづらいのでやめる。
+
+;;; ------------------------------------------------------------
+;; カラーリングをテストする
+;; http://d.hatena.ne.jp/buzztaiki/20111209/1323444755
+
+;; (defun font-lock-user-keywords (mode &optional keywords)
+;;   "Add user highlighting to MODE to KEYWORDS.
+;; See `font-lock-add-keywords' and `font-lock-defaults'."
+;;   (unless mode
+;;     (error "Mode should be non-nil"))
+;;   (font-lock-remove-keywords mode (get mode 'font-lock-user-keywords))
+;;   (font-lock-add-keywords mode keywords)
+;;   (put mode 'font-lock-user-keywords keywords))
+
+;; rainbow-modeで16進数だけカラーリング
+;; (font-lock-remove-keywords
+;;    nil
+;;    `(,@rainbow-x-colors-font-lock-keywords
+;;      ,@rainbow-latex-rgb-colors-font-lock-keywords
+;;      ,@rainbow-r-colors-font-lock-keywords
+;;      ,@rainbow-html-colors-font-lock-keywords
+;;      ,@rainbow-html-rgb-colors-font-lock-keywords))
+
 ;; ;;; 接続先Hostを書いた情報源を探して、tramp接続
 ;; (defvar anything-c-source-my-hosts
 ;; 	'((name . "hosts")

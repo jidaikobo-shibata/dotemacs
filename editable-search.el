@@ -261,7 +261,7 @@
 					(message (concat "turned off RE with " es-target-buffer)))))))
 
 ;;; ------------------------------------------------------------
-;;; 検索と置換用のウィンドウをdeleteして、editable-seach-modeを抜ける
+;;; 検索と置換用のウィンドウをdeleteして、editable-search-modeを抜ける
 
 (defun es-delete-windows ()
 	"Delete splited windows."

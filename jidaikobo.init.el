@@ -660,28 +660,6 @@
 	;; タブ同士の間隔
 	(setq-default tabbar-separator '(0.7))
 
-	;; 外観変更
-	(set-face-attribute
-	 'tabbar-default nil
-	 :family (face-attribute 'default :family)
-	 :background "Black"
-	 :height 0.9)
-	(set-face-attribute
-	 'tabbar-unselected nil
-	 :background "Black"
-	 :foreground "grey50"
-	 :box nil)
-	(set-face-attribute
-	 'tabbar-selected nil
-	 :background "grey90"
-	 :foreground "black"
-	 :box nil)
-	(set-face-attribute
-	 'tabbar-modified nil
-	 :background "Black"
-	 :foreground "grey50"
-	 :box nil)
-
 	;; グループ化しない
 	(setq-default tabbar-buffer-groups-function nil)
 
@@ -793,15 +771,11 @@
 
 ;;; 行カーソル
 ;; thx http://rubikitch.com/tag/emacs-post-command-hook-timer/
-;; (setq hl-line-face 'underline)
-;; (global-hl-line-mode)
-;; 下線だと、日本語入力時の候補領域がわかりづらいのでやめる。
 (require 'hl-line)
 (defun global-hl-line-timer-function ()
 	"Line cursor."
 	(global-hl-line-unhighlight-all)
 	(let ((global-hl-line-mode t))
-		(set-face-attribute 'hl-line nil :foreground nil :background "#3e3e3e" :underline nil)
 		(global-hl-line-highlight)))
 (setq-default global-hl-line-timer
 			(run-with-idle-timer 0.03 t 'global-hl-line-timer-function))
@@ -925,42 +899,13 @@
 
 ;;; ------------------------------------------------------------
 ;;; whitespace関連設定
-
-;;; タブの可視化
-;;; thx http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
 (require 'whitespace)
-(setq whitespace-style '(face          ; faceで可視化
-												trailing       ; 行末
-												tabs           ; タブ
-												spaces         ; スペース
-												empty          ; 先頭/末尾の空行
-												space-mark     ; 表示のマッピング
-												tab-mark
-												))
-(setq whitespace-display-mappings
-			'((tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t])
-				;;(space-mark ?\u3000 [?\u25a1])
-				))
 
 ;;; 保存前に自動でクリーンアップ
 (setq whitespace-action '(auto-cleanup))
 
-;;; whitespaceの見栄え
+;;; whitespaceの可視化
 (global-whitespace-mode 1)
-
-(set-face-attribute 'whitespace-trailing nil
-										:background "#201f1f"
-										:underline t)
-(set-face-attribute 'whitespace-tab nil
-										:background "#201f1f"
-										:foreground "Gray30"
-										:underline nil)
-(set-face-attribute 'whitespace-space nil
-										:background "#201f1f"
-										:underline nil)
-(set-face-attribute 'whitespace-empty nil
-										:background "#201f1f"
-										:underline nil)
 
 ;;; ------------------------------------------------------------
 ;;; 行／選択範囲の複製 (cmd+d)
@@ -1209,18 +1154,9 @@
 (add-hook 'text-mode-hook 'rainbow-mode)
 (add-hook 'lisp-mode-hook 'rainbow-mode)
 (add-hook 'css-mode-hook 'rainbow-mode)
-(add-hook 'scss-mode-hook 'rainbow-mode)
 (add-hook 'php-mode-hook 'rainbow-mode)
 (add-hook 'html-mode-hook 'rainbow-mode)
 
-;; 16進数だけカラーリング
-(font-lock-remove-keywords
-   nil
-   `(,@rainbow-x-colors-font-lock-keywords
-     ,@rainbow-latex-rgb-colors-font-lock-keywords
-     ,@rainbow-r-colors-font-lock-keywords
-     ,@rainbow-html-colors-font-lock-keywords
-     ,@rainbow-html-rgb-colors-font-lock-keywords))
 ;;; ------------------------------------------------------------
 ;;; web-mode
 
@@ -1304,19 +1240,6 @@
 (bind-key* "s-W" 'resize-selected-frame)
 
 ;;; ------------------------------------------------------------
-;; カラーリングをテストする
-;; http://d.hatena.ne.jp/buzztaiki/20111209/1323444755
-
-(defun font-lock-user-keywords (mode &optional keywords)
-  "Add user highlighting to MODE to KEYWORDS.
-See `font-lock-add-keywords' and `font-lock-defaults'."
-  (unless mode
-    (error "Mode should be non-nil"))
-  (font-lock-remove-keywords mode (get mode 'font-lock-user-keywords))
-  (font-lock-add-keywords mode keywords)
-  (put mode 'font-lock-user-keywords keywords))
-
-;;; ------------------------------------------------------------
 ;;; auto-complete
 
 ;; オートコンプリート
@@ -1351,13 +1274,6 @@ See `font-lock-add-keywords' and `font-lock-defaults'."
 													 ;; ac-source-symbols
 													 ac-english-dict))
 
-;; thx http://torotoki.hatenablog.com/entry/2013/06/05/032527
-(set-face-background 'ac-completion-face "Black")
-(set-face-foreground 'ac-candidate-face "Black")
-(set-face-background 'ac-selection-face "grey40")
-(set-face-background 'popup-face "grey20")
-(set-face-foreground 'popup-face "grey40")
-
 ;;; ------------------------------------------------------------
 ;; magit
 
@@ -1384,10 +1300,8 @@ See `font-lock-add-keywords' and `font-lock-defaults'."
 ;; なるべく余計なことをしないphpモード。シンタックステーブルだけ持ってきて、用語とタブキーの振る舞いは自分で設定する
 ;; やっぱりタブキーではタブを入力したい。選択範囲があるときだけシンタックステーブルに沿ったインデントをするようにする
 ;; editable-searchが二つウィンドウを開くのが少々大仰に思える
-;; editable-searchのtypeをなおす（seachだったか？）
 ;; portのEmacsを試してみる？
 ;; whitespace設定をthemeにもっていくかどうかで背景色に配慮した振る舞いにする。
-;; once-in-a-dayを修正
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
