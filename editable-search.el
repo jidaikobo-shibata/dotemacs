@@ -357,13 +357,10 @@
 				(select-window (get-buffer-window es-replace-str-window)))
 
 		;; 候補文字列の置き換え
-		(if (or (string= mode "set-to-search") (string= mode "set-to-replace"))
-				(progn (goto-char (point-min))
-							 (set-mark (point))
-							 (goto-char (point-max))
-							 (delete-region (point-min) (point-max))
-							 (insert word)
-							 (select-window es-target-window)))
+		(when (or (string= mode "set-to-search") (string= mode "set-to-replace"))
+			(delete-region (point-min) (point-max))
+			(insert word)
+			(select-window es-target-window))
 
 	;; 検索置換窓を出せないくらい狭い時には拡張
 	(when (< (frame-width) 110)
@@ -379,18 +376,22 @@
 	(when mark-active
 		(let ((beg (region-beginning))
 					(end (region-end))
-					(is-replaced nil))
+					is-replaced)
 			(progn
+				;; prepare replace string or replace by foreign-regexp
 				(when is-re
 					(if es-is-foregin-regexp
+							;; perform repalce by foreign-regexp
 							(progn
 								(foreign-regexp/replace/perform-replace
 								 search-str replace-str nil nil nil nil nil beg end)
 								(setq is-replaced t))
+						;; prepare replace string
 						(setq replace-str (replace-regexp-in-string
 															 search-str
 															 replace-str
 															 (buffer-substring-no-properties beg end)))))
+				;; perform replace (normal and regexp)
 				(unless is-replaced
 					(delete-region beg end)
 					(insert replace-str))))))
@@ -408,14 +409,14 @@
 			 (setq beg (- (point) len-search-string))
 			 (goto-char beg)
 			 (setq end (+ (point) len-search-string))
-			 (set-mark-command nil)
+			 (set-mark (point)) ;; not into mark-ring
 			 (goto-char end))
 			((string= direction "prev")
 			 (setq end (+ (point) len-search-string))
 			 (goto-char end)
 			 (setq beg (- (point) len-search-string))
-			 (set-mark-command nil)
-			 (goto-char beg)))
+			 (set-mark (point))
+			 (goto-char beg))) ;; not into mark-ring
 		 (setq deactivate-mark nil))))
 
 ;; 文字列の取得
@@ -522,8 +523,8 @@
 ;;; ------------------------------------------------------------
 ;;; すべて置換
 
-(defun es-replace-all (mode)
-	"Replace All.  MODE [re]."
+(defun es-replace-all (mode &optional opt-search-str opt-replace-str)
+	"Replace All.  MODE [re].  OPT-SEARCH-STR and OPT-REPLACE-STR are optional."
 	(let
 			((search-str "")
 			 (replace-str "")
@@ -542,7 +543,9 @@
 			(select-window es-target-window))
 
 		;; 検索用文字列の取得
-		(setq search-str (es-get-str-from-window "search"))
+		(setq search-str (if opt-search-str
+												 opt-search-str
+											 (es-get-str-from-window "search")))
 		(unless search-str
 			(setq search-str (if (boundp 'es-previous-searched-str) es-previous-searched-str nil)))
 		(unless search-str (error "Error: search word is empty"))
@@ -551,7 +554,10 @@
 		(when is-re (setq search-str (es-replace-empty-line-regex search-str)))
 
 		;; 置換用文字列の取得
-		(setq replace-str (es-get-str-from-window "replace"))
+
+		(setq replace-str (if opt-replace-str
+												 opt-replace-str
+											 (es-get-str-from-window "replace")))
 		(unless replace-str
 			(setq replace-str (if (boundp 'es-previous-replaced-str) es-previous-replaced-str nil)))
 		(unless replace-str (error "Error: replace word is empty"))
