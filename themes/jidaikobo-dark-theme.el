@@ -217,9 +217,10 @@
 ;;; ------------------------------------------------------------
 ;;; auto-complete and popup
 	 `(ac-completion-face
-		 ((t (:background "black"))))
+		 ((t (:foreground "orange"
+					:background "grey10"))))
 	 `(ac-candidate-face
-		 ((t (:foreground "black"))))
+		 ((t (:foreground "grey50"))))
 	 `(ac-selection-face
 		 ((t (:background "grey40"))))
 	 `(popup-face
