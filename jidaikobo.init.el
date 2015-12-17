@@ -75,7 +75,7 @@
 (setq initial-scratch-message nil)
 
 ;;; オートインデント無効
-;; (electric-indent-mode -1)
+(ignore-errors (electric-indent-mode -1))
 
 ;;; 警告音とフラッシュを無効
 (setq ring-bell-function 'ignore)
@@ -88,7 +88,7 @@
 (setq delete-auto-save-files t)
 
 ;;; ツールバーを非表示
-;; (tool-bar-mode -1)
+(ignore-errors (tool-bar-mode -1))
 
 ;;; タイトルバーにファイル名表示
 (setq frame-title-format (format "%%f %%* Emacs@%s" (system-name)))
@@ -137,27 +137,30 @@
 	(let* ((target-file "~/.emacs.d/.is-once-in-a-day")
 				 (target-update-at (if (file-exists-p target-file)
 															 (nth 5 (file-attributes target-file))
-														 nil))
+														 (append-to-file "" nil target-file)))
 				 (criteria-time (encode-time 0 0 0 (nth 3 (decode-time)) (nth 4 (decode-time)) (nth 5 (decode-time)) (nth 6 (decode-time)) (nth 7 (decode-time)) (nth 8 (decode-time))))
-				 (ftime (float-time (time-subtract criteria-time target-update-at))))
-		(cond ((and target-update-at (> ftime 0))
-					 (with-temp-file target-file (insert "."))
+				 (ftime (if target-update-at
+										(float-time (time-subtract criteria-time target-update-at))
+									nil)))
+		(cond ((and target-update-at ftime (> ftime 0))
+					 (append-to-file "" nil target-file)
 					 ;; (message "first boot")
 					 t)
-					((and target-update-at (< ftime 0))
+					((and target-update-at ftime (< ftime 0))
 					 nil)
 					((not target-update-at)
-					 (with-temp-file target-file (insert "."))
+					 (append-to-file "" nil target-file)
 					 t))))
 
 ;;; ------------------------------------------------------------
 ;;; Packages
 
-;; load-pathの追加
-(add-to-list 'load-path "~/.emacs.d/jidaikobo")
 ;;; 1日一回 load packages
 (if (file-exists-p "~/.emacs.d/package.override.el")
 		(load "~/.emacs.d/package.override.el")
+
+  ;; load-pathの追加
+	(add-to-list 'load-path "~/.emacs.d/jidaikobo")
 
 	;; Packages
 	(require 'package)
@@ -370,6 +373,15 @@
 (bind-key* "<M-s-down>" (lambda () (interactive) (next-block "next")))
 (bind-key* "<M-s-up>" (lambda () (interactive) (next-block "prev")))
 
+
+;;; ------------------------------------------------------------
+;;; 釣り合いのとれる括弧のハイライト
+;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
+(require 'mic-paren)
+(paren-activate)
+(setq paren-match-face 'underline paren-sexp-mode t)
+(setq paren-sexp-mode t)
+
 ;;; ------------------------------------------------------------
 ;;; 一行目と最終行での上下キーの振る舞い（行末と行頭へ）
 
@@ -384,6 +396,7 @@
 						 (memq last-input-event '(down S-down)))
 		(end-of-line))
 	(setq prev-line-num (line-number-at-pos)))
+
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
@@ -828,15 +841,6 @@
 														 (message "eval done.")))
 
 ;;; ------------------------------------------------------------
-;;; 釣り合いのとれる括弧のハイライト
-
-;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
-(require 'mic-paren)
-(paren-activate)
-(setq paren-match-face 'underline paren-sexp-mode t)
-(setq paren-sexp-mode t)
-
-;;; ------------------------------------------------------------
 ;;; ファイラ (dired)
 
 ;; diredでファイル編集（rで編集モードに）
@@ -1113,8 +1117,7 @@
 					(setq deactivate-mark nil)))
 		(setq beg (region-beginning))
 		(setq end (region-end))
-		(increase-left-margin beg end depth)))
-(bind-key* "s-]" (lambda () (interactive) (my-manupilate-indentation 2)))
+		(increase-left-margin beg end depth)))(bind-key* "s-]" (lambda () (interactive) (my-manupilate-indentation 2)))
 (bind-key* "s-[" (lambda () (interactive) (my-manupilate-indentation -2)))
 
 ;;; ------------------------------------------------------------
