@@ -75,7 +75,7 @@
 (setq initial-scratch-message nil)
 
 ;;; オートインデント無効
-(electric-indent-mode -1)
+;; (electric-indent-mode -1)
 
 ;;; 警告音とフラッシュを無効
 (setq ring-bell-function 'ignore)
@@ -264,12 +264,11 @@
 (bind-key* "C-o" 'other-window)
 (bind-key* "C-1" 'delete-other-windows)
 (bind-key* "<C-kp-1>" 'delete-other-windows)
-(bind-key* "C-2" 'split-window-horizontally)
-(bind-key* "<C-kp-2>" 'split-window-horizontally)
-(bind-key* "C-3" 'split-window-vertically)
-(bind-key* "<C-kp-3>" 'split-window-vertically)
+(bind-key* "C-2" 'split-window-vertically)
+(bind-key* "<C-kp-2>" 'split-window-vertically)
+(bind-key* "C-3" 'split-window-horizontally)
+(bind-key* "<C-kp-3>" 'split-window-horizontally)
 (bind-key* "C-0" 'delete-window)
-(bind-key* "<C-kp-3>" 'delete-window)
 
 ;;; escでM-g
 ;; http://emacswiki.org/emacs/CancelingInEmacs
@@ -458,7 +457,6 @@
 ;;; Anything
 (require 'anything)
 (require 'anything-config)
-(require 'anything-gtags)
 (require 'anything-grep)
 
 ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
@@ -835,8 +833,7 @@
 ;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
 (require 'mic-paren)
 (paren-activate)
-(setq-default paren-face '(underline paren-match-face))
-(setq paren-match-face '(underline paren-face))
+(setq paren-match-face 'underline paren-sexp-mode t)
 (setq paren-sexp-mode t)
 
 ;;; ------------------------------------------------------------
@@ -1031,22 +1028,51 @@
 (defun add-mail-quotation ()
 	"Add mail quotation.  es-replace-region is depend on editable-search."
 	(interactive)
-	(mail-mode)
-	(let ((beg (if mark-active (region-beginning) (point)))
-				(end (if mark-active (region-end) (point)))
-				is-line)
+	;; (mail-mode)
+	(let ((beg (if (region-active-p)
+								 (region-beginning)
+							 (point)))
+				(end (if (region-active-p)
+								 (region-end)
+							 (point)))
+				(beg-line (if (region-active-p)
+											(progn (save-excursion
+															 (goto-char (region-beginning))
+															 (line-number-at-pos)))
+										(line-number-at-pos)))
+				(end-line (if (region-active-p)
+											(progn (save-excursion
+															 (goto-char (region-end))
+															 (line-number-at-pos)))
+										(line-number-at-pos)))
+				(transient-mark-mode t))
+
+		(setq es-target-window (selected-window))
+
+		;; single line
 		(when (not (region-active-p))
-				(progn
-					(setq is-line t)
-					(beginning-of-line)
-					(set-mark-command nil)
-					(end-of-line)))
-		(if (string-match "^>" (buffer-substring-no-properties beg end))
-				(es-replace-region "^" ">" t)
-			(es-replace-region "^" "> " t))
-		(goto-char beg)
-		(set-mark-command nil)
-		(goto-char end)))
+			(beginning-of-line)
+			(push-mark nil)
+			(setq beg (point))
+			(end-of-line))
+
+		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end) "-" (format "%s" beg-line) "-" (format "%s" end-line)))
+
+		;; replace
+		;; (if (string-match "^>" (buffer-substring-no-properties beg end))
+		;; 		(es-replace-all "re" "^(.)" ">$1")
+		;; 	(es-replace-all "re" "^(.)" "> $1"))
+
+		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end) "-" (format "%s" beg-line) "-" (format "%s" end-line)))
+
+		;; regenerate region
+		;; (goto-char beg)
+		;; (push-mark nil)
+		;; (goto-char end)
+		;; (end-of-line)
+
+		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end) "-" (format "%s" beg-line) "-" (format "%s" end-line)))
+		))
 
 (defun remove-mail-quotation ()
 	"Add mail quotation.  es-replace-region is depend on editable-search."
@@ -1242,7 +1268,7 @@
 ;;; ------------------------------------------------------------
 ;;; auto-complete
 
-;; オートコンプリート
+;;; オートコンプリート
 (require 'auto-complete)
 (require 'auto-complete-config)
 (global-auto-complete-mode t)
