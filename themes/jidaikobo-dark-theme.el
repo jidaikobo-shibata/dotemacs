@@ -83,7 +83,7 @@
 	 `(highlight
 		 ((t (:background "grey"))))
 	 `(region
-		 ((t (:background "grey50"))
+		 ((t (:background ,jidaikobo-blue))
 			(t :inverse-video t)))
 	 `(warning
 		 ((t (:foreground ,jidaikobo-palevioletred
@@ -217,7 +217,7 @@
 ;;; ------------------------------------------------------------
 ;;; auto-complete and popup
 	 `(ac-completion-face
-		 ((t (:foreground "orange"
+		 ((t (:foreground "purple"
 					:background "grey10"))))
 	 `(ac-candidate-face
 		 ((t (:foreground "grey50"))))
