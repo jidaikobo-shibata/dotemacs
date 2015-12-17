@@ -88,7 +88,7 @@
 (setq delete-auto-save-files t)
 
 ;;; ツールバーを非表示
-(tool-bar-mode -1)
+;; (tool-bar-mode -1)
 
 ;;; タイトルバーにファイル名表示
 (setq frame-title-format (format "%%f %%* Emacs@%s" (system-name)))
