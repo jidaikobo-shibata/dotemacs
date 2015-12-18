@@ -155,12 +155,12 @@
 ;;; ------------------------------------------------------------
 ;;; Packages
 
+;; load-pathの追加
+(add-to-list 'load-path "~/.emacs.d/jidaikobo")
+
 ;;; 1日一回 load packages
 (if (file-exists-p "~/.emacs.d/package.override.el")
 		(load "~/.emacs.d/package.override.el")
-
-  ;; load-pathの追加
-	(add-to-list 'load-path "~/.emacs.d/jidaikobo")
 
 	;; Packages
 	(require 'package)
@@ -294,8 +294,8 @@
 
 ;;; smart-tab
 ;; コンテキストに応じたtabキー。auto-completeと共存
-(require 'smart-tab)
-(global-smart-tab-mode)
+;; (require 'smart-tab)
+;; (global-smart-tab-mode)
 
 ;;; ------------------------------------------------------------
 ;;; control+shift+cursorでウィンドウ内バッファ履歴
@@ -1277,6 +1277,9 @@
 (global-auto-complete-mode t)
 (setq ac-dwim t)
 (setq ac-disable-faces nil)
+;; (ac-set-trigger-key "TAB")
+;; (global-set-key "\M-TAB" 'auto-complete)
+;; (setq ac-auto-start nil)
 
 ;;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (expand-file-name "~/.emacs.d/jidaikobo/ac-dict/"))
@@ -1330,7 +1333,6 @@
 ;; やっぱりタブキーではタブを入力したい。選択範囲があるときだけシンタックステーブルに沿ったインデントをするようにする
 ;; editable-searchが二つウィンドウを開くのが少々大仰に思える
 ;; portのEmacsを試してみる？
-;; whitespace設定をthemeにもっていくかどうかで背景色に配慮した振る舞いにする。
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
