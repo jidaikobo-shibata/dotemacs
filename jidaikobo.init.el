@@ -96,7 +96,7 @@
 ;;; ミニバッファ履歴を保存
 (savehist-mode 1)
 
-;;; タブ幅
+;;; タブキー
 (setq-default tab-width 2)
 (setq-default indent-tabs-mode t)
 
@@ -232,7 +232,7 @@
 ;;; ------------------------------------------------------------
 ;;; キーボード操作
 
-;;; mac likeなcmd関係
+;;; mac-likeなcmd関係
 ;; thx http://d.hatena.ne.jp/gan2/20080109/1199887209
 ;; thx http://www.unixuser.org/~euske/doc/emacsref/#file
 (bind-key* "s-a" 'mark-whole-buffer) ; select all (cmd+a)
@@ -260,6 +260,7 @@
 (bind-key* "<s-right>" 'end-of-line) ; cmd+right
 (bind-key* "<C-up>" 'backward-paragraph) ; Control-down
 (bind-key* "<C-down>" 'forward-paragraph) ; Control-down
+(bind-key* "<backspace>" 'delete-backward-char) ; delete
 ;; (bind-key* "M-right" 'forward-symbol)
 ;; (bind-key* "M-left" (lambda () (interactive) (forward-symbol -1)))
 
@@ -1121,13 +1122,45 @@
 (bind-key* "s-[" (lambda () (interactive) (my-manupilate-indentation -2)))
 
 ;;; ------------------------------------------------------------
-;;現在バッファのファイルのフルパスを取得
+;; 自分好みのタブの振る舞い
+;; read-onlyバッファではリンクの移動
+;; 文字入力中だったらac-start
+;; なにもなければインデントを試みる
+;; インデントしてキャレットの移動がなければ\tを挿入
+
+(defun my-tab-activity ()
+	"Insert tab or indentation or jump to link or auto-complete."
+	(interactive)
+	;; (message "%s" last-command)
+	;; (message "%s" last-input-event)
+	;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
+	(let ((initial-point (point))
+				(is-line (if (region-active-p) nil t)))
+		;; read onlyバッファだったら次のリンク
+		(if buffer-read-only
+				(forward-button 1 t)
+			;; ミニバッファだったらミニバッファ補完
+			(if (minibufferp (current-buffer))
+					(minibuffer-complete)
+				;; 文字入力の途中だったらac-startを試みる
+				(if (memq last-command '(self-insert-command))
+						(ac-start)
+					;; indent-for-tab-commandを試みる
+					(indent-for-tab-command)
+					;; 範囲指定がなく、indent-for-tab-commandでカーソルが移動しないときはメッセージを表示してタブ挿入
+					(when (and is-line (eq initial-point (point)))
+						(message "No indetentation. Instert Tab.")
+						(insert "\t")))))))
+(bind-key* "<tab>" 'my-tab-activity)
+
+;;; ------------------------------------------------------------
+;; 現在バッファのファイルのフルパスを取得
 
 (defun get-current-path ()
 	"Get current file path."
 	(interactive)
 	(insert (or (buffer-file-name) (expand-file-name default-directory))))
-(global-set-key (kbd "M-s-k") 'get-current-path)
+(bind-key* "M-s-k" 'get-current-path)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲の言語を確認して翻訳 (C-c t)
@@ -1271,15 +1304,19 @@
 ;;; ------------------------------------------------------------
 ;;; auto-complete
 
-;;; オートコンプリート
+;;; セミオートコンプリート
 (require 'auto-complete)
 (require 'auto-complete-config)
 (global-auto-complete-mode t)
-(setq ac-dwim t)
+(setq ac-dwim nil)
 (setq ac-disable-faces nil)
-;; (ac-set-trigger-key "TAB")
-;; (global-set-key "\M-TAB" 'auto-complete)
-;; (setq ac-auto-start nil)
+(setq ac-auto-start nil)
+;; (bind-key* "<backtab>" 'ac-start)
+
+(defun my-ac-start ()
+	"Ac-set-trigger-key."
+	(interactive)
+	)
 
 ;;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (expand-file-name "~/.emacs.d/jidaikobo/ac-dict/"))
