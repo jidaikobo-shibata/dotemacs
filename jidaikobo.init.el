@@ -1124,6 +1124,7 @@
 ;;; ------------------------------------------------------------
 ;; 自分好みのタブの振る舞い
 ;; read-onlyバッファではリンクの移動
+;; ミニバッファだったらミニバッファ補完
 ;; 文字入力中だったらac-start
 ;; なにもなければインデントを試みる
 ;; インデントしてキャレットの移動がなければ\tを挿入
@@ -1143,7 +1144,7 @@
 			(if (minibufferp (current-buffer))
 					(minibuffer-complete)
 				;; 文字入力の途中だったらac-startを試みる
-				(if (memq last-command '(self-insert-command))
+				(if (and (require 'auto-complete) (memq last-command '(self-insert-command)))
 						(ac-start)
 					;; indent-for-tab-commandを試みる
 					(indent-for-tab-command)
