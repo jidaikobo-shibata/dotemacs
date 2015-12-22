@@ -1141,31 +1141,38 @@
 ;; なにもなければインデントを試みる
 ;; インデントしてキャレットの移動がなければ\tを挿入
 
-(defun my-tab-activity ()
+(defun my-tab-dwim ()
 	"Insert tab or indentation or jump to link or auto-complete."
 	(interactive)
-	;; (message "%s" last-command)
-	;; (message "%s" last-input-event)
+	;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
 	;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
 	(let ((initial-point (point))
 				(is-line (if (region-active-p) nil t)))
-		;; read onlyバッファだったら次のリンク
-		(if buffer-read-only
-				(forward-button 1 t)
-			;; ミニバッファだったらミニバッファ補完
-			(if (minibufferp (current-buffer))
-					(minibuffer-complete)
-				;; 文字入力の途中だったらac-startを試みる
-				(if (and (require 'auto-complete) (memq last-command '(self-insert-command)))
-						(progn (auto-complete-mode t)
-									 (ac-start))
-					;; indent-for-tab-commandを試みる
-					(indent-for-tab-command)
-					;; 範囲指定がなく、indent-for-tab-commandでカーソルが移動しないときはメッセージを表示してタブ挿入
-					(when (and is-line (eq initial-point (point)))
-						(message "No indetentation. Instert Tab.")
-						(insert "\t")))))))
-(bind-key* "<tab>" 'my-tab-activity)
+		(cond
+		 ;; read onlyバッファだったら次のリンク
+		 (buffer-read-only
+			(forward-button 1 t))
+		 ;; ミニバッファだったらミニバッファ補完
+		 ((minibufferp (current-buffer))
+			(minibuffer-complete))
+		 ;; 文字入力の途中（タブ以外）だったらac-startを試みる
+		 ((and
+			 (require 'auto-complete)
+			 (memq last-command '(self-insert-command))
+			 (not (memq last-command '(my-tab-dwim))))
+			(auto-complete-mode t)
+			(ac-start))
+		 ;; 直前の操作がタブキーだったらタブを挿入
+		 ((memq last-command '(my-tab-dwim))
+			(insert "\t"))
+		 ;; indent-for-tab-commandを試みる
+		 (t
+			(indent-for-tab-command)
+			;; 範囲指定がなく、indent-for-tab-commandでカーソルが移動しないときはメッセージを表示してタブ挿入
+			(when (and is-line (eq initial-point (point)))
+				(message "No indetentation. Instert Tab.")
+				(insert "\t"))))))
+(bind-key* "<tab>" 'my-tab-dwim)
 
 ;;; ------------------------------------------------------------
 ;; 現在バッファのファイルのフルパスを取得
@@ -1319,7 +1326,7 @@
 ;;; auto-complete
 
 ;;; セミオートコンプリート
-;; auto-completeのトリガーはmy-tab-activityで定義
+;; auto-completeのトリガーはmy-tab-dwimで定義
 (require 'auto-complete)
 (require 'auto-complete-config)
 (global-auto-complete-mode t)
