@@ -283,9 +283,6 @@
 (bind-key* "M-ESC ESC" 'keyboard-quit)
 (define-key minibuffer-inactive-mode-map [escape] 'keyboard-quit) ; minibuffer
 
-;;; opt+¥でバックスラッシュを入力
-(bind-key* "M-¥" "\\")
-
 ;;; ウィンドウ切り替え (opt+tab)
 (bind-key* "<M-tab>" 'other-window)
 
@@ -297,6 +294,21 @@
 ;; コンテキストに応じたtabキー。auto-completeと共存
 ;; (require 'smart-tab)
 ;; (global-smart-tab-mode)
+
+;;; ------------------------------------------------------------
+;; 文字入力
+
+;;; opt+¥でバックスラッシュを入力
+(bind-key* "M-¥" "\\")
+
+;;; php-modeなどのお節介を禁じる
+(define-key php-mode-map ")" 'self-insert-command)
+(define-key php-mode-map "(" 'self-insert-command)
+(define-key php-mode-map "{" 'self-insert-command)
+(define-key php-mode-map "}" 'self-insert-command)
+(define-key php-mode-map "/" 'self-insert-command)
+(define-key web-mode-map "/" 'self-insert-command)
+(define-key html-mode-map "/" 'self-insert-command)
 
 ;;; ------------------------------------------------------------
 ;;; control+shift+cursorでウィンドウ内バッファ履歴
@@ -1145,7 +1157,8 @@
 					(minibuffer-complete)
 				;; 文字入力の途中だったらac-startを試みる
 				(if (and (require 'auto-complete) (memq last-command '(self-insert-command)))
-						(ac-start)
+						(progn (auto-complete-mode t)
+									 (ac-start))
 					;; indent-for-tab-commandを試みる
 					(indent-for-tab-command)
 					;; 範囲指定がなく、indent-for-tab-commandでカーソルが移動しないときはメッセージを表示してタブ挿入
@@ -1204,9 +1217,9 @@
 (load "flycheck")
 (setq-default flycheck-emacs-lisp-load-path 'inherit)
 (add-hook 'after-init-hook #'global-flycheck-mode)
-(add-hook 'php-mode-hook 'flycheck-mode)
 (bind-key* "<M-up>" 'flycheck-previous-error) ; previous error (M+up)
 (bind-key* "<M-down>" 'flycheck-next-error) ; next error (M+down)
+(add-hook 'php-mode-hook 'flycheck-mode)
 
 ;;; ------------------------------------------------------------
 ;;; rainbow-mode
@@ -1306,18 +1319,13 @@
 ;;; auto-complete
 
 ;;; セミオートコンプリート
+;; auto-completeのトリガーはmy-tab-activityで定義
 (require 'auto-complete)
 (require 'auto-complete-config)
 (global-auto-complete-mode t)
-(setq ac-dwim nil)
+(setq ac-dwim t)
 (setq ac-disable-faces nil)
 (setq ac-auto-start nil)
-;; (bind-key* "<backtab>" 'ac-start)
-
-(defun my-ac-start ()
-	"Ac-set-trigger-key."
-	(interactive)
-	)
 
 ;;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (expand-file-name "~/.emacs.d/jidaikobo/ac-dict/"))
@@ -1368,9 +1376,12 @@
 ;; 「isearchに文字列をセット」で、messageをきちんと書く
 ;; M-%の振る舞いを理解したい。置換文字列にセットはできないものか。
 ;; なるべく余計なことをしないphpモード。シンタックステーブルだけ持ってきて、用語とタブキーの振る舞いは自分で設定する
-;; やっぱりタブキーではタブを入力したい。選択範囲があるときだけシンタックステーブルに沿ったインデントをするようにする
 ;; editable-searchが二つウィンドウを開くのが少々大仰に思える
 ;; portのEmacsを試してみる？
+;; htmlモードでのスラッシュ入力時の振る舞いを修正
+;; phpモードでの括弧類入力時の振る舞いを修正
+;; auto-completeの技術語辞書をもうちょっと厳選
+;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
