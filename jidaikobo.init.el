@@ -302,13 +302,13 @@
 (bind-key* "M-¥" "\\")
 
 ;;; php-modeなどのお節介を禁じる
-(define-key php-mode-map ")" 'self-insert-command)
-(define-key php-mode-map "(" 'self-insert-command)
-(define-key php-mode-map "{" 'self-insert-command)
-(define-key php-mode-map "}" 'self-insert-command)
-(define-key php-mode-map "/" 'self-insert-command)
-(define-key web-mode-map "/" 'self-insert-command)
-(define-key html-mode-map "/" 'self-insert-command)
+;; (define-key php-mode-map ")" 'self-insert-command)
+;; (define-key php-mode-map "(" 'self-insert-command)
+;; (define-key php-mode-map "{" 'self-insert-command)
+;; (define-key php-mode-map "}" 'self-insert-command)
+;; (define-key php-mode-map "/" 'self-insert-command)
+;; (define-key web-mode-map "/" 'self-insert-command)
+;; (define-key html-mode-map "/" 'self-insert-command)
 
 ;;; ------------------------------------------------------------
 ;;; control+shift+cursorでウィンドウ内バッファ履歴
