@@ -302,13 +302,13 @@
 (bind-key* "M-¥" "\\")
 
 ;;; php-modeなどのお節介を禁じる
-;; (define-key php-mode-map ")" 'self-insert-command)
-;; (define-key php-mode-map "(" 'self-insert-command)
-;; (define-key php-mode-map "{" 'self-insert-command)
-;; (define-key php-mode-map "}" 'self-insert-command)
-;; (define-key php-mode-map "/" 'self-insert-command)
-;; (define-key web-mode-map "/" 'self-insert-command)
-;; (define-key html-mode-map "/" 'self-insert-command)
+(define-key php-mode-map ")" 'self-insert-command)
+(define-key php-mode-map "(" 'self-insert-command)
+(define-key php-mode-map "{" 'self-insert-command)
+(define-key php-mode-map "}" 'self-insert-command)
+(define-key php-mode-map "/" 'self-insert-command)
+(define-key web-mode-map "/" 'self-insert-command)
+(define-key html-mode-map "/" 'self-insert-command)
 
 ;;; ------------------------------------------------------------
 ;;; control+shift+cursorでウィンドウ内バッファ履歴
@@ -325,8 +325,8 @@
 				(buffer))
 		(while blist
 			(unless (or (string= (substring (buffer-name (car blist)) 0 1) " ")
-							(string= (substring (buffer-name (car blist)) 0 1) "*")
-							(string= (substring (buffer-name (car blist)) 0 1) "+"))
+									(string= (substring (buffer-name (car blist)) 0 1) "*")
+									(string= (substring (buffer-name (car blist)) 0 1) "+"))
 				(setq prev-buffer (car blist)))
 			(setq blist (cdr blist))
 			(setq buffer (car blist))
@@ -1147,7 +1147,10 @@
 	;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
 	;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
 	(let ((initial-point (point))
-				(is-line (if (region-active-p) nil t)))
+				(is-line (if (region-active-p) nil t))
+				(beg-point-line (save-excursion
+													(beginning-of-line)
+													(point))))
 		(cond
 		 ;; read onlyバッファだったら次のリンク
 		 (buffer-read-only
@@ -1163,7 +1166,9 @@
 			(auto-complete-mode t)
 			(ac-start))
 		 ;; 直前の操作がタブキーだったらタブを挿入
-		 ((memq last-command '(my-tab-dwim))
+		 ;; キャレットが先頭でなかったらタブを挿入
+		 ((or (memq last-command '(my-tab-dwim))
+					(not (eq beg-point-line (point))))
 			(insert "\t"))
 		 ;; indent-for-tab-commandを試みる
 		 (t
@@ -1389,6 +1394,7 @@
 ;; phpモードでの括弧類入力時の振る舞いを修正
 ;; auto-completeの技術語辞書をもうちょっと厳選
 ;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
+;; flycheckをデフォルトでオフ。必要に応じて起こすようにする。
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
