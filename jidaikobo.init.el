@@ -301,15 +301,6 @@
 ;;; opt+¥でバックスラッシュを入力
 (bind-key* "M-¥" "\\")
 
-;;; php-modeなどのお節介を禁じる
-(define-key php-mode-map ")" 'self-insert-command)
-(define-key php-mode-map "(" 'self-insert-command)
-(define-key php-mode-map "{" 'self-insert-command)
-(define-key php-mode-map "}" 'self-insert-command)
-(define-key php-mode-map "/" 'self-insert-command)
-(define-key web-mode-map "/" 'self-insert-command)
-(define-key html-mode-map "/" 'self-insert-command)
-
 ;;; ------------------------------------------------------------
 ;;; control+shift+cursorでウィンドウ内バッファ履歴
 ;; thx http://pc12.2ch.net/test/read.cgi/unix/1261307488/
@@ -1246,14 +1237,23 @@
 (add-hook 'html-mode-hook 'rainbow-mode)
 
 ;;; ------------------------------------------------------------
+;;; html-mode
+
+;;; html-mode-hook
+(add-hook 'html-mode-hook
+					'(lambda()
+						 (define-key html-mode-map "/" 'self-insert-command)))
+
+;;; ------------------------------------------------------------
 ;;; web-mode
 
 (require 'web-mode)
 
-(defun web-mode-hook ()
-	"Hooks for Web mode."
-	(setq web-mode-markup-indent-offset 2))
-(add-hook 'web-mode-hook 'web-mode-hook)
+;;; web-mode-hook
+(add-hook 'web-mode-hook
+					'(lambda()
+						 (setq web-mode-markup-indent-offset 2)
+						 (define-key web-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; js2-mode
@@ -1270,12 +1270,17 @@
 
 (require 'php-mode)
 
-;;; php-modeのタブ幅
+;;; php-mode-hook
 (add-hook 'php-mode-hook
 					'(lambda()
 						 (setq tab-width 2)
 						 (setq indent-tabs-mode t)
-						 (setq c-basic-offset 2)))
+						 (setq c-basic-offset 2)
+						 (define-key php-mode-map ")" 'self-insert-command)
+						 (define-key php-mode-map "(" 'self-insert-command)
+						 (define-key php-mode-map "{" 'self-insert-command)
+						 (define-key php-mode-map "}" 'self-insert-command)
+						 (define-key php-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; text-mode
