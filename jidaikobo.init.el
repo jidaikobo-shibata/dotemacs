@@ -401,7 +401,6 @@
 		(end-of-line))
 	(setq prev-line-num (line-number-at-pos)))
 
-
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
 
@@ -1031,98 +1030,79 @@
 (bind-key* "s-/" 'join-multi-lines-to-one) ; cmd+/
 
 ;;; ------------------------------------------------------------
-;;; メール整形
+;;; インデント整形
 
-(defun add-mail-quotation ()
-	"Add mail quotation.  es-replace-region is depend on editable-search."
+(defvar my-indent-region-beg 0)
+(defvar my-indent-region-end 0)
+(defun my-indext-region (is-inc)
+	"Increase/decrease (mail) indentation.  IS-INC is direction."
 	(interactive)
-	;; (mail-mode)
-	(let ((beg (if (region-active-p)
-								 (region-beginning)
-							 (point)))
-				(end (if (region-active-p)
-								 (region-end)
-							 (point)))
-				(beg-line (if (region-active-p)
-											(progn (save-excursion
-															 (goto-char (region-beginning))
-															 (line-number-at-pos)))
-										(line-number-at-pos)))
+	(let (search-str
+				replace-str
+				(beg (if (region-active-p) (region-beginning) (point)))
+				(end (if (region-active-p) (region-end) (point)))
 				(end-line (if (region-active-p)
 											(progn (save-excursion
 															 (goto-char (region-end))
 															 (line-number-at-pos)))
-										(line-number-at-pos)))
-				(transient-mark-mode t))
+										(line-number-at-pos))))
 
-		(setq es-target-window (selected-window))
+		;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
+		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end)))
 
 		;; single line
 		(when (not (region-active-p))
 			(beginning-of-line)
-			(push-mark nil)
 			(setq beg (point))
-			(end-of-line))
-
-		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end) "-" (format "%s" beg-line) "-" (format "%s" end-line)))
-
-		;; replace
-		;; (if (string-match "^>" (buffer-substring-no-properties beg end))
-		;; 		(es-replace-all "re" "^(.)" ">$1")
-		;; 	(es-replace-all "re" "^(.)" "> $1"))
-
-		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end) "-" (format "%s" beg-line) "-" (format "%s" end-line)))
+			(end-of-line)
+			(setq end (point)))
 
 		;; regenerate region
-		;; (goto-char beg)
-		;; (push-mark nil)
-		;; (goto-char end)
-		;; (end-of-line)
+		(when (and
+					 (memq last-command '(my-inc-region my-dec-region))
+					 (not (eq my-indent-region-beg 0))
+					 (not (eq my-indent-region-end 0)))
+			(setq beg my-indent-region-beg
+						end my-indent-region-end))
 
-		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end) "-" (format "%s" beg-line) "-" (format "%s" end-line)))
-		))
+		;; replace
+		(save-excursion
+			(save-restriction
+				(narrow-to-region beg end)
+				;; (mark-whole-buffer)
 
-(defun remove-mail-quotation ()
-	"Add mail quotation.  es-replace-region is depend on editable-search."
+				;; increase or decrease
+				(if is-inc
+						(if (eq major-mode 'mail-mode)
+								(if (string-match "^>" (buffer-substring-no-properties beg end))
+										(setq search-str "^" replace-str ">")
+									(setq search-str "^" replace-str "> "))
+							(setq search-str "^" replace-str "\t"))
+					;; decrease
+					(if (eq major-mode 'mail-mode)
+							(setq search-str "^>" replace-str "")
+						(setq search-str "^\t" replace-str "")))
+
+				;; perform-replace
+				(perform-replace search-str replace-str nil t nil nil nil beg end)))
+
+		;; define end
+		(goto-char end)
+		(end-of-line)
+		(setq my-indent-region-beg beg
+					my-indent-region-end (point))
+		(goto-char beg)))
+
+(defun my-inc-region ()
 	(interactive)
-	(mail-mode)
-	(let ((beg (if mark-active (region-beginning) (point)))
-				(end (if mark-active (region-end) (point)))
-				(is-line))
-		(when (not (region-active-p))
-				(progn
-					(setq is-line t)
-					(beginning-of-line)
-					(set-mark-command nil)
-					(end-of-line)))
-		(es-replace-region "^>+ +" "" t)
-		(goto-char beg)
-		(set-mark-command nil)
-		(goto-char end)))
+	(my-indext-region t))
 
-(bind-key* "s-}" 'add-mail-quotation)
-(bind-key* "s-{" 'remove-mail-quotation)
-
-;;; ------------------------------------------------------------
-;;; インデント操作
-
-(defun my-manupilate-indentation (depth)
-	"Manupilate indentation.  DEPTH can be minus."
+(defun my-dec-region ()
 	(interactive)
-	(let (beg
-				end
-				is-line)
-		(when (not (region-active-p))
-				(progn
-					(setq is-line t)
-					(beginning-of-line)
-					(set-mark-command nil)
-					(end-of-line)
-					(setq deactivate-mark nil)))
-		(setq beg (region-beginning))
-		(setq end (region-end))
-		(increase-left-margin beg end depth)))(bind-key* "s-]" (lambda () (interactive) (my-manupilate-indentation 2)))
-(bind-key* "s-[" (lambda () (interactive) (my-manupilate-indentation -2)))
+	(my-indext-region nil))
+
+(bind-key* "s-}" 'my-inc-region)
+(bind-key* "s-{" 'my-dec-region)
 
 ;;; ------------------------------------------------------------
 ;; 自分好みのタブの振る舞い
@@ -1133,50 +1113,50 @@
 ;; インデントしてキャレットの移動がなければ\tを挿入
 
 (defun my-tab-dwim ()
-	"Insert tab or indentation or jump to link or auto-complete."
-	(interactive)
-	;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
-	;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
-	(let ((initial-point (point))
-				(is-line (if (region-active-p) nil t))
-				(beg-point-line (save-excursion
-													(beginning-of-line)
-													(point))))
-		(cond
-		 ;; read onlyバッファだったら次のリンク
-		 (buffer-read-only
-			(forward-button 1 t))
-		 ;; ミニバッファだったらミニバッファ補完
-		 ((minibufferp (current-buffer))
-			(minibuffer-complete))
-		 ;; 文字入力の途中（タブ以外）だったらac-startを試みる
-		 ((and
-			 (require 'auto-complete)
-			 (memq last-command '(self-insert-command))
-			 (not (memq last-command '(my-tab-dwim))))
-			(auto-complete-mode t)
-			(ac-start))
-		 ;; 直前の操作がタブキーだったらタブを挿入
-		 ;; キャレットが先頭でなかったらタブを挿入
-		 ((or (memq last-command '(my-tab-dwim))
-					(not (eq beg-point-line (point))))
-			(insert "\t"))
-		 ;; indent-for-tab-commandを試みる
-		 (t
-			(indent-for-tab-command)
-			;; 範囲指定がなく、indent-for-tab-commandでカーソルが移動しないときはメッセージを表示してタブ挿入
-			(when (and is-line (eq initial-point (point)))
-				(message "No indetentation. Instert Tab.")
-				(insert "\t"))))))
+"Insert tab or indentation or jump to link or auto-complete."
+(interactive)
+;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
+;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
+(let ((initial-point (point))
+			(is-line (if (region-active-p) nil t))
+			(beg-point-line (save-excursion
+												(beginning-of-line)
+												(point))))
+	(cond
+	 ;; read onlyバッファだったら次のリンク
+	 (buffer-read-only
+		(forward-button 1 t))
+	 ;; ミニバッファだったらミニバッファ補完
+	 ((minibufferp (current-buffer))
+		(minibuffer-complete))
+	 ;; 文字入力の途中（タブ以外）だったらac-startを試みる
+	 ((and
+		 (require 'auto-complete)
+		 (memq last-command '(self-insert-command))
+		 (not (memq last-command '(my-tab-dwim))))
+		(auto-complete-mode t)
+		(ac-start))
+	 ;; 直前の操作がタブキーだったらタブを挿入
+	 ;; キャレットが先頭でなかったらタブを挿入
+	 ((or (memq last-command '(my-tab-dwim))
+				(not (eq beg-point-line (point))))
+		(insert "\t"))
+	 ;; indent-for-tab-commandを試みる
+	 (t
+		(indent-for-tab-command)
+		;; 範囲指定がなく、indent-for-tab-commandでカーソルが移動しないときはメッセージを表示してタブ挿入
+		(when (and is-line (eq initial-point (point)))
+			(message "No indetentation. Instert Tab.")
+			(insert "\t"))))))
 (bind-key* "<tab>" 'my-tab-dwim)
 
 ;;; ------------------------------------------------------------
 ;; 現在バッファのファイルのフルパスを取得
 
 (defun get-current-path ()
-	"Get current file path."
-	(interactive)
-	(insert (or (buffer-file-name) (expand-file-name default-directory))))
+"Get current file path."
+(interactive)
+(insert (or (buffer-file-name) (expand-file-name default-directory))))
 (bind-key* "M-s-k" 'get-current-path)
 
 ;;; ------------------------------------------------------------
@@ -1186,32 +1166,32 @@
 ;;; http://rubikitch.com/2014/12/07/google-translate/
 (require 'google-translate)
 (defvar google-translate-english-chars "[:ascii:]"
-	"Ascii means English.")
+"Ascii means English.")
 (defun google-translate-enja-or-jaen (&optional string)
-	"Google translate enja or jaen.  STRING in region."
-	(interactive)
-	(setq string
-				(cond ((stringp string) string)
-							(current-prefix-arg
-							 (read-string "Google Translate: "))
-							((use-region-p)
-							 (buffer-substring (region-beginning) (region-end)))
-							(t
-							 (save-excursion
-								 (let (s)
-									 (forward-char 1)
-									 (backward-sentence)
-									 (setq s (point))
-									 (forward-sentence)
-									 (buffer-substring s (point)))))))
-	(let* ((asciip (string-match
-									(format "\\`[%s]+\\'" google-translate-english-chars)
-									string)))
-		(run-at-time 0.1 nil 'deactivate-mark)
-		(google-translate-translate
-		 (if asciip "en" "ja")
-		 (if asciip "ja" "en")
-		 string)))
+"Google translate enja or jaen.  STRING in region."
+(interactive)
+(setq string
+			(cond ((stringp string) string)
+						(current-prefix-arg
+						 (read-string "Google Translate: "))
+						((use-region-p)
+						 (buffer-substring (region-beginning) (region-end)))
+						(t
+						 (save-excursion
+							 (let (s)
+								 (forward-char 1)
+								 (backward-sentence)
+								 (setq s (point))
+								 (forward-sentence)
+								 (buffer-substring s (point)))))))
+(let* ((asciip (string-match
+								(format "\\`[%s]+\\'" google-translate-english-chars)
+								string)))
+	(run-at-time 0.1 nil 'deactivate-mark)
+	(google-translate-translate
+	 (if asciip "en" "ja")
+	 (if asciip "ja" "en")
+	 string)))
 (bind-key* "C-c t" 'google-translate-enja-or-jaen)
 
 ;;; ------------------------------------------------------------
@@ -1241,8 +1221,8 @@
 
 ;;; html-mode-hook
 (add-hook 'html-mode-hook
-					'(lambda()
-						 (define-key html-mode-map "/" 'self-insert-command)))
+				'(lambda()
+					 (define-key html-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; web-mode
@@ -1251,9 +1231,9 @@
 
 ;;; web-mode-hook
 (add-hook 'web-mode-hook
-					'(lambda()
-						 (setq web-mode-markup-indent-offset 2)
-						 (define-key web-mode-map "/" 'self-insert-command)))
+				'(lambda()
+					 (setq web-mode-markup-indent-offset 2)
+					 (define-key web-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; js2-mode
@@ -1272,15 +1252,15 @@
 
 ;;; php-mode-hook
 (add-hook 'php-mode-hook
-					'(lambda()
-						 (setq tab-width 2)
-						 (setq indent-tabs-mode t)
-						 (setq c-basic-offset 2)
-						 (define-key php-mode-map ")" 'self-insert-command)
-						 (define-key php-mode-map "(" 'self-insert-command)
-						 (define-key php-mode-map "{" 'self-insert-command)
-						 (define-key php-mode-map "}" 'self-insert-command)
-						 (define-key php-mode-map "/" 'self-insert-command)))
+				'(lambda()
+					 (setq tab-width 2)
+					 (setq indent-tabs-mode t)
+					 (setq c-basic-offset 2)
+					 (define-key php-mode-map ")" 'self-insert-command)
+					 (define-key php-mode-map "(" 'self-insert-command)
+					 (define-key php-mode-map "{" 'self-insert-command)
+					 (define-key php-mode-map "}" 'self-insert-command)
+					 (define-key php-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; text-mode
@@ -1289,47 +1269,47 @@
 ;; thx http://lioon.net/how-to-customize-face-emacs
 ;; M-x list-faces-display
 (add-hook 'text-mode-hook
-					'(lambda()
-						 (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))))
+				'(lambda()
+					 (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; kontiki-mode
 
 ;;; ワイアフレームモード
 (easy-mmode-define-minor-mode kontiki-mode
-															"This is a Mode for Kontiki-Draft."
-															nil
-															" Kontiki-Draft")
+														"This is a Mode for Kontiki-Draft."
+														nil
+														" Kontiki-Draft")
 
 (add-hook 'kontiki-mode-hook
-					'(lambda()
-						 (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
-						 (font-lock-add-keywords nil '(("<.+?>" . font-lock-keyword-face)))
-						 (font-lock-add-keywords nil '(("\\[memo:.+?\\]" . font-lock-builtin-face)))
-						 (font-lock-add-keywords nil '(("^[a-zA-Z_]+?:" . font-lock-function-name-face)))
-						 (font-lock-add-keywords nil '(("^\\*.+" . font-lock-function-name-face)))))
+				'(lambda()
+					 (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
+					 (font-lock-add-keywords nil '(("<.+?>" . font-lock-keyword-face)))
+					 (font-lock-add-keywords nil '(("\\[memo:.+?\\]" . font-lock-builtin-face)))
+					 (font-lock-add-keywords nil '(("^[a-zA-Z_]+?:" . font-lock-function-name-face)))
+					 (font-lock-add-keywords nil '(("^\\*.+" . font-lock-function-name-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; mail-mode
 
 ;;; メールモード（mail-mode）のカラーリング
 (add-hook 'mail-mode-hook
-					'(lambda()
-						 (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
-						 (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
-						 (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
+				'(lambda()
+					 (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
+					 (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
+					 (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; フレームの大きさと位置を変更 (cmd+shift+w)
 
 (defun resize-selected-frame ()
-	"Resize frame to jidaikobo's default."
-	(interactive)
-	(set-frame-position (selected-frame) 0 0)
-	;; フレームを適当なサイズに変更
-	(if (= (frame-width) 200)
-			(set-frame-size (selected-frame) 100 55)
-		(set-frame-size (selected-frame) 200 55)))
+"Resize frame to jidaikobo's default."
+(interactive)
+(set-frame-position (selected-frame) 0 0)
+;; フレームを適当なサイズに変更
+(if (= (frame-width) 200)
+		(set-frame-size (selected-frame) 100 55)
+	(set-frame-size (selected-frame) 200 55)))
 (bind-key* "s-W" 'resize-selected-frame)
 
 ;;; ------------------------------------------------------------
@@ -1350,24 +1330,24 @@
 ;;; 辞書追加
 ;; 英語
 (defvar ac-english-cache
-	(ac-file-dictionary (concat ac-user-dict-dir "english")))
+(ac-file-dictionary (concat ac-user-dict-dir "english")))
 (defvar ac-english-dict
-	'((candidates . ac-english-cache)))
+'((candidates . ac-english-cache)))
 
 ;; 技術語
 (defvar ac-technical-term-cache
-	(ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
+(ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
 (defvar ac-technical-term-dict
-	'((candidates . ac-technical-term-cache)))
+'((candidates . ac-technical-term-cache)))
 
 ;;; 条件の追加
 (add-to-list 'ac-modes 'text-mode)
 (add-to-list 'ac-modes 'fundamental-mode)
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
-													 ;; ac-source-filename
-													 ac-technical-term-dict
-													 ;; ac-source-symbols
-													 ac-english-dict))
+												 ;; ac-source-filename
+												 ac-technical-term-dict
+												 ;; ac-source-symbols
+												 ac-english-dict))
 
 ;;; ------------------------------------------------------------
 ;; magit
