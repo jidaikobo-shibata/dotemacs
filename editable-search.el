@@ -580,25 +580,15 @@
 			(save-excursion
 				(save-restriction
 					(narrow-to-region beg end)
-					(goto-char (point-min))
-					(while (<= (point) (point-max))
-						(progn
-							;; 文字列を走査
-							(if is-re
-									(if es-is-foregin-regexp
-											(foreign-regexp/search/forward search-str)
-										(re-search-forward search-str))
-								(search-forward search-str))
-							(progn
-								;; ヒットした文字長の取得
-								(if is-re
-										(setq len-search-string (length (match-string-no-properties 0)))
-									(setq len-search-string (length search-str)))
-								;; 選択範囲の設定と置換
-								(es-generate-region "next" len-search-string)
-								(es-replace-region search-str replace-str is-re)))
-						(setq cnt (1+ cnt))))))
-		(message "%s replaced." cnt)
+					(cond ((and is-re es-is-foregin-regexp)
+								 (foreign-regexp/replace/perform-replace
+									search-str replace-str nil nil nil nil nil beg end))
+								(is-re
+								 (perform-replace
+									search-str replace-str nil t nil nil nil beg end))
+								(t
+								 (perform-replace
+									search-str replace-str nil nil nil nil nil beg end))))))
 
 		;; 今回検索・置換した文字を次回用に保存
 		(setq es-previous-searched-str search-str)
