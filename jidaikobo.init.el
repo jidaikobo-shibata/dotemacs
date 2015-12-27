@@ -596,6 +596,11 @@
 				 (local-set-key "\M-s" 'gtags-find-symbol)
 				 (local-set-key "\M-T" 'gtags-pop-stack)))
 
+(setq-default gtags-select-mode-hook
+			'(lambda ()
+				 (local-set-key (kbd "RET") 'gtags-select-tag)))
+
+
 ;;; gtags-mode を使いたい mode の hook に追加する
 (add-hook 'php-mode-hook
 					'(lambda()
