@@ -967,24 +967,13 @@
 (global-set-key (kbd "s-C") 'capitalize-region)
 
 ;;; ------------------------------------------------------------
-;;; 全角数字を半角数字に
+;;; 全角英数字を半角英数字に
 
-(when (file-exists-p "~/.emacs.d/jidaikobo/web-authoring-set.el")
-	(defun convert-to-single-byte-number ()
-		"Convert multi-byte numbers in region into single-byte number.  replace-strings-in-region-by-list is depend on web-authoring-set."
-		(interactive)
-		(replace-strings-in-region-by-list
-		 '(("１" . "1")
-			 ("２" . "2")
-			 ("３" . "3")
-			 ("４" . "4")
-			 ("５" . "5")
-			 ("６" . "6")
-			 ("７" . "7")
-			 ("８" . "8")
-			 ("９" . "9")
-			 ("０" . "0"))))
-	(bind-key* "s-u" 'convert-to-single-byte-number))
+(bind-key* "s-u" (lambda () (interactive)
+									 (japanese-hankaku-region
+										(region-beginning)
+										(region-end)
+										t)))
 
 ;;; ------------------------------------------------------------
 ;; ucs-normalize-NFC-region で濁点分離を直す
