@@ -1026,11 +1026,15 @@
 				(end (region-end)))
 		(goto-char beg)
 		(back-to-indentation)
-		(set-mark-command nil)
+		(setq beg (point))
 		(goto-char end)
 		(goto-char (- (point) 1))
 		(end-of-line)
-		(es-replace-all "re" "\n|^>+ |\t" "")))
+		(setq end (point))
+		(save-excursion
+			(save-restriction
+				(narrow-to-region beg end)
+				(perform-replace "\n\\|^>+ \\|\t" "" nil t nil nil nil beg end)))))
 (bind-key* "<s-kp-divide>" 'join-multi-lines-to-one) ; cmd+/
 (bind-key* "s-/" 'join-multi-lines-to-one) ; cmd+/
 
