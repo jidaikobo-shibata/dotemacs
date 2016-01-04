@@ -572,6 +572,7 @@
 										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
 									 (my-anything-for-functions)))
 
+;;; ------------------------------------------------------------
 ;;; descbinds-anythingの乗っ取り
 ;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
 (require 'descbinds-anything)
@@ -599,7 +600,6 @@
 (setq-default gtags-select-mode-hook
 			'(lambda ()
 				 (local-set-key (kbd "RET") 'gtags-select-tag)))
-
 
 ;;; gtags-mode を使いたい mode の hook に追加する
 (add-hook 'php-mode-hook
@@ -813,7 +813,15 @@
 		(run-with-idle-timer 0.2 nil #'linum-update-current))
 	(global-linum-mode t)
 	(setq-default linum-format "%5d: "))
-(show-line-number)
+
+(add-hook 'emacs-lisp-mode-hook 'show-line-number)
+(add-hook 'lisp-mode-hook 'show-line-number)
+(add-hook 'js2-mode-hook 'show-line-number)
+(add-hook 'text-mode-hook 'show-line-number)
+(add-hook 'fundamental-mode-hook 'show-line-number)
+(add-hook 'php-mode-hook 'show-line-number)
+(add-hook 'web-mode-hook 'show-line-number)
+(add-hook 'html-mode-hook 'show-line-number)
 
 ;;; ------------------------------------------------------------
 ;;; モードライン設定
@@ -1009,7 +1017,7 @@
 ;;; 選択範囲を1行にする
 
 (defun join-multi-lines-to-one ()
-	"Join multi lines.  es-replace-region is depend on editable-search."
+	"Join multi lines."
 	(interactive)
 	(let ((beg (region-beginning))
 				(end (region-end)))
@@ -1037,19 +1045,15 @@
 	(interactive)
 	(let (search-str
 				replace-str
-				(beg (if (region-active-p) (region-beginning) (point)))
-				(end (if (region-active-p) (region-end) (point)))
-				(end-line (if (region-active-p)
-											(progn (save-excursion
-															 (goto-char (region-end))
-															 (line-number-at-pos)))
-										(line-number-at-pos))))
+				(beg (if (use-region-p) (region-beginning) (point)))
+				(end (if (use-region-p) (region-end) (point))))
 
 		;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
 		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end)))
 
 		;; single line
-		(when (not (region-active-p))
+		(when (and (not (use-region-p))
+							 (not (memq last-command '(my-inc-region my-dec-region))))
 			(beginning-of-line)
 			(setq beg (point))
 			(end-of-line)
@@ -1057,9 +1061,7 @@
 
 		;; regenerate region
 		(when (and
-					 (memq last-command '(my-inc-region my-dec-region))
-					 (not (eq my-indent-region-beg 0))
-					 (not (eq my-indent-region-end 0)))
+					 (memq last-command '(my-inc-region my-dec-region)))
 			(setq beg my-indent-region-beg
 						end my-indent-region-end))
 
@@ -1067,10 +1069,10 @@
 		(save-excursion
 			(save-restriction
 				(narrow-to-region beg end)
-				;; (mark-whole-buffer)
 
-				;; increase or decrease
+				;; set search and replace words
 				(if is-inc
+						;; increase
 						(if (eq major-mode 'mail-mode)
 								(if (string-match "^>" (buffer-substring-no-properties beg end))
 										(setq search-str "^" replace-str ">")
@@ -1082,14 +1084,20 @@
 						(setq search-str "^\t" replace-str "")))
 
 				;; perform-replace
-				(perform-replace search-str replace-str nil t nil nil nil beg end)))
+				(perform-replace search-str replace-str nil t nil nil nil beg end)
 
-		;; define end
-		(goto-char end)
-		(end-of-line)
+				(goto-char (point-min))
+				(beginning-of-line)
+				(setq beg (point))
+				(message "%s" (point))
+				(goto-char (point-max))
+				(end-of-line)
+				(message "%s" (point))
+				(setq end (point))))
+
+		;; redefine region
 		(setq my-indent-region-beg beg
-					my-indent-region-end (point))
-		(goto-char beg)))
+					my-indent-region-end end)))
 
 (defun my-inc-region ()
 	(interactive)
