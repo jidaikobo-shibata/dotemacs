@@ -143,13 +143,15 @@
 										(float-time (time-subtract criteria-time target-update-at))
 									nil)))
 		(cond ((and target-update-at ftime (> ftime 0))
-					 (append-to-file "" nil target-file)
+					 (delete-file target-file)
+					 (append-to-file "." nil target-file)
 					 ;; (message "first boot")
 					 t)
 					((and target-update-at ftime (< ftime 0))
 					 nil)
 					((not target-update-at)
-					 (append-to-file "" nil target-file)
+					 (delete-file target-file)
+					 (append-to-file "." nil target-file)
 					 t))))
 
 ;;; ------------------------------------------------------------
@@ -300,46 +302,6 @@
 
 ;;; opt+¥でバックスラッシュを入力
 (bind-key* "M-¥" "\\")
-
-;;; ------------------------------------------------------------
-;;; control+shift+cursorでウィンドウ内バッファ履歴
-;; thx http://pc12.2ch.net/test/read.cgi/unix/1261307488/
-
-(bind-key* "<C-S-left>" 'my-switch-to-prev-buffer)
-(bind-key* "<C-S-right>" 'my-switch-to-next-buffer)
-
-(defun my-switch-to-prev-buffer ()
-	"Previous working buffer history."
-	(interactive)
-	(let ((blist (buffer-list))
-				(prev-buffer)
-				(buffer))
-		(while blist
-			(unless (or (string= (substring (buffer-name (car blist)) 0 1) " ")
-									(string= (substring (buffer-name (car blist)) 0 1) "*")
-									(string= (substring (buffer-name (car blist)) 0 1) "+"))
-				(setq prev-buffer (car blist)))
-			(setq blist (cdr blist))
-			(setq buffer (car blist))
-			(if (eq (current-buffer) buffer)
-					(progn (switch-to-buffer prev-buffer t)
-								 (setq blist nil))))))
-
-(defun my-switch-to-next-buffer ()
-	"Next working buffer history."
-	(interactive)
-	(let ((blist (buffer-list))
-				(buffer))
-		(while blist
-			(setq buffer (car blist))
-			(setq blist (cdr blist))
-			(if (eq (current-buffer) buffer)
-					(progn (while (and blist (or (string= (substring (buffer-name (car blist)) 0 1) " ")
-																			 (string= (substring (buffer-name (car blist)) 0 1) "*")
-																			 (string= (substring (buffer-name (car blist)) 0 1) "+")))
-									 (setq blist (cdr blist)))
-								 (switch-to-buffer (car blist) t)
-								 (setq blist nil))))))
 
 ;;; ------------------------------------------------------------
 ;;; バッファの状態を保存
@@ -1376,7 +1338,6 @@
 ;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる。
 ;; 複数の検索置換セット
 ;; 複数ファイルの検索置換
-;; 「isearchに文字列をセット」で、messageをきちんと書く
 ;; M-%の振る舞いを理解したい。置換文字列にセットはできないものか。
 ;; editable-searchが二つウィンドウを開くのが少々大仰に思える
 ;; portのEmacsを試してみる？

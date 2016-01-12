@@ -1,3 +1,43 @@
+;;; ------------------------------------------------------------
+;;; control+shift+cursorでウィンドウ内バッファ履歴
+;; thx http://pc12.2ch.net/test/read.cgi/unix/1261307488/
+
+;; (bind-key* "<C-S-left>" 'my-switch-to-prev-buffer)
+;; (bind-key* "<C-S-right>" 'my-switch-to-next-buffer)
+
+;; (defun my-switch-to-prev-buffer ()
+;; 	"Previous working buffer history."
+;; 	(interactive)
+;; 	(let ((blist (buffer-list))
+;; 				(prev-buffer)
+;; 				(buffer))
+;; 		(while blist
+;; 			(unless (or (string= (substring (buffer-name (car blist)) 0 1) " ")
+;; 									(string= (substring (buffer-name (car blist)) 0 1) "*")
+;; 									(string= (substring (buffer-name (car blist)) 0 1) "+"))
+;; 				(setq prev-buffer (car blist)))
+;; 			(setq blist (cdr blist))
+;; 			(setq buffer (car blist))
+;; 			(if (eq (current-buffer) buffer)
+;; 					(progn (switch-to-buffer prev-buffer t)
+;; 								 (setq blist nil))))))
+
+;; (defun my-switch-to-next-buffer ()
+;; 	"Next working buffer history."
+;; 	(interactive)
+;; 	(let ((blist (buffer-list))
+;; 				(buffer))
+;; 		(while blist
+;; 			(setq buffer (car blist))
+;; 			(setq blist (cdr blist))
+;; 			(if (eq (current-buffer) buffer)
+;; 					(progn (while (and blist (or (string= (substring (buffer-name (car blist)) 0 1) " ")
+;; 																			 (string= (substring (buffer-name (car blist)) 0 1) "*")
+;; 																			 (string= (substring (buffer-name (car blist)) 0 1) "+")))
+;; 									 (setq blist (cdr blist)))
+;; 								 (switch-to-buffer (car blist) t)
+;; 								 (setq blist nil))))))
+
 ;; (setq hl-line-face 'underline)
 ;; (global-hl-line-mode)
 ;; 下線だと、日本語入力時の候補領域がわかりづらいのでやめる。
