@@ -101,7 +101,7 @@
 (setq-default indent-tabs-mode t)
 
 ;;; cua-modeの設定
-(cua-mode t) ; cua-modeをオン
+(cua-mode t) ; cua-modeをオン。C-RETで矩形選択モードに
 (setq-default cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
 
 ;;複数フレームを開かないようにする
@@ -145,7 +145,6 @@
 		(cond ((and target-update-at ftime (> ftime 0))
 					 (delete-file target-file)
 					 (append-to-file "." nil target-file)
-					 ;; (message "first boot")
 					 t)
 					((and target-update-at ftime (< ftime 0))
 					 nil)
@@ -250,11 +249,10 @@
 (bind-key* "<s-kp-add>" 'text-scale-increase) ; resize increase (cmd++)
 (bind-key* "s--" 'text-scale-decrease) ; resize decrease (cmd+-)
 (bind-key* "<s-kp-subtract>" 'text-scale-decrease) ; resize decrease (cmd+-)
-;; (bind-key* "s-kp-equal" (text-scale-mode 0))
-;; (bind-key* "s-kp-equal" (text-scale-mode 0))
-;; (bind-key* "s-=" (text-scale-mode 0))
-;; (bind-key* "s-kp-0" (text-scale-mode 0))
-;; (bind-key* "s-0" (text-scale-mode 0))
+(bind-key* "<s-kp-equal>" (lambda () (interactive) (text-scale-mode 0)))
+(bind-key* "s-=" (lambda () (interactive) (text-scale-mode 0)))
+(bind-key* "<s-kp-0>" (lambda () (interactive) (text-scale-mode 0)))
+(bind-key* "<s-0>" (lambda () (interactive) (text-scale-mode 0)))
 (bind-key* "s-q" 'save-buffers-kill-emacs) ; quit (cmd+q)
 (bind-key* "<s-up>" 'beginning-of-buffer) ; cmd+up
 (bind-key* "<s-down>" 'end-of-buffer) ; cmd+down
@@ -291,11 +289,6 @@
 ;;; M-g or cmd+opt+j で指定行へジャンプ
 (bind-key* "M-g" 'goto-line)
 (bind-key* "M-s-j" 'goto-line)
-
-;;; smart-tab
-;; コンテキストに応じたtabキー。auto-completeと共存
-;; (require 'smart-tab)
-;; (global-smart-tab-mode)
 
 ;;; ------------------------------------------------------------
 ;; 文字入力
@@ -1062,10 +1055,12 @@
 					my-indent-region-end end)))
 
 (defun my-inc-region ()
+	"Increase region."
 	(interactive)
 	(my-indext-region t))
 
 (defun my-dec-region ()
+	"Decrease region."
 	(interactive)
 	(my-indext-region nil))
 
@@ -1079,6 +1074,11 @@
 ;; 文字入力中だったらac-start
 ;; なにもなければインデントを試みる
 ;; インデントしてキャレットの移動がなければ\tを挿入
+
+;;; smart-tab
+;; コンテキストに応じたtabキー。auto-completeと共存
+;; (require 'smart-tab)
+;; (global-smart-tab-mode)
 
 (defun my-tab-dwim ()
 "Insert tab or indentation or jump to link or auto-complete."
@@ -1345,8 +1345,6 @@
 ;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
 ;; flycheckをデフォルトでオフ。必要に応じて起こすようにする。
 ;; なるべく余計なことをしないphpモード。シンタックステーブルだけ持ってきて、用語とタブキーの振る舞いは自分で設定する
-;; phpモードでの括弧類入力時の振る舞いを修正
-;; htmlモードでのスラッシュ入力時の振る舞いを修正
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
