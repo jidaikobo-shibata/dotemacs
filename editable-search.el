@@ -4,7 +4,7 @@
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
 ;;; Commentary:
-;; あたらしいウィンドウを開いて、そこで編集した文字列で検索や置換を行います。
+;; 編集窓で試行錯誤して検索置換できるマイナーモード。
 
 ;;; Code:
 
@@ -28,14 +28,10 @@
 ;;; ------------------------------------------------------------
 ;;; defvar
 
-(defvar es-rearch-window-foreground-color "White" "*Default 'White'.")
-(defvar es-re-rearch-window-foreground-color "White" "*Default 'White'.")
-(defvar es-rearch-window-background-color "Black" "*Default 'Black'.")
-(defvar es-re-rearch-window-background-color "Black" "*Default 'Black'.")
 (defvar es-target-window (selected-window))
 (defvar es-target-buffer (get-buffer (buffer-name)))
-(defvar es-search-str-window "*search string*")
-(defvar es-replace-str-window "*replace string*")
+(defvar es-search-str-buffer "*search string*")
+(defvar es-replace-str-buffer "*replace string*")
 (defvar es-previous-searched-str)
 (defvar es-previous-replaced-str)
 (defvar es-previous-searced-direction nil)
@@ -46,30 +42,33 @@
 (defvar es-modeline-saved nil)
 (defvar es-modeline-background)
 (defvar es-modeline-foreground)
+(defvar es-re-modeline-background "orange")
+(defvar es-re-modeline-foreground "black")
 (defvar es-is-foregin-regexp nil)
+(defvar es-split-direction "horizontal")
 
 ;;; ------------------------------------------------------------
 ;;; dependencies
 
-;; re-builder
-(require 're-builder)
-(setq reb-re-syntax 'string)
+(declare-function package-installed-p "package")
 
 ;; foreign-regexp
-(eval-after-load "foreign-regexp"
-	(progn
-		(require 'foreign-regexp)
-		(custom-set-variables
-		 '(foreign-regexp/regexp-type 'perl)
-		 '(reb-re-syntax 'foreign-regexp))
-		(setq es-is-foregin-regexp t)))
-(declare-function foreign-regexp/search/forward  "foreign-regexp")
-(declare-function foreign-regexp/search/backward "foreign-regexp")
-(declare-function foreign-regexp/replace/perform-replace "foreign-regexp")
+(when (package-installed-p 'foreign-regexp)
+	(require 'foreign-regexp)
+	(eval-after-load "foreign-regexp"
+		(progn
+			(custom-set-variables
+			 '(foreign-regexp/regexp-type 'perl)
+			 '(reb-re-syntax 'foreign-regexp))
+			(setq es-is-foregin-regexp t)))
+	(declare-function foreign-regexp/search/forward  "foreign-regexp")
+	(declare-function foreign-regexp/search/backward "foreign-regexp")
+	(declare-function foreign-regexp/replace/perform-replace "foreign-regexp"))
 
 ;;; ------------------------------------------------------------
-;;; 検索置換用のマイナーモードを設定する
+;;; minor-mode
 
+;;; 検索置換用のマイナーモード
 (define-minor-mode editable-search-mode
 	"Provide editable search/replace environment."
 	:init-value
@@ -79,13 +78,7 @@
 	:keymap
 	editable-search-mode-map)
 
-;; モードラインを戻す
-(defun es-search-modeline ()
-	"Search modeline."
-	(set-face-attribute 'mode-line nil
-											:foreground es-modeline-foreground :background es-modeline-background))
-
-;;; 正規表現モード
+;;; 正規表現のマイナーモード
 (define-minor-mode editable-re-search-mode
 	"Provide editable regular expression search/replace environment."
 	:init-value
@@ -93,36 +86,37 @@
 	:lighter
 	" re-Search"
 	:keymap
-	editable-re-search-mode-map)
-
-(defun es-re-search-modeline ()
-	"Re search modeline."
-	(set-face-attribute 'mode-line nil
-											:foreground "black" :background "orange"))
+	editable-re-search-mode-map
+	:after-hook
+	(progn
+		;; 現在のモードラインを配色を保存しておく
+		(unless es-modeline-saved
+			(setq es-modeline-background (face-attribute 'mode-line :background)
+						es-modeline-foreground (face-attribute 'mode-line :foreground)
+						es-modeline-saved t))
+		(if (eq editable-re-search-mode nil)
+				;; 保存されていたモードラインに戻す
+				(set-face-attribute 'mode-line nil
+														:foreground es-modeline-foreground
+														:background es-modeline-background)
+			;; モードラインを変更し、正規表現モードであることを明示する
+			(set-face-attribute 'mode-line nil
+													:foreground es-re-modeline-foreground
+													:background es-re-modeline-background))))
 
 ;;; ------------------------------------------------------------
 ;;; hook
 
-;;; 削除によってウィンドウ構成を変えようとしたら検索置換窓を閉じる
-(add-hook 'pre-command-hook 'es-delete-window-fn)
+;;; ウィンドウ構成を変えようとしたら検索置換窓を閉じる
+(add-hook 'window-configuration-change-hook 'es-delete-window-fn)
 (defun es-delete-window-fn ()
 	"Delete search mode windows."
-	(when (and
-				 (editable-search-mode)
-				 (not es-ignore-delete-window-hook)
-				 (memq this-command '(delete-window
-															delete-other-windows
-															kill-buffer
-															kill-buffer-and-window
-															mouse-delete-window
-															mouse-delete-other-windows
-															my-delete-windows)))
+	(unless es-ignore-delete-window-hook
 		(select-window es-target-window)
-		(unless (equal this-command 'my-delete-windows)
-			(delete-other-windows))))
+		(delete-other-windows)))
 
 ;;; ------------------------------------------------------------
-;;; function alias
+;;; function alias for key-binds
 
 (defun es-alias-search-next ()
 	"Alias."
@@ -164,54 +158,38 @@
 
 (when es-is-use-super
 	;; global-map
-	(define-key global-map (kbd "s-f") (lambda () (interactive)
-																			 (es-enter-mode "")))
-	(define-key global-map (kbd "s-F") 'es-delete-windows)
-	(define-key global-map (kbd "s-h") (lambda () (interactive)
-																			 (select-window es-target-window)))
-	(define-key global-map (kbd "C-s-f") (lambda () (interactive)
-																				 (es-enter-mode "")
-																				 (es-toggle-search-mode)))
-	(define-key global-map (kbd "s-e") (lambda () (interactive)
-																			 (es-enter-mode "set-to-search")))
-	(define-key global-map (kbd "s-E") (lambda () (interactive)
-																			 (es-enter-mode "set-to-replace")))
-	(define-key global-map (kbd "s-g") (lambda () (interactive)
-																			 (es-alias-search-next)))
+	(define-key global-map (kbd "s-f") 'es-show-windows)
+	(define-key global-map (kbd "s-F") 'es-toggle-search-mode)
+	(define-key global-map (kbd "s-e") (lambda () (interactive) (es-set-strings "search")))
+	(define-key global-map (kbd "s-E") (lambda () (interactive) (es-set-strings "replace")))
+	(define-key global-map (kbd "s-g") 'es-alias-search-next)
 	(define-key global-map (kbd "s-G") 'es-alias-search-prev)
 	(define-key global-map (kbd "s-l") 'es-alias-replace-next)
 	(define-key global-map (kbd "s-r") 'es-alias-replace-here)
 	(define-key global-map (kbd "s-R") 'es-alias-replace-region)
+	(define-key global-map (kbd "s-h") (lambda () (interactive) (select-window es-target-window)))
 	(define-key editable-search-mode-map [escape] 'keyboard-quit))
 
 ;;; ------------------------------------------------------------
-;;; key-binds - emacs
+;;; key-binds - emacs（要検討）
 
 ;; set prefix-key to C-F
 (define-key global-map (kbd "C-F") nil)
 (defvar es-keybind-map (make-sparse-keymap) "Set editable-search keymap.")
 (define-key global-map (kbd "C-F") es-keybind-map)
 
-(define-key es-keybind-map (kbd "f") (lambda () (interactive)
-																			 (es-enter-mode "")))
-(define-key es-keybind-map (kbd "F") 'es-delete-windows)
-(define-key es-keybind-map (kbd "h") (lambda () (interactive)
-																			 (select-window es-target-window)))
-(define-key es-keybind-map (kbd "C-f") (lambda () (interactive)
-																				 (es-enter-mode "")
-																				 (es-toggle-search-mode)))
-(define-key es-keybind-map (kbd "e") (lambda () (interactive)
-																			 (es-enter-mode "set-to-search")))
-(define-key es-keybind-map (kbd "E") (lambda () (interactive)
-																			 (es-enter-mode "set-to-replace")))
+(define-key es-keybind-map (kbd "f") 'es-show-windows)
+(define-key es-keybind-map (kbd "F") 'es-toggle-search-mode)
+(define-key es-keybind-map (kbd "e") (lambda () (interactive) (es-set-strings "search")))
+(define-key es-keybind-map (kbd "E") (lambda () (interactive) (es-set-strings "replace")))
 (define-key es-keybind-map (kbd "g") 'es-alias-search-next)
 (define-key es-keybind-map (kbd "G") 'es-alias-search-prev)
 (define-key es-keybind-map (kbd "l") 'es-alias-replace-next)
 (define-key es-keybind-map (kbd "r") 'es-alias-replace-here)
 (define-key es-keybind-map (kbd "R") 'es-alias-replace-region)
+(define-key es-keybind-map (kbd "h") (lambda () (interactive) (select-window es-target-window)))
 
 ;;; smartrep
-(declare-function package-installed-p "package")
 (when (package-installed-p 'smartrep)
 		(require 'smartrep)
 		(declare-function smartrep-define-key "smartrep")
@@ -223,149 +201,149 @@
 				("R" . 'es-alias-replace-region))))
 
 ;;; ------------------------------------------------------------
-;;; 正規表現モードのトグル
+;;; keep target-buffer
+
+(defun es-keep-target-buffer ()
+	"Keep target buffer."
+	(unless (or (equal (selected-window) (get-buffer-window es-search-str-buffer))
+							(equal (selected-window) (get-buffer-window es-replace-str-buffer)))
+		(setq es-target-window (selected-window)
+					es-target-buffer (buffer-name))))
+
+;;; ------------------------------------------------------------
+;;; toggle re/search mode
 
 (defun es-toggle-search-mode ()
 	"Toggle search mode."
 	(interactive)
-	;; es-toggle-search-modeは、local-mapなので、editable-search-modeからしか呼ばれないはず。
-	;; ゆえに、es-target-windowはたぶん存在する。
-	(when (windowp es-target-window)
-		(progn
-			(with-selected-window es-target-window
-				(if (eq editable-re-search-mode nil)
-						;; 正規表現モードに
-						(progn
-							(editable-re-search-mode t)
-							;; search windowをre-builderモードに
-							(if (windowp (get-buffer-window es-search-str-window))
-									(with-selected-window (get-buffer-window es-search-str-window)
-										(setq
-										 reb-buffer (get-buffer es-search-str-window)
-										 reb-target-buffer (get-buffer es-target-buffer)
-										 reb-target-window es-target-window)
-										(reb-delete-overlays)
-										(reb-initialize-buffer)
-										(linum-mode -1)
-										(es-re-search-modeline)
-										(message (concat "turned into RE with " es-target-buffer)))))
-					;; 正規表現モードをオフ
-					(editable-re-search-mode -1)
-					(with-selected-window es-target-window
-						(if (windowp (get-buffer-window es-search-str-window))
-								(with-selected-window (get-buffer-window es-search-str-window)
-									(reb-delete-overlays)
-									(fundamental-mode)
-									(linum-mode -1)
-									(es-search-modeline))))
-					(message (concat "turned off RE with " es-target-buffer)))))))
+	(es-keep-target-buffer)
+	(if (eq editable-re-search-mode nil)
+			;; 正規表現モードをオン
+			(progn
+				(with-current-buffer es-target-buffer
+					(editable-re-search-mode t))
+				(with-current-buffer es-search-str-buffer
+					(editable-re-search-mode t))
+				(with-current-buffer es-replace-str-buffer
+					(editable-re-search-mode t))
+				(message (concat "turned into RE with " es-target-buffer)))
+		;; 正規表現モードをオフ
+		(with-current-buffer es-target-buffer
+			(editable-re-search-mode -1))
+		(with-current-buffer es-search-str-buffer
+			(editable-re-search-mode -1))
+		(with-current-buffer es-replace-str-buffer
+			(editable-re-search-mode -1))
+		(message (concat "turned off RE with " es-target-buffer))))
 
 ;;; ------------------------------------------------------------
-;;; 検索と置換用のウィンドウをdeleteして、editable-search-modeを抜ける
+;;; 検索・置換文字列をセット
 
-(defun es-delete-windows ()
-	"Delete splited windows."
+(defun es-set-strings (mode)
+	"Set strings to search or replace buffer.  MODE [search|replace]."
 	(interactive)
-	(if (windowp (get-buffer-window es-search-str-window))
-			(delete-window (get-buffer-window es-search-str-window)))
-	(if (windowp (get-buffer-window es-replace-str-window))
-			(delete-window (get-buffer-window es-replace-str-window)))
-	(editable-search-mode -1)
-	(editable-re-search-mode -1))
-
-;;; 検索と置換用のウィンドウを用意してサーチモードに入る
-(declare-function global-auto-complete-mode "global-auto-complete-mode" (bool))
-(defun es-enter-mode (mode)
-	"Split window for search and replace.  MODE [set-to-search|set-to-replace]."
-	(interactive)
-	(setq es-ignore-delete-window-hook t)
-	(let* ((is-search-window-exist (windowp (get-buffer-window es-search-str-window)))
-				 (is-replace-window-exist (windowp (get-buffer-window es-replace-str-window)))
-				 (beg (if mark-active (region-beginning)))
+	(let* ((beg (if mark-active (region-beginning)))
 				 (end (if mark-active (region-end)))
-				 (word (if mark-active (buffer-substring-no-properties beg end) "")))
+				 (strings (if mark-active
+											(buffer-substring-no-properties beg end)
+										(read-string (concat mode " word: ") nil)))
+				 (target (if (string= mode "search")
+										 es-search-str-buffer
+									 es-replace-str-buffer)))
 
-		;; 現在のモードラインを保存しておく
-		(unless es-modeline-saved
-			(setq es-modeline-background (face-attribute 'mode-line :background))
-			(setq es-modeline-foreground (face-attribute 'mode-line :foreground))
-			(setq es-modeline-saved t))
+		(unless (get-buffer target) (get-buffer-create target))
 
-		;; 検索窓、置換窓がすでに開いている場合は、キャレットを移動
-		(if (and is-search-window-exist is-replace-window-exist)
-				(progn
-					;; キャレットが検索置換窓にあったら、target-windowを変更しない
-					(unless (or (equal (selected-window) (get-buffer-window es-search-str-window))
-											(equal (selected-window) (get-buffer-window es-replace-str-window)))
-						(setq es-target-window (selected-window))
-						(setq es-target-buffer (buffer-name)))
-					(editable-search-mode t)
-					(select-window (get-buffer-window es-search-str-window))
-					(mark-whole-buffer))
+		;; 文字列をセット
+		(with-current-buffer target
+			(delete-region (point-min) (point-max))
+			(insert strings)
+			(message (concat "set " mode " strings: " strings)))
 
-			;; どちらかだけ開いていたら、もう片方を閉じる
-			(if (and is-search-window-exist (not is-replace-window-exist)) (delete-window (get-buffer-window es-search-str-window)))
-			(if (and is-replace-window-exist (not is-search-window-exist)) (delete-window (get-buffer-window es-replace-str-window)))
+		;; 次回用に文字列を保存
+		(if (string= mode "search")
+				(setq es-previous-searched-str strings)
+			(setq es-previous-replaced-str strings))))
 
-			;; モード準備
-			(setq es-target-window (selected-window))
-			(setq es-target-buffer (buffer-name))
-			(delete-other-windows)
-			(if (eq editable-re-search-mode nil)
-					(es-search-modeline)
-				(es-re-search-modeline))
+;;; ------------------------------------------------------------
+;;; 検索・置換文字列を取得
 
-			;; 検索窓を用意
-			(split-window-horizontally)
+(defun es-get-strings (mode)
+	"Get strings from search or replace buffer.  MODE [search|replace]."
+	(interactive)
+	(let* ((target (if (string= mode "search")
+										 es-search-str-buffer
+									 es-replace-str-buffer))
+				 ret)
+
+		;; strings from buffer
+		(with-current-buffer target
+			(setq ret (buffer-substring-no-properties (point-min) (point-max))))
+
+		;; ask global
+		(if (and (not ret) (string= mode "search"))
+			(setq ret (if (boundp 'es-previous-searched-str) es-previous-searched-str nil)))
+
+		;; no search string error
+		(when (and (not ret) (string= mode "search"))
+				(error "Error: search word is empty"))
+		ret))
+
+;;; ------------------------------------------------------------
+;;; 検索・置換窓を表示
+
+(defun es-show-windows ()
+	"Show search/replace window."
+	(interactive)
+	(let* ((is-search-window-exist (windowp (get-buffer-window es-search-str-buffer)))
+				 (is-replace-window-exist (windowp (get-buffer-window es-replace-str-buffer))))
+
+		(setq es-ignore-delete-window-hook t)
+		(es-keep-target-buffer)
+
+		;; どちらかだけ開いていたら、もう片方を閉じる
+		(when (and is-search-window-exist (not is-replace-window-exist))
+			(delete-window (get-buffer-window es-search-str-buffer)))
+		(when (and is-replace-window-exist (not is-search-window-exist))
+			(delete-window (get-buffer-window es-replace-str-buffer)))
+
+		;; 上下分割か左右分割を選択できるようにする
+		(unless (or is-search-window-exist is-replace-window-exist)
+			(if (string= es-split-direction "horizontal")
+					(split-window-horizontally)
+				(split-window-vertically)))
+
+		;; 検索窓を準備
+		(unless is-search-window-exist
 			(select-window (next-window))
-			(switch-to-buffer es-search-str-window)
-			(when (require 'auto-complete) (global-auto-complete-mode t))
+			(switch-to-buffer es-search-str-buffer)
 			(set-window-dedicated-p (selected-window) t) ;変更を許さないウィンドウにする
-			(editable-search-mode t)
 			(linum-mode -1)
-
-			;; 置換窓を用意
-			(split-window-vertically)
-			(select-window (next-window))
-			(switch-to-buffer es-replace-str-window)
-			(when (require 'auto-complete) (global-auto-complete-mode t))
-			(set-window-dedicated-p (selected-window) t) ;変更を許さないウィンドウにする
-			(editable-search-mode t)
-			(linum-mode -1)
-
-			;; 検索窓に戻って全選択
-			(if (string= mode "") (select-window (previous-window)))
-			(mark-whole-buffer))
-
-		;; 文字セット時の振る舞い
-		(when (and (windowp (get-buffer-window es-search-str-window))
-							 (windowp (get-buffer-window es-replace-str-window))
-							 (or (string= mode "set-to-search") (string= mode "set-to-replace")))
-			(unless (or (equal (selected-window) (get-buffer-window es-search-str-window))
-									(equal (selected-window) (get-buffer-window es-replace-str-window)))
-				(setq es-target-window (selected-window))
-				(setq es-target-buffer (buffer-name)))
-			(es-search-modeline)
 			(editable-search-mode t))
 
-		;; 検索文字列をセットする場合
-		(when (string= mode "set-to-search")
-				(select-window (get-buffer-window es-search-str-window)))
+		;; 置換窓を用意
+		(unless is-replace-window-exist
+			(if (string= es-split-direction "vertical")
+					(split-window-horizontally)
+				(split-window-vertically))
+			(select-window (next-window))
+			(switch-to-buffer es-replace-str-buffer)
+			(set-window-dedicated-p (selected-window) t) ;変更を許さないウィンドウにする
+			(linum-mode -1)
+			(editable-search-mode t))
 
-		;; 置換文字列をセットする場合
-		(when (string= mode "set-to-replace")
-				(select-window (get-buffer-window es-replace-str-window)))
+		;; 上下分割ではあまりスペースを取らないように
+		(unless is-search-window-exist
+			(if (string= es-split-direction "vertical")
+					(shrink-window 20)
+				;; 左右分割で検索置換窓を出せないくらい狭い時には拡張
+				(when (< (frame-width) 110)
+					(set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))))
 
-		;; 候補文字列の置き換え
-		(when (or (string= mode "set-to-search") (string= mode "set-to-replace"))
-			(delete-region (point-min) (point-max))
-			(insert word)
-			(select-window es-target-window))
+		;; キャレットを検索窓にセットして選択
+		(select-window (previous-window))
+		(mark-whole-buffer)
 
-	;; 検索置換窓を出せないくらい狭い時には拡張
-	(when (< (frame-width) 110)
-			(set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
-			(setq es-ignore-delete-window-hook nil)))
+		(setq es-ignore-delete-window-hook t)))
 
 ;;; ------------------------------------------------------------
 ;;; 共通関数
@@ -423,10 +401,26 @@
 (defun es-get-str-from-window (type)
 	"Get str from window.  TYPE[search|replace]."
 	(interactive)
-	(let ((window-obj (if (string= type "search") (get-buffer-window es-search-str-window)
-										 (get-buffer-window es-replace-str-window))))
-		(if (windowp window-obj)
-				(with-selected-window window-obj (buffer-string)) nil)))
+	(let ((window-obj (if (string= type "search")
+												(get-buffer-window es-search-str-buffer)
+											(get-buffer-window es-replace-str-buffer)))
+				(ret ""))
+
+		;; コンテクストに応じた文字列の取得
+		(setq ret (if (windowp window-obj)
+									(with-selected-window window-obj (buffer-string))
+								nil))
+
+		;; グローバルな変数にも尋ねる
+		(if (and (not ret) (string= type "search"))
+			(setq ret (if (boundp 'es-previous-searched-str) es-previous-searched-str nil)))
+
+		;; search stringがなければerror
+		(when (and (not ret) (string= type "search"))
+				(error "Error: search word is empty"))
+
+		;; 戻り値
+		ret))
 
 ;; 空行の検索を特別扱い
 (defun es-replace-empty-line-regex (str)
@@ -436,7 +430,7 @@
 " str))
 
 ;;; ------------------------------------------------------------
-;;; 検索用バッファの文字列で検索する
+;;; 検索用バッファの文字列で検索・置換する
 
 (declare-function es-move-region "es-move-region" ())
 (defun es-search-replace (mode)
@@ -465,7 +459,7 @@
 		(setq es-previous-searced-direction direction)
 
 		;; 現在のウィンドウが検索・置換編集用ウィンドウだったら、主たるウィンドウに移動する
-		(when (not (eq (selected-window) es-target-window))
+		(unless (eq (selected-window) es-target-window)
 			(select-window es-target-window))
 
 		;; 検索用文字列の取得（必須）
@@ -539,7 +533,7 @@
 			 type)
 
 		;; 現在のウィンドウが検索・置換編集用ウィンドウだったら、主たるウィンドウに移動する
-		(if (eq (selected-window) es-target-window) ()
+		(unless (eq (selected-window) es-target-window)
 			(select-window es-target-window))
 
 		;; 検索用文字列の取得
@@ -597,8 +591,35 @@
 ;;; ------------------------------------------------------------
 ;;; experiment マルチファイル検索
 ;;; 対象ディレクトリと拡張子を指定したら検索する
+;; http://d.hatena.ne.jp/IMAKADO/20090225/1235526604
 
-(require 'anything)
+(require 'anything-grep)
+
+;;; ------------------------------------------------------------
+
+;; (root-dir (gtags-get-rootpath)))
+
+(defun anything-grep2 (command pwd)
+  "Run grep in `anything' buffer to narrow results.
+It asks COMMAND for grep command line and PWD for current directory."
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (let ((default (grep-default-command)))
+       (list (read-from-minibuffer "Run grep (like this): "
+				   (if current-prefix-arg
+				       default grep-command)
+				   nil nil 'grep-history
+				   (if current-prefix-arg nil default))
+             (read-directory-name "Directory: " default-directory default-directory t)))))
+  (anything-grep-base (list (agrep-source (agrep-preprocess-command command) pwd))
+                      (format "*anything grep:%s [%s]*" command (abbreviate-file-name pwd))))
+;; (global-set-key (kbd "C--") 'anything-grep2)
+
+
+
+
+
 
 (defvar es-anything-c-source-files
 	'((name . "Path")
@@ -715,8 +736,8 @@
 			(search-str
 			 replace-str
 			 history)
-		(when (and (windowp (get-buffer-window es-search-str-window))
-							 (windowp (get-buffer-window es-replace-str-window)))
+		(when (and (windowp (get-buffer-window es-search-str-buffer))
+							 (windowp (get-buffer-window es-replace-str-buffer)))
 			(setq search-str (multibyte-base64-encode-string (es-get-str-from-window "search")))
 			(setq replace-str (multibyte-base64-encode-string (es-get-str-from-window "replace")))
 			(when search-str
@@ -762,15 +783,18 @@
 ;; (defun es-next-windows-dwim ()
 ;; 	"Next windows dwim."
 ;; 	(interactive)
-;; 	(when (or (equal (selected-window) (get-buffer-window es-search-str-window))
-;; 					(equal (selected-window) (get-buffer-window es-replace-str-window)))
+;; 	(when (or (equal (selected-window) (get-buffer-window es-search-str-buffer))
+;; 					(equal (selected-window) (get-buffer-window es-replace-str-buffer)))
 ;; 			(select-window (next-window))))
+
+;; (global-set-key (kbd "C--") 'anything-grep2)
 
 ;;; Todo:
 ;; マルチファイル検索置換
 ;; 検索履歴
 ;; 検索置換のプリセット
 ;; 検索時に出る（ことがある）エラーの調査
+;; 編集窓を開かずに置換検索にセットできるようにする
 
 ;;; ------------------------------------------------------------
 ;;; Provide
