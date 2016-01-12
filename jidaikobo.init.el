@@ -211,7 +211,8 @@
 ;;; 編集可能な検索置換仕組み
 ;;; editable-search
 (custom-set-variables
-'(es-is-use-super t))
+'(es-is-use-super t)
+'(es-split-direction "vertical"))
 (require 'editable-search)
 (editable-search-mode t)
 
@@ -266,8 +267,8 @@
 ;; (bind-key* "M-left" (lambda () (interactive) (forward-symbol -1)))
 
 ;;; window操作
-(bind-key* "C-o" 'other-window)
-(bind-key* "C-O" (lambda () (interactive) (other-window -1)))
+(bind-key* "C-o" (lambda () (interactive) (other-window 1)))
+(bind-key* "C-S-o" (lambda () (interactive) (other-window -1)))
 (bind-key* "C-1" 'delete-other-windows)
 (bind-key* "<C-kp-1>" 'delete-other-windows)
 (bind-key* "C-2" 'split-window-vertically)
