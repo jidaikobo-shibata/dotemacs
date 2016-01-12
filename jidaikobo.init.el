@@ -213,6 +213,7 @@
 (custom-set-variables
 '(es-is-use-super t))
 (require 'editable-search)
+(editable-search-mode t)
 
 ;;; HTMLのマークアップのキーバインド集
 ;;; web-authoring-set
