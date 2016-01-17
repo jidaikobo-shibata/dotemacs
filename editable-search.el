@@ -246,7 +246,7 @@
 				 (end (if mark-active (region-end)))
 				 (strings (if mark-active
 											(buffer-substring-no-properties beg end)
-										(read-string (concat mode " word: ") nil)))
+										(read-string (concat mode " word: ") "")))
 				 (target (if (string= mode "search")
 										 es-search-str-buffer
 									 es-replace-str-buffer)))
