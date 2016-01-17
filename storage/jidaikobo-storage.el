@@ -1,3 +1,17 @@
+;; (defun my-anything-for-functions ()
+;; 	"Anything command for program."
+;; 	(interactive)
+;; 	(anything-other-buffer
+;; 	 '(anything-c-source-imenu
+;; 		 anything-c-source-emacs-commands
+;; 		 anything-c-source-emacs-functions)
+;; 	 "*my-anything-for-functions*"))
+;; (bind-key* "C-," (lambda ()
+;; 									 (interactive)
+;; 									 (when (< (frame-width) 110)
+;; 										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
+;; 									 (my-anything-for-functions)))
+
 ;;; ------------------------------------------------------------
 ;;; control+shift+cursorでウィンドウ内バッファ履歴
 ;; thx http://pc12.2ch.net/test/read.cgi/unix/1261307488/

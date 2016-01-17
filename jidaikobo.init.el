@@ -433,6 +433,7 @@
 (require 'anything-config)
 (require 'anything-grep)
 
+;;; ------------------------------------------------------------
 ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
 (defvar anything-c-source-find-by-gtags
 	'((name . "Find by gtags or ls")
@@ -454,6 +455,7 @@
 													(concat "ls -1 " (shell-command-to-string "pwd"))) "\n"))))))
 		(type . file)))
 
+;;; ------------------------------------------------------------
 ;;; FTP by Fetch
 (defvar anything-c-source-my-fetch
 	'((name . "open Fetch.app")
@@ -469,6 +471,7 @@
 	"Fetch open.  APP is path."
 	(shell-command (concat "open " app)))
 
+;;; ------------------------------------------------------------
 ;;; よく使うプロジェクトに対する操作
 (defvar anything-c-source-cd-to-projects
 	'((name . "cd to projects")
@@ -489,11 +492,55 @@
 	"Generate gtags at project.  DIR is path."
 	(shell-command-to-string (concat "cd " dir " ; gtags -v")))
 
+;;; ------------------------------------------------------------
+;;; Encode and Line folding
+
+(defvar anything-c-source-coding-system
+	'((name . "Encode and Line Folding")
+		(candidates . (lambda () '("set UTF-8"
+										"set EUC-JP"
+										"set Shift-JIS"
+										"set ISO-2022-JP"
+										"set LF"
+										"set CR"
+										"set CR+LF")))
+		(action ("default" . anything-coding-system))))
+
+(defun anything-coding-system (act)
+	"Change Encode and Lin folding.  ACT is what to do."
+	(message act)
+	(cond ((string= act "set UTF-8")
+				 (set-buffer-file-coding-system 'utf-8))
+				((string= act "set EUC-JP")
+				 (set-buffer-file-coding-system 'euc-jp))
+				((string= act "set Shift-JIS")
+				 (set-buffer-file-coding-system 'shift_jis))
+				((string= act "set ISO-2022-JP")
+				 (set-buffer-file-coding-system 'iso-2022-jp))
+				((string= act "set LF")
+				 (set-buffer-file-coding-system 'unix))
+				((string= act "set CR")
+				 (set-buffer-file-coding-system 'mac))
+				((string= act "set CR+LF")
+				 (set-buffer-file-coding-system 'dos)))
+	(save-buffer)
+	(revert-buffer))
+
+(defun my-anything-for-coding-system ()
+	"Anything command for program."
+	(interactive)
+	(anything-other-buffer
+	 '(anything-c-source-coding-system)
+	 "*my-anything-c-source-coding-system*"))
+(bind-key* "C-^" 'my-anything-for-coding-system)
+
+;;; ------------------------------------------------------------
 ;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
 ;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
 (setq anything-c-boring-buffer-regexp
 			(rx "*" (+ not-newline) "*"))
 
+;;; ------------------------------------------------------------
 ;;; my-anything-for-files
 (defun my-anything-for-files ()
 	"Anything command included find by gtags."
@@ -509,12 +556,9 @@
 		 anything-c-source-recentf
 		 anything-c-source-my-fetch)
 	 "*my-anything-for-files*"))
-(bind-key* "C-;" (lambda ()
-									 (interactive)
-									 (when (< (frame-width) 110)
-										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
-									 (my-anything-for-files)))
+(bind-key* "C-;" 'my-anything-for-files)
 
+;;; ------------------------------------------------------------
 ;;; my-anything-for-functions
 (defun my-anything-for-functions ()
 	"Anything command for program."
@@ -524,22 +568,14 @@
 		 anything-c-source-emacs-commands
 		 anything-c-source-emacs-functions)
 	 "*my-anything-for-functions*"))
-(bind-key* "C-," (lambda ()
-									 (interactive)
-									 (when (< (frame-width) 110)
-										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
-									 (my-anything-for-functions)))
+(bind-key* "C-," 'my-anything-for-functions)
 
 ;;; ------------------------------------------------------------
 ;;; descbinds-anythingの乗っ取り
 ;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
 (require 'descbinds-anything)
 (descbinds-anything-install)
-(bind-key* "C-." (lambda ()
-									 (interactive)
-									 (when (< (frame-width) 110)
-										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
-									 (descbinds-anything)))
+(bind-key* "C-." 'descbinds-anything)
 
 ;;; ------------------------------------------------------------
 ;;; gtags
@@ -1055,7 +1091,9 @@
 
 		;; redefine region
 		(setq my-indent-region-beg beg
-					my-indent-region-end end)))
+					my-indent-region-end end))
+
+	(recenter))
 
 (defun my-inc-region ()
 	"Increase region."
