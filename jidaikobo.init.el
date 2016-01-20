@@ -1312,13 +1312,13 @@
 ;;; フレームの大きさと位置を変更 (cmd+shift+w)
 
 (defun resize-selected-frame ()
-"Resize frame to jidaikobo's default."
-(interactive)
-(set-frame-position (selected-frame) 0 0)
-;; フレームを適当なサイズに変更
-(if (= (frame-width) 200)
-		(set-frame-size (selected-frame) 100 55)
-	(set-frame-size (selected-frame) 200 55)))
+	"Resize frame to jidaikobo's default."
+	(interactive)
+	(set-frame-position (selected-frame) 0 0)
+	(set-frame-size (selected-frame) 200 55))
+;; (if (= (frame-width) 200)
+;; 		(set-frame-size (selected-frame) 100 55)
+;; 	(set-frame-size (selected-frame) 200 55)))
 (bind-key* "s-W" 'resize-selected-frame)
 
 ;;; ------------------------------------------------------------
