@@ -21,7 +21,7 @@
 ;; ./configure --prefix=$HOME/opt/emacs-24.5 --with-mac --without-x
 ;; make
 ;; make GZIP_PROG='' install
-;; cp -r mac/Emacs.app ~/Applications
+;; cp -r mac/Emacs.app /Applications
 
 ;;; ------------------------------------------------------------
 ;;; Usage: 利用前の準備
@@ -39,16 +39,16 @@
 ;;; ------------------------------------------------------------
 ;;; 最小限設定 - 以降でエラーがあっても、最小限保証される設定
 
-;;; リージョンを上書きできるようにする
+;; リージョンを上書きできるようにする
 (delete-selection-mode t)
 
-;;; 選択範囲を可視化
+;; 選択範囲を可視化
 (setq transient-mark-mode t)
 
-;;; C-kで行全体を対象にする
+;; C-kで行全体を対象にする
 (setq kill-whole-line t)
 
-;;; スクロールを一行ずつにする
+;; スクロールを一行ずつにする
 (setq scroll-step 1)
 
 ;; クリップボードを他のアプリケーションと共用にする
@@ -57,10 +57,7 @@
 ;; font-lock-mode
 (global-font-lock-mode t)
 
-;;; default-input-method
-;; (setq default-input-method "MacOSX")
-
-;;; optキーをMetaキーに
+;; optキーをMetaキーに
 (setq mac-pass-command-to-system nil)
 (setq mac-command-modifier 'super)
 (setq mac-option-modifier 'meta)
@@ -68,57 +65,53 @@
 ;; yes/noをy/nへ
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;;; 起動画面を抑止
+;; 起動画面を抑止
 (setq inhibit-startup-message t)
 
-;;; スクラッチメッセージ（起動時注意書き）を抑止
+;; スクラッチメッセージ（起動時注意書き）を抑止
 (setq initial-scratch-message nil)
 
-;;; オートインデント無効
+;; オートインデント無効
 (ignore-errors (electric-indent-mode -1))
 
-;;; 警告音とフラッシュを無効
+;; 警告音とフラッシュを無効
 (setq ring-bell-function 'ignore)
 
-;;; バックアップファイルを作らないようにする
+;; バックアップファイルを作らないようにする
 (setq make-backup-files nil)
 
-;;; 自動保存を無効
+;; 自動保存を無効
 (setq auto-save-default nil)
 (setq delete-auto-save-files t)
 
-;;; ツールバーを非表示
+;; ツールバーを非表示
 (ignore-errors (tool-bar-mode -1))
 
-;;; タイトルバーにファイル名表示
+;; タイトルバーにファイル名表示
 (setq frame-title-format (format "%%f %%* Emacs@%s" (system-name)))
 
-;;; ミニバッファ履歴を保存
+;; ミニバッファ履歴を保存
 (savehist-mode 1)
 
-;;; ミニバッファでは半角英数で
-(ignore-errors
-	(mac-auto-ascii-mode 1))
+;; ミニバッファでは半角英数で
+(ignore-errors (mac-auto-ascii-mode 1))
 
-;;; タブキー
+;; タブキー
 (setq-default tab-width 2)
 (setq-default indent-tabs-mode t)
 
-;;; cua-modeの設定
+;; cua-modeの設定
 (cua-mode t) ; cua-modeをオン。C-RETで矩形選択モードに
 (setq-default cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
 
 ;; 複数フレームを開かないようにする
 (setq-default ns-pop-up-frames nil)
 
-;;; 自動分割は原則左右で
-;; (setq split-height-threshold nil)
-
 ;; ファイルが #! から始まる場合、+xを付けて保存する
 (add-hook 'after-save-hook
 					'executable-make-buffer-file-executable-if-script-p)
 
-;;; emacsclient（使いたいのだけど、今のところうまくいかない）
+;; emacsclient（使いたいのだけど、今のところうまくいかない）
 (if (eq window-system 'ns) (server-start))
 
 ;;; ------------------------------------------------------------
@@ -163,7 +156,7 @@
 ;; load-pathの追加
 (add-to-list 'load-path "~/.emacs.d/jidaikobo")
 
-;;; 1日一回 load packages
+;; 1日一回 load packages
 (if (file-exists-p "~/.emacs.d/package.override.el")
 		(load "~/.emacs.d/package.override.el")
 
@@ -239,7 +232,7 @@
 ;;; ------------------------------------------------------------
 ;;; キーボード操作
 
-;;; mac-likeなcmd関係
+;; mac-likeなcmd関係
 ;; thx http://d.hatena.ne.jp/gan2/20080109/1199887209
 ;; thx http://www.unixuser.org/~euske/doc/emacsref/#file
 (bind-key* "s-a" 'mark-whole-buffer) ; select all (cmd+a)
@@ -270,7 +263,7 @@
 ;; (bind-key* "M-right" 'forward-symbol)
 ;; (bind-key* "M-left" (lambda () (interactive) (forward-symbol -1)))
 
-;;; window操作
+;; window操作
 (bind-key* "C-o" (lambda () (interactive) (other-window 1)))
 (bind-key* "C-S-o" (lambda () (interactive) (other-window -1)))
 (bind-key* "C-1" 'delete-other-windows)
@@ -281,7 +274,7 @@
 (bind-key* "<C-kp-3>" 'split-window-horizontally)
 (bind-key* "C-0" 'delete-window)
 
-;;; escでM-g
+;; escでM-g
 ;; http://emacswiki.org/emacs/CancelingInEmacs
 (setq-default normal-escape-enabled t)
 (define-key isearch-mode-map [escape] 'isearch-abort) ; isearch
@@ -290,22 +283,22 @@
 (bind-key* "M-ESC ESC" 'keyboard-quit)
 (define-key minibuffer-inactive-mode-map [escape] 'keyboard-quit) ; minibuffer
 
-;;; ウィンドウ切り替え (opt+tab)
+;; ウィンドウ切り替え (opt+tab)
 (bind-key* "<M-tab>" 'other-window)
 
-;;; M-g or cmd+opt+j で指定行へジャンプ
+;; M-g or cmd+opt+j で指定行へジャンプ
 (bind-key* "M-g" 'goto-line)
 (bind-key* "M-s-j" 'goto-line)
 
 ;;; ------------------------------------------------------------
-;; 文字入力
+;;; 文字入力
 
-;;; opt+¥でバックスラッシュを入力
+;; opt+¥でバックスラッシュを入力
 (bind-key* "M-¥" "\\")
 
 ;;; ------------------------------------------------------------
 ;;; バッファの状態を保存
-;; thx http://d.hatena.ne.jp/katsu_w/20080319/1205923300
+;;; thx http://d.hatena.ne.jp/katsu_w/20080319/1205923300
 
 ;; (autoload 'save-current-configuration "revive" "Save status" t)
 ;; (autoload 'resume "revive" "Resume Emacs" t)
@@ -342,7 +335,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 釣り合いのとれる括弧のハイライト
-;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
+;;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
 (require 'mic-paren)
 (paren-activate)
 (setq paren-match-face 'underline paren-sexp-mode t)
@@ -366,7 +359,7 @@
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
 
-;;; multiple-cursors and smartrep
+;; multiple-cursors and smartrep
 (require 'multiple-cursors)
 (require 'smartrep)
 
@@ -395,17 +388,17 @@
 ;;; ------------------------------------------------------------
 ;;; undo関連
 
-;;; undohist
+;; undohist
 ;; ファイルを閉じてもundoの履歴を残す
 (require 'undohist)
 (undohist-initialize)
 
-;;; undo-tree
+;; undo-tree
 ;; redo (cmd+shft+z)
 (require 'undo-tree)
 (global-undo-tree-mode t)
 
-;;; point-undo
+;; point-undo
 ;; カーソル位置履歴 (undo: M-s-left, redo: M-s-right)
 (require 'point-undo)
 (bind-key* "<S-s-left>" 'point-undo)
@@ -418,7 +411,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; recentf
-;; 最近開いたファイルの履歴
+;;; 最近開いたファイルの履歴
 
 (require 'recentf-ext)
 (recentf-mode 1)
@@ -432,7 +425,7 @@
 ;;; ------------------------------------------------------------
 ;;; Anything関連
 
-;;; Anything
+;; Anything
 (require 'anything)
 (require 'anything-config)
 (require 'anything-grep)
@@ -539,8 +532,8 @@
 (bind-key* "C-^" 'my-anything-for-coding-system)
 
 ;;; ------------------------------------------------------------
-;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
-;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
+;;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
+;;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
 (setq anything-c-boring-buffer-regexp
 			(rx "*" (+ not-newline) "*"))
 
@@ -576,7 +569,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; descbinds-anythingの乗っ取り
-;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
+;;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
 (require 'descbinds-anything)
 (descbinds-anything-install)
 (bind-key* "C-." 'descbinds-anything)
@@ -587,7 +580,7 @@
 (require 'gtags)
 (setq gtags-path-style 'relative)
 
-;;; キーバインド
+;; キーバインド
 (setq-default gtags-mode-hook
 			'(lambda ()
 				 (local-set-key "\M-t" 'gtags-find-tag)
@@ -599,13 +592,13 @@
 			'(lambda ()
 				 (local-set-key (kbd "RET") 'gtags-select-tag)))
 
-;;; gtags-mode を使いたい mode の hook に追加する
+;; gtags-mode を使いたい mode の hook に追加する
 (add-hook 'php-mode-hook
 					'(lambda()
 						 (gtags-mode 1)
 						 (gtags-make-complete-list)))
 
-;;; update GTAGS
+;; update GTAGS
 ;; thx http://qiita.com/yewton/items/d9e686d2f2a092321e34
 (defun update-gtags (&optional prefix)
 	"Update gtags.  PREFIX."
@@ -730,6 +723,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; ウィンドウ/スクリーンを閉じる
+
 (defun my-delete-windows ()
 	"Contexual delete windows."
 	(interactive)
@@ -763,7 +757,7 @@
 ;;; ------------------------------------------------------------
 ;;; カーソル関連
 
-;;; cursor-chg
+;; cursor-chg
 ;; カーソルの色と形状を変更（ブロックカーソルが苦手なので）
 (require 'cursor-chg)
 (change-cursor-mode 1)
@@ -772,7 +766,7 @@
 (setq curchg-input-method-cursor-color "firebrick")
 (setq curchg-change-cursor-on-input-method-flag t)
 
-;;; C-aで、開始場所と先頭をトグル
+;; C-aで、開始場所と先頭をトグル
 ;; thx http://qiita.com/ShingoFukuyama/items/62269c4904ca085f9149
 (defun my-goto-line-beginning-or-indent (&optional position)
 	"Goto line beginning or indent.  POSITION is optical."
@@ -786,7 +780,7 @@
 ;;; ------------------------------------------------------------
 ;;; 行設定
 
-;;; 行カーソル
+;; 行カーソル
 ;; thx http://rubikitch.com/tag/emacs-post-command-hook-timer/
 (require 'hl-line)
 (defun global-hl-line-timer-function ()
@@ -801,7 +795,7 @@
 ;; 行間隔を少し広げる
 (set-default 'line-spacing 3)
 
-;;; 行番号を表示する
+;; 行番号を表示する
 (defun show-line-number ()
 	"Show line number."
 	(interactive)
@@ -824,13 +818,13 @@
 ;;; ------------------------------------------------------------
 ;;; モードライン設定
 
-;;; 何文字目にいるか表示
+;; 何文字目にいるか表示
 (column-number-mode 1)
 
 ;;; ------------------------------------------------------------
 ;;; マウス設定
 
-;;; shift+clickでregion作成
+;; shift+clickでregion作成
 ;; thx http://superuser.com/questions/521223/shift-click-to-extend-marked-region
 (define-key global-map (kbd "<S-down-mouse-1>") 'ignore) ; turn off font dialog
 (define-key global-map (kbd "<S-mouse-1>") 'mouse-set-point)
@@ -860,10 +854,10 @@
 ;; diredでファイル編集（rで編集モードに）
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 
-;;; C-x C-f で現在位置を開く
+;; C-x C-f で現在位置を開く
 (ffap-bindings)
 
-;;; diredでマークをつけたファイルを開く（F）
+;; diredでマークをつけたファイルを開く（F）
 (eval-after-load "dired"
 	'(progn
 		 (define-key dired-mode-map (kbd "F") 'my-dired-find-marked-files)
@@ -873,7 +867,7 @@
 			 (let* ((fn-list (dired-get-marked-files nil arg)))
 				 (mapc 'find-file fn-list)))))
 
-;;; diredでタブを開きすぎないようにする
+;; diredでタブを開きすぎないようにする
 ;; http://nishikawasasaki.hatenablog.com/entry/20120222/1329932699
 ;; dired-find-alternate-file の有効化
 (put 'dired-find-alternate-file 'disabled nil)
@@ -882,7 +876,7 @@
 (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
 (define-key dired-mode-map (kbd "a") 'dired-find-file)
 
-;;; anything in dired
+;; anything in dired
 ;; thx http://syohex.hatenablog.com/entry/20120105/1325770778
 ;; pを押すと、anything
 (defun my/anything-dired ()
@@ -916,10 +910,10 @@
 ;;; whitespace関連設定
 (require 'whitespace)
 
-;;; 保存前に自動でクリーンアップ
+;; 保存前に自動でクリーンアップ
 (setq whitespace-action '(auto-cleanup))
 
-;;; whitespaceの可視化
+;; whitespaceの可視化
 (global-whitespace-mode 1)
 
 ;;; ------------------------------------------------------------
@@ -946,22 +940,21 @@
 (bind-key* "s-d" 'duplicate-region-or-line)
 
 ;;; ------------------------------------------------------------
-;;; isearchに文字列をセット
-;; http://blog.livedoor.jp/tek_nishi/archives/4866943.html
+;;; 選択範囲を計算
 
-(defun my-isearch-get-word()
-	"Set region to isearch."
+(defun my-calc ()
+	"My-Calc."
 	(interactive)
-	(if(not isearch-mode)
-			(progn
-				(call-interactively 'isearch-forward)
-				(let ((string
-							 (if (and transient-mark-mode mark-active)
-									 (buffer-substring (region-beginning) (region-end))
-								 (thing-at-point 'symbol))))
-					(deactivate-mark)
-					(isearch-yank-string string)))))
-(bind-key* "C-S-s" 'my-isearch-get-word)
+	(let* ((beg (if mark-active (region-beginning)))
+				 (end (if mark-active (region-end)))
+				 (strings (if mark-active
+											(buffer-substring-no-properties beg end)
+										(read-string " Expression: " ""))))
+		(when mark-active
+			(end-of-line)
+			(newline))
+		(insert (calc-eval strings))))
+(bind-key* "M-c" 'my-calc)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を[大文字|小文字|キャピタライズ]に
@@ -982,9 +975,9 @@
 										t)))
 
 ;;; ------------------------------------------------------------
-;; ucs-normalize-NFC-region で濁点分離を直す
-;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
-;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
+;;; ucs-normalize-NFC-region で濁点分離を直す
+;;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
+;;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
 
 (require 'ucs-normalize)
 (prefer-coding-system 'utf-8)
@@ -1113,14 +1106,14 @@
 (bind-key* "s-{" 'my-dec-region)
 
 ;;; ------------------------------------------------------------
-;; 自分好みのタブの振る舞い
-;; read-onlyバッファではリンクの移動
-;; ミニバッファだったらミニバッファ補完
-;; 文字入力中だったらac-start
-;; なにもなければインデントを試みる
-;; インデントしてキャレットの移動がなければ\tを挿入
+;;; 自分好みのタブの振る舞い
+;;; read-onlyバッファではリンクの移動
+;;; ミニバッファだったらミニバッファ補完
+;;; 文字入力中だったらac-start
+;;; なにもなければインデントを試みる
+;;; インデントしてキャレットの移動がなければ\tを挿入
 
-;;; smart-tab
+;; smart-tab
 ;; コンテキストに応じたtabキー。auto-completeと共存
 ;; (require 'smart-tab)
 ;; (global-smart-tab-mode)
@@ -1164,7 +1157,7 @@
 (bind-key* "<tab>" 'my-tab-dwim)
 
 ;;; ------------------------------------------------------------
-;; 現在バッファのファイルのフルパスを取得
+;;; 現在バッファのファイルのフルパスを取得
 
 (defun get-current-path ()
 "Get current file path."
@@ -1175,8 +1168,8 @@
 ;;; ------------------------------------------------------------
 ;;; 選択範囲の言語を確認して翻訳 (C-c t)
 
-;;; google-translate
-;;; http://rubikitch.com/2014/12/07/google-translate/
+;; google-translate
+;; http://rubikitch.com/2014/12/07/google-translate/
 (require 'google-translate)
 (defvar google-translate-english-chars "[:ascii:]"
 "Ascii means English.")
@@ -1219,7 +1212,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; rainbow-mode
-;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
+;;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
 
 (require 'rainbow-mode)
 (add-hook 'fundamental-mode-hook 'rainbow-mode)
@@ -1232,7 +1225,7 @@
 ;;; ------------------------------------------------------------
 ;;; html-mode
 
-;;; html-mode-hook
+;; html-mode-hook
 (add-hook 'html-mode-hook
 				'(lambda()
 					 (define-key html-mode-map "/" 'self-insert-command)))
@@ -1242,7 +1235,7 @@
 
 (require 'web-mode)
 
-;;; web-mode-hook
+;; web-mode-hook
 (add-hook 'web-mode-hook
 				'(lambda()
 					 (setq web-mode-markup-indent-offset 2)
@@ -1263,7 +1256,7 @@
 
 (require 'php-mode)
 
-;;; php-mode-hook
+;; php-mode-hook
 (add-hook 'php-mode-hook
 				'(lambda()
 					 (setq tab-width 2)
@@ -1278,7 +1271,7 @@
 ;;; ------------------------------------------------------------
 ;;; text-mode
 
-;;; テキストモードでもすこしカラーリングする
+;; テキストモードでもすこしカラーリングする
 ;; thx http://lioon.net/how-to-customize-face-emacs
 ;; M-x list-faces-display
 (add-hook 'text-mode-hook
@@ -1288,7 +1281,7 @@
 ;;; ------------------------------------------------------------
 ;;; kontiki-mode
 
-;;; ワイアフレームモード
+;; ワイアフレームモード
 (easy-mmode-define-minor-mode kontiki-mode
 														"This is a Mode for Kontiki-Draft."
 														nil
@@ -1305,7 +1298,7 @@
 ;;; ------------------------------------------------------------
 ;;; mail-mode
 
-;;; メールモード（mail-mode）のカラーリング
+;; メールモード（mail-mode）のカラーリング
 (add-hook 'mail-mode-hook
 				'(lambda()
 					 (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
@@ -1328,7 +1321,7 @@
 ;;; ------------------------------------------------------------
 ;;; auto-complete
 
-;;; セミオートコンプリート
+;; セミオートコンプリート
 ;; auto-completeのトリガーはmy-tab-dwimで定義
 (require 'auto-complete)
 (require 'auto-complete-config)
@@ -1337,10 +1330,10 @@
 (setq ac-disable-faces nil)
 (setq ac-auto-start nil)
 
-;;; ユーザ辞書ディレクトリ
+;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (expand-file-name "~/.emacs.d/jidaikobo/ac-dict/"))
 
-;;; 辞書追加
+;; 辞書追加
 ;; 英語
 (defvar ac-english-cache
 (ac-file-dictionary (concat ac-user-dict-dir "english")))
@@ -1353,7 +1346,7 @@
 (defvar ac-technical-term-dict
 '((candidates . ac-technical-term-cache)))
 
-;;; 条件の追加
+;; 条件の追加
 (add-to-list 'ac-modes 'text-mode)
 (add-to-list 'ac-modes 'fundamental-mode)
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
@@ -1363,7 +1356,7 @@
 												 ac-english-dict))
 
 ;;; ------------------------------------------------------------
-;; magit
+;;; magit
 
 ;; (setq my-emacsclient "/Applications/Emacs.app/Contents/MacOS/bin/emacsclient")
 ;; (set-variable 'magit-emacsclient-executable (lambda () (if (file-exists-p my-emacsclient) nil)))
@@ -1372,7 +1365,7 @@
 (bind-key* "M-s-m" 'magit-status)
 
 ;;; ------------------------------------------------------------
-;; gist
+;;; gist
 
 (require 'gist)
 
