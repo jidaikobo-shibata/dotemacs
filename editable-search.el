@@ -108,12 +108,12 @@
 ;;; hook
 
 ;;; ウィンドウ構成を変えようとしたら検索置換窓を閉じる
-(add-hook 'window-configuration-change-hook 'es-delete-window-fn)
-(defun es-delete-window-fn ()
-	"Delete search mode windows."
-	(unless es-ignore-delete-window-hook
-		(select-window es-target-window)
-		(delete-other-windows)))
+;;(add-hook 'window-configuration-change-hook 'es-delete-window-fn)
+;;(defun es-delete-window-fn ()
+;;	"Delete search mode windows."
+;;	(unless es-ignore-delete-window-hook
+;;		(select-window es-target-window)
+;;		(delete-other-windows)))
 
 ;;; ------------------------------------------------------------
 ;;; function alias for key-binds

@@ -1,3 +1,20 @@
+;; 入力モードが英語の時はカーソルの色をWhiteに、日本語の時はfirebrickにする
+;; thx http://masutaka.net/chalow/2015-01-04-1.html
+;; これを有効にするためには、Mac OS Xの入力ソースを適切なものにしておくこと
+;; thx http://pc-karuma.net/mac-keyboard-input-source/
+;; (when (fboundp 'mac-input-source)
+;; 	(defun my-mac-selected-keyboard-input-source-chage-function ()
+;; 		"Change Cursor Color."
+;; 		(let ((mac-input-source (mac-input-source)))
+;; 			;; (message mac-input-source)
+;; 			(set-cursor-color
+;; 			 (if (string-match "\\.US$" mac-input-source)
+;; 					 "White" "firebrick"))))
+;; 	(add-hook 'mac-selected-keyboard-input-source-change-hook
+;; 						'my-mac-selected-keyboard-input-source-chage-function)
+;; 	(add-hook 'after-save-hook
+;; 					'my-mac-selected-keyboard-input-source-chage-function))
+
 ;; (defun my-anything-for-functions ()
 ;; 	"Anything command for program."
 ;; 	(interactive)

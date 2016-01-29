@@ -9,14 +9,14 @@
 ;;; thx http://masutaka.net/chalow/2015-04-12-1.html
 ;;; ftp://ftp.math.s.chiba-u.ac.jp/emacsを確認して、あたらしいパッチの存在を確認すると良い
 ;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-24.5.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-24.5-mac-5.11.tar.gz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-24.5-mac-5.15.tar.gz
 ;; tar xfJ emacs-24.5.tar.xz
-;; tar xfz emacs-24.5-mac-5.11.tar.gz
+;; tar xfz emacs-24.5-mac-5.15.tar.gz
 ;; cd emacs-24.5
-;; patch -p 1 < ../emacs-24.5-mac-5.11/patch-mac
-;; cp -r ../emacs-24.5-mac-5.11/mac mac
-;; cp ../emacs-24.5-mac-5.11/src/* src
-;; cp ../emacs-24.5-mac-5.11/lisp/term/mac-win.el lisp/term
+;; patch -p 1 < ../emacs-24.5-mac-5.15/patch-mac
+;; cp -r ../emacs-24.5-mac-5.15/mac mac
+;; cp ../emacs-24.5-mac-5.15/src/* src
+;; cp ../emacs-24.5-mac-5.15/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
 ;; ./configure --prefix=$HOME/opt/emacs-24.5 --with-mac --without-x
 ;; make
@@ -58,7 +58,7 @@
 (global-font-lock-mode t)
 
 ;;; default-input-method
-(setq default-input-method "MacOSX")
+;; (setq default-input-method "MacOSX")
 
 ;;; optキーをMetaキーに
 (setq mac-pass-command-to-system nil)
@@ -96,6 +96,10 @@
 ;;; ミニバッファ履歴を保存
 (savehist-mode 1)
 
+;;; ミニバッファでは半角英数で
+(ignore-errors
+	(mac-auto-ascii-mode 1))
+
 ;;; タブキー
 (setq-default tab-width 2)
 (setq-default indent-tabs-mode t)
@@ -104,7 +108,7 @@
 (cua-mode t) ; cua-modeをオン。C-RETで矩形選択モードに
 (setq-default cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
 
-;;複数フレームを開かないようにする
+;; 複数フレームを開かないようにする
 (setq-default ns-pop-up-frames nil)
 
 ;;; 自動分割は原則左右で
@@ -760,13 +764,13 @@
 ;;; カーソル関連
 
 ;;; cursor-chg
-;; カーソルの形状を変更（ブロックカーソルが苦手なので）
+;; カーソルの色と形状を変更（ブロックカーソルが苦手なので）
 (require 'cursor-chg)
 (change-cursor-mode 1)
 (toggle-cursor-type-when-idle 0)
 (setq curchg-default-cursor-color "White")
-;; 残念ながら日本語キーボードで「英数」「かな」キーを使っている限りは、これは効かない。
-(setq curchg-input-method-cursor-color "Orange")
+(setq curchg-input-method-cursor-color "firebrick")
+(setq curchg-change-cursor-on-input-method-flag t)
 
 ;;; C-aで、開始場所と先頭をトグル
 ;; thx http://qiita.com/ShingoFukuyama/items/62269c4904ca085f9149
@@ -1315,7 +1319,7 @@
 	"Resize frame to jidaikobo's default."
 	(interactive)
 	(set-frame-position (selected-frame) 0 0)
-	(set-frame-size (selected-frame) 200 55))
+	(set-frame-size (selected-frame) 100 55))
 ;; (if (= (frame-width) 200)
 ;; 		(set-frame-size (selected-frame) 100 55)
 ;; 	(set-frame-size (selected-frame) 200 55)))
@@ -1376,16 +1380,16 @@
 ;;; Todo:
 ;; doctypeを見てのbrやタグの挿入
 ;; 単語境界をもうちょっと細かくしたい
-;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる。
 ;; 複数の検索置換セット
 ;; 複数ファイルの検索置換
-;; M-%の振る舞いを理解したい。置換文字列にセットはできないものか。
-;; editable-searchが二つウィンドウを開くのが少々大仰に思える
 ;; portのEmacsを試してみる？
-;; auto-completeの技術語辞書をもうちょっと厳選
-;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
 ;; flycheckをデフォルトでオフ。必要に応じて起こすようにする。
 ;; なるべく余計なことをしないphpモード。シンタックステーブルだけ持ってきて、用語とタブキーの振る舞いは自分で設定する
+;; emacs-mac-patchの15をあてたので、もしかするとauto-completeを復活できるかもしれないので、確認
+;; auto-completeの技術語辞書をもうちょっと厳選
+;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
+;; curchg-input-method-cursor-colorの挙動を確認
+;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる。
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
