@@ -1,3 +1,20 @@
+;;; ------------------------------------------------------------
+;;; isearchに文字列をセット
+;;; http://blog.livedoor.jp/tek_nishi/archives/4866943.html
+;; (defun my-isearch-get-word()
+;; 	"Set region to isearch."
+;; 	(interactive)
+;; 	(if(not isearch-mode)
+;; 			(progn
+;; 				(call-interactively 'isearch-forward)
+;; 				(let ((string
+;; 							 (if (and transient-mark-mode mark-active)
+;; 									 (buffer-substring (region-beginning) (region-end))
+;; 								 (thing-at-point 'symbol))))
+;; 					(deactivate-mark)
+;; 					(isearch-yank-string string)))))
+;; (bind-key* "C-S-s" 'my-isearch-get-word)
+
 ;; 入力モードが英語の時はカーソルの色をWhiteに、日本語の時はfirebrickにする
 ;; thx http://masutaka.net/chalow/2015-01-04-1.html
 ;; これを有効にするためには、Mac OS Xの入力ソースを適切なものにしておくこと
