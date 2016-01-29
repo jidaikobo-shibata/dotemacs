@@ -450,7 +450,8 @@
 														 (string= replace-flag "rep-pr")
 														 (string= replace-flag "rep-he")
 														 (string= replace-flag "re-rep")) t nil))
-				 (is-replace-here (if (string= mode "rep-here") t nil))
+				 (is-replace-here (if (or (string= mode "rep-here")
+																	(string= mode "re-rep-here")) t nil))
 				 target-str)
 
 		;; 検索方向が変わったら向きを変える
