@@ -154,7 +154,9 @@
 ;;; Packages
 
 ;; load-pathの追加
-(add-to-list 'load-path "~/.emacs.d/jidaikobo")
+(setq my-dotfiles-dir (file-name-directory
+										(or (buffer-file-name) load-file-name)))
+(add-to-list 'load-path my-dotfiles-dir)
 
 ;; 1日一回 load packages
 (if (file-exists-p "~/.emacs.d/package.override.el")
@@ -1216,9 +1218,9 @@
 
 (load "flycheck")
 (setq-default flycheck-emacs-lisp-load-path 'inherit)
-(add-hook 'after-init-hook #'global-flycheck-mode)
 (bind-key* "<M-up>" 'flycheck-previous-error) ; previous error (M+up)
 (bind-key* "<M-down>" 'flycheck-next-error) ; next error (M+down)
+;; (add-hook 'after-init-hook #'global-flycheck-mode) ; HTMLでは抑止
 (add-hook 'php-mode-hook 'flycheck-mode)
 
 ;;; ------------------------------------------------------------
@@ -1387,7 +1389,6 @@
 ;; 複数の検索置換セット
 ;; 複数ファイルの検索置換
 ;; portのEmacsを試してみる？
-;; flycheckをデフォルトでオフ。必要に応じて起こすようにする。
 ;; なるべく余計なことをしないphpモード。シンタックステーブルだけ持ってきて、用語とタブキーの振る舞いは自分で設定する
 ;; emacs-mac-patchの15をあてたので、もしかするとauto-completeを復活できるかもしれないので、確認
 ;; auto-completeの技術語辞書をもうちょっと厳選
