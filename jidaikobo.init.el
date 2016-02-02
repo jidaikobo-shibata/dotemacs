@@ -974,6 +974,13 @@
 										(region-end)
 										t)))
 
+;; 音引、句読点等を除外
+;; thx http://d.hatena.ne.jp/khiker/20061014/1160861915
+(put-char-code-property ?ー 'ascii nil)
+(put-char-code-property ?～ 'ascii nil)
+(put-char-code-property ?、 'ascii nil)
+(put-char-code-property ?。 'ascii nil)
+
 ;;; ------------------------------------------------------------
 ;;; ucs-normalize-NFC-region で濁点分離を直す
 ;;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
