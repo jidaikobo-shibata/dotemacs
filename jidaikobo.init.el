@@ -981,6 +981,10 @@
 (put-char-code-property ?、 'ascii nil)
 (put-char-code-property ?。 'ascii nil)
 
+;; 確実に変換
+(put-char-code-property ?， 'jisx0208 ?,)
+(put-char-code-property ?． 'jisx0208 ?.)
+
 ;;; ------------------------------------------------------------
 ;;; ucs-normalize-NFC-region で濁点分離を直す
 ;;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
