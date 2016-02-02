@@ -42,6 +42,11 @@
 ;; リージョンを上書きできるようにする
 (delete-selection-mode t)
 
+;; 設定ファイルのパス
+(setq jidaikobo-dir (file-name-directory
+										(or (buffer-file-name) load-file-name)))
+(setq dotfiles-dir (expand-file-name (concat jidaikobo-dir "../")))
+
 ;; 選択範囲を可視化
 (setq transient-mark-mode t)
 
@@ -131,7 +136,7 @@
 (defun is-once-in-a-day ()
 	"Is once in a day."
 	(interactive)
-	(let* ((target-file "~/.emacs.d/.is-once-in-a-day")
+	(let* ((target-file (concat dotfiles-dir ".is-once-in-a-day"))
 				 (target-update-at (if (file-exists-p target-file)
 															 (nth 5 (file-attributes target-file))
 														 (append-to-file "" nil target-file)))
@@ -154,13 +159,14 @@
 ;;; Packages
 
 ;; load-pathの追加
-(setq my-dotfiles-dir (file-name-directory
-										(or (buffer-file-name) load-file-name)))
-(add-to-list 'load-path my-dotfiles-dir)
+(add-to-list 'load-path jidaikobo-dir)
+
+;; package.override.el
+(setq override-el (concat dotfiles-dir "package.override.el"))
 
 ;; 1日一回 load packages
-(if (file-exists-p "~/.emacs.d/package.override.el")
-		(load "~/.emacs.d/package.override.el")
+(if (file-exists-p override-el)
+		(load override-el)
 
 	;; Packages
 	(require 'package)
@@ -223,7 +229,7 @@
 ;;; theme
 
 (add-to-list 'custom-theme-load-path
-						 (file-name-as-directory "~/.emacs.d/jidaikobo/themes/"))
+						 (file-name-as-directory (concat jidaikobo-dir "themes/")))
 (load-theme 'jidaikobo-dark t)
 
 ;;; ------------------------------------------------------------
@@ -1344,7 +1350,7 @@
 (setq ac-auto-start nil)
 
 ;; ユーザ辞書ディレクトリ
-(defvar ac-user-dict-dir (expand-file-name "~/.emacs.d/jidaikobo/ac-dict/"))
+(defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
 
 ;; 辞書追加
 ;; 英語
