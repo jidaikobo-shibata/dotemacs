@@ -603,20 +603,58 @@
 (require 'gtags)
 (setq gtags-path-style 'relative)
 
+;; ;; 日本語の自動判別
+;; ;; thx http://dev.ariel-networks.com/articles/emacs/part1/
+;; (setq grep-host-defaults-alist nil)
+;; (when mac-carbon-version-string
+;; 	(setq grep-template "lgrep <C> -n <R> <F> <N>")
+;; 	(setq grep-find-template "find . <X> -type f <F> -print0 | xargs -0 -e lgrep <C> -n <R> <N>"))
+
+;; ;; Windows
+;; (defvar quote-argument-for-windows-p t "enables `shell-quote-argument' workaround for windows.")
+;; (defadvice shell-quote-argument (around shell-quote-argument-for-win activate)
+;; 	"workaround for windows."
+;; 	(if quote-argument-for-windows-p
+;; 			(let ((argument (ad-get-arg 0)))
+;; 				(setq argument (replace-regexp-in-string "\\\\" "\\\\" argument nil t))
+;; 				(setq argument (replace-regexp-in-string "'" "'\\''" argument nil t))
+;; 				(setq ad-return-value (concat "'" argument "'")))
+;; 		ad-do-it)
+;; 	(setq grep-template "lgrep -Ks -Os <C> -n <R> <F> <N>")
+;; 	(setq grep-find-template "find . <X> -type f <F> -print0 | xargs -0 -e lgrep -Ks -Os <C> -n <R> <N>")
+;; thx http://qiita.com/ybiquitous/items/2f2206ff7a557c4cbc11
+;; (setq find-program "\"C:\\Program Files\\Git\\usr\\bin\\find.exe\""
+;;       grep-program "\"C:\\Program Files\\Git\\usr\\bin\\grep.exe\""
+;;       null-device "/dev/null"))
+
+;; 除外ディレクトリ
+;; 将来的には入力できるようにする
+(add-to-list 'grep-find-ignored-directories "logs")
+(add-to-list 'grep-find-ignored-directories "caches")
+
+;; es-grep
 (defun es-grep (string ext pwd)
   "It asks STRING and EXT for grep command line and PWD for current directory."
   (interactive
    (progn
      (let ((default (es-get-strings "search"))
-					 (target-ext (file-name-extension (buffer-file-name)))
+					 (target-ext (concat "*." (file-name-extension (buffer-file-name))))
 					 (target-dir (if (gtags-get-rootpath)
 													 (directory-file-name (gtags-get-rootpath))
 												 default-directory)))
+			 (grep-compute-defaults)
        (list (read-from-minibuffer "Search: " default nil nil 'grep-history (if current-prefix-arg nil default))
-						 (read-from-minibuffer "Extension: " target-ext)
+						 (read-from-minibuffer "Extension (plural available): " target-ext)
              (read-directory-name "Directory: " target-dir target-dir t)))))
-	(setq ext (concat " *." ext))
   (rgrep string ext pwd nil))
+
+;; defadvice rgrep
+;; thx http://d.hatena.ne.jp/kitokitoki/20101009/p6
+(defadvice rgrep (before my-rgrep activate)
+  "Confirm delete grep buffer."
+  (when (get-buffer "*grep*")
+    (when (y-or-n-p "Delete existing *grep* buffer?")
+      (kill-buffer (get-buffer "*grep*")))))
 
 ;; (require 'grep) ;lgrepで直下をgrep、rgrepで再帰的に
 ;; ;;grep-edit
