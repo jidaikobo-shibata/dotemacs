@@ -167,7 +167,7 @@
 	(define-key global-map (kbd "s-l") 'es-alias-replace-next)
 	(define-key global-map (kbd "s-r") 'es-alias-replace-here)
 	(define-key global-map (kbd "s-R") 'es-alias-replace-region)
-	(define-key global-map (kbd "s-m") 'es-anything-grep)
+	(define-key global-map (kbd "s-m") 'es-grep)
 	(define-key global-map (kbd "s-h") (lambda () (interactive) (select-window es-target-window)))
 	(define-key editable-search-mode-map [escape] 'keyboard-quit))
 
@@ -593,16 +593,15 @@
 ;;; ------------------------------------------------------------
 ;;; マルチファイル検索
 ;;; 対象ディレクトリと拡張子を指定したら検索する
-;;; ただのanything-grepのwrapper
+;;; ただのrgrepのwrapper
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090225/1235526604
 
-(require 'anything-grep)
+(require 'grep)
 (require 'gtags)
 (setq gtags-path-style 'relative)
 
-(defun es-anything-grep (command ext pwd)
-  "Run grep in `anything' buffer to narrow results.
-It asks COMMAND and EXT for grep command line and PWD for current directory."
+(defun es-grep (string ext pwd)
+  "It asks STRING and EXT for grep command line and PWD for current directory."
   (interactive
    (progn
      (let ((default (es-get-strings "search"))
@@ -611,11 +610,15 @@ It asks COMMAND and EXT for grep command line and PWD for current directory."
 													 (directory-file-name (gtags-get-rootpath))
 												 default-directory)))
        (list (read-from-minibuffer "Search: " default nil nil 'grep-history (if current-prefix-arg nil default))
-						 (read-from-minibuffer "extension: " target-ext)
+						 (read-from-minibuffer "Extension: " target-ext)
              (read-directory-name "Directory: " target-dir target-dir t)))))
-	(setq command (concat "grep -nH " command " *." ext))
-  (anything-grep-base (list (agrep-source (agrep-preprocess-command command) pwd))
-                      (format "*anything grep:%s [%s]*" command (abbreviate-file-name pwd))))
+	(setq ext (concat " *." ext))
+  (rgrep string ext pwd nil))
+
+;; (require 'grep) ;lgrepで直下をgrep、rgrepで再帰的に
+;; ;;grep-edit
+;; ;(install-elisp "http://www.emacswiki.org/emacs/download/grep-edit.el")
+;; (require 'grep-edit) ;C-c C-e で編集を反映 C-x s ! で全部保存
 
 ;;; ------------------------------------------------------------
 ;;; experiment 検索履歴
