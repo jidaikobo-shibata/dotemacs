@@ -167,6 +167,7 @@
 	(define-key global-map (kbd "s-l") 'es-alias-replace-next)
 	(define-key global-map (kbd "s-r") 'es-alias-replace-here)
 	(define-key global-map (kbd "s-R") 'es-alias-replace-region)
+	(define-key global-map (kbd "s-m") 'es-anything-grep)
 	(define-key global-map (kbd "s-h") (lambda () (interactive) (select-window es-target-window)))
 	(define-key editable-search-mode-map [escape] 'keyboard-quit))
 
@@ -590,103 +591,35 @@
 		(setq es-previous-replaced-str replace-str)))
 
 ;;; ------------------------------------------------------------
-;;; experiment マルチファイル検索
+;;; マルチファイル検索
 ;;; 対象ディレクトリと拡張子を指定したら検索する
-;; http://d.hatena.ne.jp/IMAKADO/20090225/1235526604
+;;; ただのanything-grepのwrapper
+;; thx http://d.hatena.ne.jp/IMAKADO/20090225/1235526604
 
 (require 'anything-grep)
+(require 'gtags)
+(setq gtags-path-style 'relative)
 
-;;; ------------------------------------------------------------
-
-;; (root-dir (gtags-get-rootpath)))
-
-(defun anything-grep2 (command pwd)
+(defun es-anything-grep (command ext pwd)
   "Run grep in `anything' buffer to narrow results.
-It asks COMMAND for grep command line and PWD for current directory."
+It asks COMMAND and EXT for grep command line and PWD for current directory."
   (interactive
    (progn
-     (grep-compute-defaults)
-     (let ((default (grep-default-command)))
-       (list (read-from-minibuffer "Run grep (like this): "
-				   (if current-prefix-arg
-				       default grep-command)
-				   nil nil 'grep-history
-				   (if current-prefix-arg nil default))
-             (read-directory-name "Directory: " default-directory default-directory t)))))
+     (let ((default (es-get-strings "search"))
+					 (target-ext (file-name-extension (buffer-file-name)))
+					 (target-dir (if (gtags-get-rootpath)
+													 (directory-file-name (gtags-get-rootpath))
+												 default-directory)))
+       (list (read-from-minibuffer "Search: " default nil nil 'grep-history (if current-prefix-arg nil default))
+						 (read-from-minibuffer "extension: " target-ext)
+             (read-directory-name "Directory: " target-dir target-dir t)))))
+	(setq command (concat "grep -nH " command " *." ext))
   (anything-grep-base (list (agrep-source (agrep-preprocess-command command) pwd))
                       (format "*anything grep:%s [%s]*" command (abbreviate-file-name pwd))))
-;; (global-set-key (kbd "C--") 'anything-grep2)
-
-
-
-
-
-
-(defvar es-anything-c-source-files
-	'((name . "Path")
-		(candidates . (lambda ()
-										(with-temp-buffer
-											(insert (shell-command-to-string
-															 (concat "cd " es-multifile-target-dir " ; find . -type f")))
-											(ucs-normalize-NFC-region (point-min) (point-max))
-											(split-string (buffer-string) "\n"))))
-		(type . file)
-		(action . (("search or replace file" . es-multifile-search-replace)))))
-
-;;; es-anything-files-list
-(defun es-anything-files-list ()
-	"Anything command for editable-search."
-	(interactive)
-	(anything
-	 :buffer
-	 "*es-multifile-search-replace*"
-	 :sources
-	 'es-anything-c-source-files))
-
-;;; es-call-anything-files-list
-(defvar es-multifile-target-dir default-directory)
-(defun es-call-anything-files-list ()
-	"Anything command for editable-search."
-	(interactive)
-		(setq es-multifile-target-dir (read-file-name (concat "Path: ")))
-		(unless (file-directory-p es-multifile-target-dir)
-			(error "Error: invalid path"))
-		(es-anything-files-list))
-
-;;; es-multifile-search-replace
-;; stolen from anything-c-find-file-or-marked
-(defun es-multifile-search-replace (paths)
-	"Search/Replace files.  PATHS can be directory or file's path."
-  (let ((marked (anything-marked-candidates)))
-		(insert (format "%s" marked))
-    (if (> (length marked) 1)
-        ;; Open all marked files in background and display
-        ;; the first one.
-        (progn (mapc 'find-file-noselect (cdr marked))
-               (insert (format "%s" (car marked))))
-        (error "Error: invalid path")
-			)))
-
-
-
-;; (insert (format "%s" paths))
-				;; (with-temp-buffer
-				;; 	(insert-file-contents es-history-filename)
-				;; 	(setq history (es-hist-load))
-				;; 	(add-to-list 'history (list search-str replace-str))
-				;; 	(insert (format "%s" history))
-				;; 	(write-region (point-min) (point-max) es-history-filename nil 0)))
-
-
-
-
-
-;; (bind-key* "C--" 'es-call-anything-files-list)
-
-
 
 ;;; ------------------------------------------------------------
 ;;; experiment 検索履歴
+;; (global-set-key (kbd "C--") 'es-anything-grep)
 
 ;;; 検索か置換をしたら、候補をファイルに保存する
 ;;; thx undohist
@@ -789,13 +722,6 @@ It asks COMMAND for grep command line and PWD for current directory."
 ;; 			(select-window (next-window))))
 
 ;; (global-set-key (kbd "C--") 'anything-grep2)
-
-;;; Todo:
-;; マルチファイル検索置換
-;; 検索履歴
-;; 検索置換のプリセット
-;; 検索時に出る（ことがある）エラーの調査
-;; 編集窓を開かずに置換検索にセットできるようにする
 
 ;;; ------------------------------------------------------------
 ;;; Provide
