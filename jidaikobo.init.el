@@ -268,7 +268,6 @@
 (bind-key* "<C-up>" 'backward-paragraph) ; Control-down
 (bind-key* "<C-down>" 'forward-paragraph) ; Control-down
 (bind-key* "<backspace>" 'delete-backward-char) ; delete
-(bind-key* "<tab>" (lambda () (interactive) (insert "\t")))
 (bind-key* "<backtab>" 'indent-for-tab-command)
 ;; (bind-key* "M-right" 'forward-symbol)
 ;; (bind-key* "M-left" (lambda () (interactive) (forward-symbol -1)))
@@ -299,6 +298,27 @@
 ;; M-g or cmd+opt+j で指定行へジャンプ
 (bind-key* "M-g" 'goto-line)
 (bind-key* "M-s-j" 'goto-line)
+
+;;; ------------------------------------------------------------
+;;; 自分好みのタブの振る舞い
+;;; read-onlyバッファではリンクの移動
+;;; ミニバッファだったらミニバッファ補完
+;;; あとは\tを挿入
+
+(defun my-tab-dwim ()
+	"Insert tab or jump to link."
+	(interactive)
+	(cond
+	 ;; read onlyバッファだったら次のリンク
+	 (buffer-read-only
+		(forward-button 1 t))
+	 ;; ミニバッファだったらミニバッファ補完
+	 ((minibufferp (current-buffer))
+		(minibuffer-complete))
+	 ;; タブを挿入
+	 (t
+		(insert "\t"))))
+(bind-key* "<tab>" 'my-tab-dwim)
 
 ;;; ------------------------------------------------------------
 ;;; 文字入力
@@ -1377,5 +1397,10 @@
 ;; anything-c-source-buffers-list
 ;; (anything-c-buffer-list)
 ;; (anything-c-highlight-buffers)
+
+;;; ------------------------------------------------------------
+;;; よくつかう
+;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
+;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
 
 ;;; jidaikobo.init.el ends here
