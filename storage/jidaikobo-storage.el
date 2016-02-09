@@ -1,3 +1,53 @@
+;; ;;; ------------------------------------------------------------
+;; ;;; 自分好みのタブの振る舞い
+;; ;;; read-onlyバッファではリンクの移動
+;; ;;; ミニバッファだったらミニバッファ補完
+;; ;;; 文字入力中だったらac-start
+;; ;;; なにもなければインデントを試みる
+;; ;;; インデントしてキャレットの移動がなければ\tを挿入
+;; ;; smart-tab
+;; ;; コンテキストに応じたtabキー。auto-completeと共存
+;; ;; (require 'smart-tab)
+;; ;; (global-smart-tab-mode)
+
+;; (defun my-tab-dwim ()
+;; "Insert tab or indentation or jump to link or auto-complete."
+;; (interactive)
+;; ;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
+;; ;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
+;; (let ((initial-point (point))
+;; 			(is-line (if (region-active-p) nil t))
+;; 			(beg-point-line (save-excursion
+;; 												(beginning-of-line)
+;; 												(point))))
+;; 	(cond
+;; 	 ;; read onlyバッファだったら次のリンク
+;; 	 (buffer-read-only
+;; 		(forward-button 1 t))
+;; 	 ;; ミニバッファだったらミニバッファ補完
+;; 	 ((minibufferp (current-buffer))
+;; 		(minibuffer-complete))
+;; 	 ;; 文字入力の途中（タブ以外）だったらac-startを試みる
+;; 	 ((and
+;; 		 (require 'auto-complete)
+;; 		 (memq last-command '(self-insert-command))
+;; 		 (not (memq last-command '(my-tab-dwim))))
+;; 		(auto-complete-mode t)
+;; 		(ac-start))
+;; 	 ;; 直前の操作がタブキーだったらタブを挿入
+;; 	 ;; キャレットが先頭でなかったらタブを挿入
+;; 	 ((or (memq last-command '(my-tab-dwim))
+;; 				(not (eq beg-point-line (point))))
+;; 		(insert "\t"))
+;; 	 ;; indent-for-tab-commandを試みる
+;; 	 (t
+;; 		(indent-for-tab-command)
+;; 		;; 範囲指定がなく、indent-for-tab-commandでカーソルが移動しないときはメッセージを表示してタブ挿入
+;; 		(when (and is-line (eq initial-point (point)))
+;; 			(message "No indetentation. Instert Tab.")
+;; 			(insert "\t"))))))
+;; (bind-key* "<tab>" 'my-tab-dwim)
+
 ;;; ------------------------------------------------------------
 ;;; isearchに文字列をセット
 ;;; http://blog.livedoor.jp/tek_nishi/archives/4866943.html
