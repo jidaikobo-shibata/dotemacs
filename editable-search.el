@@ -167,7 +167,7 @@
 	(define-key global-map (kbd "s-l") 'es-alias-replace-next)
 	(define-key global-map (kbd "s-r") 'es-alias-replace-here)
 	(define-key global-map (kbd "s-R") 'es-alias-replace-region)
-	(define-key global-map (kbd "s-m") 'es-grep)
+	(define-key global-map (kbd "s-p") 'es-grep)
 	(define-key global-map (kbd "s-h") (lambda () (interactive) (select-window es-target-window)))
 	(define-key editable-search-mode-map [escape] 'keyboard-quit))
 
@@ -188,6 +188,7 @@
 (define-key es-keybind-map (kbd "l") 'es-alias-replace-next)
 (define-key es-keybind-map (kbd "r") 'es-alias-replace-here)
 (define-key es-keybind-map (kbd "R") 'es-alias-replace-region)
+(define-key es-keybind-map (kbd "p") 'es-grep)
 (define-key es-keybind-map (kbd "h") (lambda () (interactive) (select-window es-target-window)))
 
 ;;; smartrep
@@ -253,6 +254,8 @@
 									 es-replace-str-buffer)))
 
 		(unless (get-buffer target) (get-buffer-create target))
+
+		(es-keep-target-buffer)
 
 		;; 文字列をセット
 		(with-current-buffer target
@@ -341,7 +344,7 @@
 					(set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))))
 
 		;; キャレットを検索窓にセットして選択
-		(select-window (previous-window))
+		(select-window (get-buffer-window es-search-str-buffer))
 		(mark-whole-buffer)
 
 		(setq es-ignore-delete-window-hook t)))
