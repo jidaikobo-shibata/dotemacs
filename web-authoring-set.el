@@ -370,7 +370,7 @@
 ;;; remove-html-tags
 (defun remove-html-tags (tag)
 	"Remove html tags.  TAG is given interactivelly."
-	(interactive "sTag (1:all, 2:famous block, 3:form not text, 4:img not text, 5:ruby, tag:specify tag): ")
+	(interactive "sTag (1:all, 2:famous block, 3:form not text, 4:img not text, 5:ruby, 6:unhtmlize, tag:specify tag): ")
 	(cond
 	 ;; all
 	 ((string-equal tag "1") (progn
@@ -403,6 +403,11 @@
 	 ((string-equal tag "5") (progn
 														 (replace-strings-in-region-by-list
 															'(("<ruby>\\(.+?\\)<rt>.+?<rt></ruby>" . "\\1")))
+														 (message "remove ruby tag and ruby text")))
+	 ;; unhtmlize
+	 ((string-equal tag "6") (progn
+														 (replace-strings-in-region-by-list
+															'(("<" . "&lt;")(">" . "&gt;")))
 														 (message "remove ruby tag and ruby text")))
 	 ;; specify tag
 	 (t (progn
