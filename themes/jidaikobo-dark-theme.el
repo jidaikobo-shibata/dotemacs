@@ -131,7 +131,7 @@
 
 	 ;; 数値
 	 `(font-lock-number-face
-		 ((t (:foreground ,jidaikobo-blue))))
+		 ((t (:foreground ,jidaikobo-pink))))
 	 `(font-lock-preprocessor-face
 		 ((t (:inherit (font-lock-builtin-face)))))
 	 `(font-lock-regexp-grouping-backslash
@@ -145,7 +145,7 @@
 
 	 ;; データ型名
 	 `(font-lock-type-face
-		 ((t (:foreground ,jidaikobo-blue))))
+		 ((t (:foreground ,jidaikobo-pink))))
 
 ;;; ------------------------------------------------------------
 ;;; mode line
