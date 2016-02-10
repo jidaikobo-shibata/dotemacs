@@ -269,6 +269,7 @@
 (bind-key* "<C-down>" 'forward-paragraph) ; Control-down
 (bind-key* "<backspace>" 'delete-backward-char) ; delete
 (bind-key* "<backtab>" 'indent-for-tab-command)
+(bind-key* "<C-tab>" 'indent-for-tab-command)
 ;; (bind-key* "M-right" 'forward-symbol)
 ;; (bind-key* "M-left" (lambda () (interactive) (forward-symbol -1)))
 
@@ -303,6 +304,7 @@
 ;;; 自分好みのタブの振る舞い
 ;;; read-onlyバッファではリンクの移動
 ;;; ミニバッファだったらミニバッファ補完
+;;; 直前の動作が改行か選択範囲があったらインデント
 ;;; あとは\tを挿入
 
 (defun my-tab-dwim ()
@@ -315,6 +317,10 @@
 	 ;; ミニバッファだったらミニバッファ補完
 	 ((minibufferp (current-buffer))
 		(minibuffer-complete))
+	 ;; 選択範囲があるか、直前がエンターだったらインデント
+	 ((or (memq last-command '(newline))
+				mark-active)
+		(indent-for-tab-command))
 	 ;; タブを挿入
 	 (t
 		(insert "\t"))))
