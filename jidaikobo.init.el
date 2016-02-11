@@ -473,7 +473,7 @@
 										(let
 												((default-directory
 													 (with-current-buffer anything-current-buffer default-directory))
-												 (find-opt " -type f ! -name \"*.png\" ! -name \"*.ico\" ! -name \"*.gif\" ! -name \"*.jpg\""))
+												 (find-opt " -type d -name \"logs\" -prune -o -type d -name \"cache\" -prune -o -type f ! -name \"*.png\" ! -name \"*.ico\" ! -name \"*.gif\" ! -name \"*.jpg\""))
 											(cond
 											 ;; gtags-get-rootpathが返ったらgtagsをあてにして良い
 											 ((gtags-get-rootpath)
@@ -581,7 +581,7 @@
 	 '((anything-c-source-emacs-commands
 			anything-c-source-gtags-select)
 		 ;; anything-c-source-files-in-current-dir+
-		 anything-c-source-buffers-list
+		 ;; anything-c-source-buffers-list ;; *のバッファでAnythingを止めることがある
 		 anything-c-source-find-by-gtags
 		 anything-c-source-cd-to-projects
 		 anything-c-source-bookmarks
@@ -1065,10 +1065,8 @@
 		(goto-char (- (point) 1))
 		(end-of-line)
 		(setq end (point))
-		(save-excursion
-			(save-restriction
-				(narrow-to-region beg end)
-				(perform-replace "\n\\|^>+ \\|\t" "" nil t nil nil nil beg end)))))
+		(perform-replace "\n\\|^>+ *\\|^[\t　 ]+" "" nil t nil nil nil beg end)
+		(goto-char beg)))
 (bind-key* "<s-kp-divide>" 'join-multi-lines-to-one) ; cmd+/
 (bind-key* "s-/" 'join-multi-lines-to-one) ; cmd+/
 
@@ -1080,13 +1078,17 @@
 (defun my-indext-region (is-inc)
 	"Increase/decrease (mail) indentation.  IS-INC is direction."
 	(interactive)
-	(let (search-str
-				replace-str
-				(beg (if (use-region-p) (region-beginning) (point)))
-				(end (if (use-region-p) (region-end) (point))))
+	(let* (search-str
+				 replace-str
+				 (beg (if (use-region-p) (region-beginning) (point)))
+				 (end (if (use-region-p) (region-end) (point)))
+				 lines)
 
-		;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
-		;; (message "%s" (concat (format "%s" beg) "-" (format "%s" end)))
+		;; dwim
+		(goto-char end)
+		(goto-char (- (point) 1))
+		(end-of-line)
+		(setq end (point))
 
 		;; single line
 		(when (and (not (use-region-p))
@@ -1102,41 +1104,31 @@
 			(setq beg my-indent-region-beg
 						end my-indent-region-end))
 
-		;; replace
-		(save-excursion
-			(save-restriction
-				(narrow-to-region beg end)
+		;; lines
+		(setq lines (count-lines beg end))
 
-				;; set search and replace words
-				(if is-inc
-						;; increase
-						(if (eq major-mode 'mail-mode)
-								(if (string-match "^>" (buffer-substring-no-properties beg end))
-										(setq search-str "^" replace-str ">")
-									(setq search-str "^" replace-str "> "))
-							(setq search-str "^" replace-str "\t"))
-					;; decrease
-					(if (eq major-mode 'mail-mode)
-							(setq search-str "^>" replace-str "")
-						(setq search-str "^\t" replace-str "")))
+		;; set search and replace words
+		(if is-inc
+				;; increase
+				(if (eq major-mode 'mail-mode)
+						(if (string-match "^>" (buffer-substring-no-properties beg end))
+								(setq search-str "^" replace-str ">")
+							(setq search-str "^" replace-str "> "
+										lines (* lines 2)))
+					(setq search-str "^" replace-str "\t"))
+			;; decrease
+			(if (eq major-mode 'mail-mode)
+					(setq search-str "^>" replace-str "")
+				(setq search-str "^\t" replace-str "")))
 
-				;; perform-replace
-				(perform-replace search-str replace-str nil t nil nil nil beg end)
+		;; perform-replace
+		(perform-replace search-str replace-str nil t nil nil nil beg end)
 
-				(goto-char (point-min))
-				(beginning-of-line)
-				(setq beg (point))
-				(message "%s" (point))
-				(goto-char (point-max))
-				(end-of-line)
-				(message "%s" (point))
-				(setq end (point))))
+		(setq end (if is-inc (+ end lines) (- end lines)))
 
 		;; redefine region
 		(setq my-indent-region-beg beg
-					my-indent-region-end end))
-
-	(recenter))
+					my-indent-region-end end)))
 
 (defun my-inc-region ()
 	"Increase region."
@@ -1370,7 +1362,6 @@
 ;; 複数ファイルの検索置換
 ;; portのEmacsを試してみる？
 ;; なるべく余計なことをしないphpモード。シンタックステーブルだけ持ってきて、用語とタブキーの振る舞いは自分で設定する
-;; emacs-mac-patchの15をあてたので、もしかするとauto-completeを復活できるかもしれないので、確認
 ;; auto-completeの技術語辞書をもうちょっと厳選
 ;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
 ;; curchg-input-method-cursor-colorの挙動を確認
@@ -1378,7 +1369,6 @@
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
-;; (thing-at-point)
 
 ;;; ------------------------------------------------------------
 ;; 単語境界を細かく。どうもシンタックステーブルの問題らしい。
@@ -1403,6 +1393,17 @@
 ;; anything-c-source-buffers-list
 ;; (anything-c-buffer-list)
 ;; (anything-c-highlight-buffers)
+
+;; http://d.hatena.ne.jp/tomoya/20101213/1292166026
+;; (defun create-hyper-link-at-point-url ()
+;;   "カーソル位置のURLを HTML でマークアップする"
+;;   (interactive)
+;;   (let* ((bounds (bounds-of-thing-at-point 'url))
+;;          (start (car bounds))
+;;          (end (cdr bounds))
+;;          (link (format "<a href=\"%s\"></a>" (thing-at-point 'url))))
+;;     (delete-region start end)
+;;     (insert link)))
 
 ;;; ------------------------------------------------------------
 ;;; よくつかう
