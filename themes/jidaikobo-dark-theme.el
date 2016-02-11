@@ -60,6 +60,7 @@
 			(jidaikobo-blue              "#0064ff")
 			(jidaikobo-dodgerblue        "#13354a")
 			(jidaikobo-slateblue         "#7070f0")
+			(jidaikobo-purple-2          "#be91fa")
 			(jidaikobo-purple-1          "#7f58c6")
 			(jidaikobo-purple            "#7b4eff")
 			(jidaikobo-palevioletred     "#d33682"))
@@ -110,7 +111,7 @@
 
 	 ;; 変数名
 	 `(font-lock-variable-name-face
-		 ((t (:foreground ,jidaikobo-yellowgreen))))
+		 ((t (:foreground ,jidaikobo-darkgoldenrod))))
 	 `(font-lock-warning-face
 		 ((t (:foreground ,jidaikobo-palevioletred
 					:weight bold))))
@@ -127,7 +128,8 @@
 
 	 ;; for easily-overlooked negation characters.
 	 `(font-lock-negation-char-face
-		 ((t (:foreground ,jidaikobo-wine))))
+		 ((t (:foreground ,jidaikobo-orange
+					:weight bold))))
 
 	 ;; 数値
 	 `(font-lock-number-face
