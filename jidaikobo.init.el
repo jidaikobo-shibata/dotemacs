@@ -757,11 +757,31 @@
 										 (switch-to-buffer bufname)
 										 (text-mode)))
 
+;; move-current-tab-to-top
+(defun move-current-tab-to-top ()
+	"Move current tab to top."
+	(interactive)
+	(let* ((bufset (tabbar-current-tabset t))
+				 (bufs (tabbar-tabs bufset))
+				 (car-bufs (list))
+				 (cdr-bufs (list)))
+		;; 現在のバッファと一致するものを探して先頭へ
+		(dolist (buf bufs)
+			(if (string= (buffer-name) (format "%s" (car buf)))
+					(add-to-list 'car-bufs buf)
+				(add-to-list 'cdr-bufs buf)))
+		(setq cdr-bufs (reverse cdr-bufs))
+		(set bufset (append car-bufs cdr-bufs))
+
+		;; タブバー書き換え
+		(tabbar-set-template bufset nil)
+    (tabbar-display-update))
+
 	;; キーバインド
 	(bind-key* "M-s-<right>" 'tabbar-forward-tab)
 	(bind-key* "M-s-<left>" 'tabbar-backward-tab)
 	(bind-key* "s-t" 'my-new-tab)
-	(bind-key* "M-s-t" 'my-new-tab))
+	(bind-key* "M-s-t" 'move-current-tab-to-top)))
 
 ;;; ------------------------------------------------------------
 ;;; elscreen
