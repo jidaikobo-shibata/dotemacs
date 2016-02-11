@@ -359,7 +359,7 @@
 		 ((string= major-mode "php-mode")
 			(setq target "^\t*function\\|^\t*class\\|^\t*private\\|^\t*public"))
 		 ((string= major-mode "web-mode")
-			(setq target "^\t*<h2"))
+			(setq target "^\t*<h"))
 		 (t
 			(setq target "^;;; ----+$\\|^■\\|^///")))
 		(if (string= direction "prev")
@@ -391,6 +391,36 @@
 						 (memq last-input-event '(down S-down)))
 		(end-of-line))
 	(setq prev-line-num (line-number-at-pos)))
+
+;;; ------------------------------------------------------------
+;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
+;; macふうの挙動だが、Emacsふうでないので、ちょっと様子見しつつ運用
+
+;; regionの解除advice版 - Hookよりこちらのほうが軽い!?
+(defadvice previous-line (before deactivate-region activate)
+	"Deactivate Region by cursor."
+	(my-deactivate-region))
+(defadvice next-line (before deactivate-region activate)
+	"Deactivate Region by cursor."
+	(my-deactivate-region))
+(defadvice left-char (before deactivate-region activate)
+	"Deactivate Region by cursor."
+	(my-deactivate-region))
+(defadvice right-char (before deactivate-region activate)
+	"Deactivate Region by cursor."
+	(my-deactivate-region))
+
+;; リージョン解除関数
+(defun my-deactivate-region ()
+	"Logic of deactivate region by cursor."
+	(when (and (region-active-p)
+						 (not (memq last-input-event '(S-left S-right S-down S-up))))
+		(cond
+		 ((memq last-input-event '(right down))
+			(goto-char (region-end)))
+		 ((memq this-command '(left-char previous-line))
+			(goto-char (region-beginning))))
+		(deactivate-mark)))
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
