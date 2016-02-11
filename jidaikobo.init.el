@@ -503,7 +503,7 @@
 										(let
 												((default-directory
 													 (with-current-buffer anything-current-buffer default-directory))
-												 (find-opt " -type d -name \"logs\" -prune -o -type d -name \"cache\" -prune -o -type f ! -name \"*.png\" ! -name \"*.ico\" ! -name \"*.gif\" ! -name \"*.jpg\""))
+												 (find-opt " -type d -name \"logs\" -prune -o -type d -name \"cache\" -prune -o -type f ! -name \"*.png\" ! -name \"*.ico\" ! -name \"*.gif\" ! -name \"*.jpg\" ! -name \".DS_Store\""))
 											(cond
 											 ;; gtags-get-rootpathが返ったらgtagsをあてにして良い
 											 ((gtags-get-rootpath)
