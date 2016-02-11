@@ -660,8 +660,8 @@
 ;; gtags-mode を使いたい mode の hook に追加する
 (add-hook 'php-mode-hook
 					'(lambda()
-						 (gtags-mode 1)
-						 (gtags-make-complete-list)))
+						 ;; (gtags-make-complete-list)
+						 (gtags-mode 1)))
 
 ;; update GTAGS
 ;; thx http://qiita.com/yewton/items/d9e686d2f2a092321e34
