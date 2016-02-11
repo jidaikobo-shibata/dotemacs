@@ -70,20 +70,24 @@
 	(let* ((beg (if mark-active (region-beginning) 0))
 				 (end (if mark-active (region-end) 0))
 				 (word (if mark-active (buffer-substring-no-properties beg end) ""))
-				 ret)
+				 ret
+				 cursor)
 		(when (string= word "") (setq word "$vals"))
 		(cond
 		 ;; php
 		 ((string-equal type "php")
-			(setq ret (concat "echo '<textarea style=\"width:100%;height:200px;background-color:#fff;color:#111;font-size:90%;font-family:monospace;position:relative;z-index:9999\">';\nvar_dump(" word ");\necho '</textarea>';\ndie();"))))
+			(setq ret (concat "echo '<textarea style=\"width:100%;height:200px;background-color:#fff;color:#111;font-size:90%;font-family:monospace;position:relative;z-index:9999\">';\nvar_dump(" word ");\necho '</textarea>';\ndie();\n")
+						cursor 35)))
 
 		;; ip
 		(if (string-equal ip "") nil
-			(setq ret (concat "if( $_SERVER['REMOTE_ADDR'] == '" ip "' ){\n" ret "\n}\n")))
+			(setq ret (concat "if( $_SERVER['REMOTE_ADDR'] == '" ip "' ){\n" ret "\n}\n")
+						cursor 37))
 
 		;; put val
 		(if mark-active (delete-region beg end) nil)
-		(insert ret)))
+		(insert ret)
+		(goto-char (- (point) cursor))))
 
 ;; php without ip
 (global-set-key (kbd "s-M-z") (lambda () (interactive)
@@ -102,18 +106,23 @@
 	(interactive "nType 1:<?php ?>, 2:<?php(RET)?>, 3:?><?php:")
 	(let* ((beg (if mark-active (region-beginning) (point)))
 				 (end (if mark-active (region-end) (point)))
+				 (cursor 0)
 				 (word (if mark-active (buffer-substring-no-properties beg end) ""))
 				 (ret))
 		(cond
 		 ((eq type 2)
-			(setq ret (concat "<?php\n" word "\n?>")))
+			(setq ret (concat "<?php\n" word "\n?>")
+						cursor -3))
 		 ((eq type 3)
-			(setq ret (concat "?>" word "<?php")))
+			(setq ret (concat "?>" word "<?php")
+						cursor -5))
 		 (t
 			(if (/= (length word) 0) (setq word (concat word " ")) word)
-			(setq ret (concat "<?php " word "?>"))))
+			(setq ret (concat "<?php " word " ?>")
+						cursor -3)))
 		(if mark-active (delete-region beg end) nil)
-		(insert ret)))
+		(insert ret)
+		(goto-char (+ (point) cursor))))
 (global-set-key (kbd "s-M-h") 'put-php-opener-closer) ; cmd+shift+h
 
 ;;; ------------------------------------------------------------
@@ -124,46 +133,65 @@
 (declare-function convert-to-td "convert-to-td" (arg))
 (defun any-html-tag (tag)
 	"Insert html intaractive.  TAG."
-	(interactive "sTag (default \"div\"): ")
-	(let* ((beg (when (region-active-p) (region-beginning)))
+	(interactive "i")
+	(let* ((beg (if (region-active-p) (region-beginning) (point)))
 				 (end (when (region-active-p) (region-end)))
 				 (word (if (region-active-p) (buffer-substring-no-properties beg end) ""))
+				 (cursor- 0)
+				 (cursor+ 0)
+				 cursor
 				 url
 				 type
 				 html
 				 lines
 				 line
 				 cnt)
+
+		;; use with completing
+		(unless tag
+			(setq tag (completing-read "Tag (default \"div\"): " '(("table", "table")
+																						("select", "select")
+																						("script", "script")
+																						("style", "style")
+																						("input", "input")
+																						("form", "form")
+																						("label", "label")
+																						("textarea", "textarea")))))
+
 		(cond
 		 ;; anchor
 		 ((string-equal tag "a")
-			(setq url (read-string "url: " nil 'my-history))
-			(setq tag (concat "<a href=\"" url "\">" word "</a>")))
+			(setq url (read-string "url: " nil 'my-history)
+						tag (concat "<a href=\"" url "\">" word "</a>")
+						cursor- -4))
 		 ;; anchor-url
 		 ((string-equal tag "a-url")
 			(if (string-match "@" word)
-					(setq tag (concat "<a href=\"mailto:" word "\">" word "</a>"))
-				(setq tag (concat "<a href=\"" word "\">" word "</a>"))))
+					(setq tag (concat "<a href=\"mailto:" word "\">" word "</a>")
+								cursor- -4)
+				(setq tag (concat "<a href=\"" word "\">" word "</a>")
+							cursor- -4)))
 		 ;; input
 		 ((string-equal tag "input")
-			(setq type (read-number "type (1:text, 2:hidden, 3:radio, 4:checkbox, 5:submit, 6:password, 7:image, 8:file): " nil))
+			(setq type (read-number "type (1:text, 2:hidden, 3:radio, 4:checkbox, 5:submit, 6:password, 7:image, 8:file): " nil)
+						cursor- -4)
 			(cond
 			 ((eq type 1)
-				(setq tag "<input type=\"text\" name=\"nameStr\" id=\"idStr\" size=\"20\" value=\"\" />"))
+				(setq tag "<input type=\"text\" name=\"str\" id=\"str\" size=\"20\" value=\"\" />"))
 			 ((eq type 2)
-				(setq tag "<input type=\"hidden\" name=\"nameStr\" id=\"idStr\" value=\"\" />"))
+				(setq tag "<input type=\"hidden\" name=\"str\" id=\"str\" value=\"\" />"))
 			 ((eq type 3)
-				(setq tag "<input type=\"radio\" name=\"nameStr\" id=\"idStr\" value=\"\" />"))
+				(setq tag "<input type=\"radio\" name=\"str\" id=\"str\" value=\"\" />"))
 			 ((eq type 4)
-				(setq tag "<input type=\"checkbox\" name=\"nameStr\" id=\"idStr\" value=\"\" />"))
+				(setq tag "<input type=\"checkbox\" name=\"str\" id=\"str\" value=\"\" />"))
 			 ((eq type 5)
-				(setq tag "<input type=\"submit\" name=\"nameStr\" id=\"idStr\" value=\"\" />"))
+				(setq tag "<input type=\"submit\" name=\"str\" id=\"str\" value=\"\" />"))
 			 ((eq type 6)
-				(setq tag "<input type=\"password\" name=\"nameStr\" id=\"idStr\" value=\"\" />"))
+				(setq tag "<input type=\"password\" name=\"str\" id=\"str\" value=\"\" />"))
 			 ((eq type 7)
-				(setq tag "<input type=\"image\" name=\"nameStr\" id=\"idStr\" value=\"\" />"))
+				(setq tag "<input type=\"image\" name=\"str\" id=\"str\" value=\"\" />"))
 			 ((eq type 8)
-				(setq tag "<input type=\"file\" name=\"nameStr\" id=\"idStr\" value=\"\" />"))))
+				(setq tag "<input type=\"file\" name=\"str\" id=\"str\" value=\"\" />"))))
 
 		 ;; singular tag - hr, br
 		 ((find tag '("hr" "br") :test #'string=)
@@ -171,12 +199,14 @@
 
 		 ;; singular tag - img
 		 ((string-equal tag "img")
-			(setq tag (concat "<img src=\"" word "\" alt=\"\" />")))
+			(setq tag (concat "<img src=\"" word "\" alt=\"\" />")
+						cursor- -4))
 
 		 ;; ul-li, ol-li
 		 ((find tag '("ul-li" "ol-li") :test #'string=)
-			(setq html "")
-			(setq lines (split-string word "\n"))
+			(setq html ""
+						lines (split-string word "\n")
+						cursor+ 3)
 			(while lines
 				(if (string-equal (car lines) "") nil
 					(progn (setq html (concat html "\t<li>" (car lines) "</li>\n"))))
@@ -187,8 +217,9 @@
 
 		 ;; select
 		 ((string-equal tag "select")
-			(setq html "")
-			(setq lines (split-string word "\n"))
+			(setq html ""
+						lines (split-string word "\n")
+						cursor+ 7)
 			(while lines
 				(if (string-equal (car lines) "") nil
 					(progn (setq html (concat html "\t<option>" (car lines) "</select>\n"))))
@@ -197,8 +228,8 @@
 
 		 ;; p-each
 		 ((string-equal tag "p-each")
-			(setq html "")
-			(setq lines (split-string word "\n"))
+			(setq html ""
+						lines (split-string word "\n"))
 			(while lines
 				(if (string-equal (car lines) "") nil
 					(progn (setq html (concat html "<p>" (car lines) "</p>\n"))))
@@ -208,9 +239,10 @@
 		 ;; table
 		 ((string-equal tag "table")
 			(setq type (read-string "type (1:th, 2:thead, 3:th and thead, 4:no headers): " nil 'my-history))
-			(setq html "")
-			(setq cnt 1)
-			(setq lines (split-string word "\n"))
+			(setq html ""
+						cnt 1
+						lines (split-string word "\n")
+						cursor+ 6)
 			(while lines
 				(if (string-equal (car lines) "") nil
 					(progn
@@ -231,7 +263,8 @@
 
 		 ;; dl
 		 ((string-equal tag "dl-dt-dd")
-			(setq lines (split-string word "\n"))
+			(setq lines (split-string word "\n")
+						cursor+ 3)
 			(while lines
 				(if (string-equal (car lines) "") nil
 					(progn
@@ -244,35 +277,48 @@
 
 		 ;; comment out
 		 ((string-equal tag "comment-out")
-			(setq tag (concat "<!-- " word " -->")))
+			(setq tag (concat "<!-- " word " -->")
+						cursor+ 5))
 
 		 ;; script
 		 ((string-equal tag "script")
-			(setq tag (concat "<script type=\"text/javascript\">\n<!--" word "// -->\n</script>")))
+			(setq tag (concat "<script type=\"text/javascript\">\n<!--\n" word "\n// -->\n</script>\n")
+						cursor- -18))
 
 		 ;; style
 		 ((string-equal tag "style")
-			(setq tag (concat "<style type=\"text/css\">\n" word "\n</style>")))
+			(setq tag (concat "<style type=\"text/css\">\n" word "\n</style>\n")
+						cursor- -10))
 
 		 ;; form
 		 ((string-equal tag "form")
-			(setq tag (concat "<form action=\"actionStr\" method=\"POST\" enctype=\"multipart/form-data\">\n" word "\n</form>\n")))
+			(setq tag (concat "<form action=\"str\" method=\"POST\" enctype=\"multipart/form-data\">\n" word "\n</form>\n")
+						cursor+ 5))
 
 		 ;; textarea
 		 ((string-equal tag "textarea")
-			(setq tag (concat "<textarea name=\"nameStr\" id=\"isStr\" cols=\"35\" rows=\"7\">\n" word "\n</textarea>\n")))
+			(setq tag (concat "<textarea name=\"str\" id=\"str\" cols=\"35\" rows=\"7\">\n" word "\n</textarea>\n")
+						cursor+ 9))
 
 		 ;; label
 		 ((string-equal tag "label")
-			(setq tag (concat "<label for=\"forStr\">\n" word "\n</label>\n")))
+			(setq tag (concat "<label for=\"str\">\n" word "\n</label>\n")
+						cursor+ 13))
 
 		 ;; specify tag
 		 (t (when (string-equal tag "") (setq tag "div"))
+				(setq cursor+ (if (region-active-p) (+ 1 (length tag)) (+ 2 (length tag))))
 				(setq tag (concat "<" tag ">" word "</" tag ">"))))
 
 		;; put tags
-		(if (region-active-p) (delete-region beg end) nil)
-		(insert tag)))
+		(when (region-active-p) (delete-region beg end))
+		(insert tag)
+
+		;; goto-char
+		(if (> cursor+ 1)
+				(setq cursor (+ beg cursor+))
+			(setq cursor (+ (point) cursor-)))
+		(goto-char cursor)))
 (global-set-key (kbd "s-M-v") 'any-html-tag) ; cmd+shift+v
 
 ;;; headings
