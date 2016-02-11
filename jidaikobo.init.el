@@ -39,13 +39,17 @@
 ;;; ------------------------------------------------------------
 ;;; 最小限設定 - 以降でエラーがあっても、最小限保証される設定
 
-;; リージョンを上書きできるようにする
-(delete-selection-mode t)
-
 ;; 設定ファイルのパス
 (setq jidaikobo-dir (file-name-directory
 										(or (buffer-file-name) load-file-name)))
 (setq dotfiles-dir (expand-file-name (concat jidaikobo-dir "../")))
+
+;; ディレクトリ類
+(defvar my-work-dir (expand-file-name "~/"))
+(defvar my-fetch-app-dir (expand-file-name "~/"))
+
+;; リージョンを上書きできるようにする
+(delete-selection-mode t)
 
 ;; 選択範囲を可視化
 (setq transient-mark-mode t)
@@ -73,7 +77,7 @@
 ;; 起動画面を抑止
 (setq inhibit-startup-message t)
 
-;; スクラッチメッセージ（起動時注意書き）を抑止
+;; スクラッチメッセージを抑止
 (setq initial-scratch-message nil)
 
 ;; オートインデント無効
@@ -127,7 +131,7 @@
 (add-to-list 'default-frame-alist '(height . 55))
 (add-to-list 'default-frame-alist '(top . 0))
 (add-to-list 'default-frame-alist '(left . 0))
-(add-to-list 'default-frame-alist '(font . "ricty-16"))
+(ignore-errors (add-to-list 'default-frame-alist '(font . "ricty-16")))
 
 ;;; ------------------------------------------------------------
 ;;; 1日1回のチェック
@@ -183,7 +187,6 @@
 			auto-complete
 			undohist
 			undo-tree
-			point-undo
 			recentf-ext
 			cursor-chg
 			smart-tab
@@ -395,32 +398,35 @@
 ;;; ------------------------------------------------------------
 ;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
 ;; macふうの挙動だが、Emacsふうでないので、ちょっと様子見しつつ運用
+;; C-@とどちらをとるか悩ましい
 
-;; regionの解除advice版 - Hookよりこちらのほうが軽い!?
-(defadvice previous-line (before deactivate-region activate)
-	"Deactivate Region by cursor."
-	(my-deactivate-region))
-(defadvice next-line (before deactivate-region activate)
-	"Deactivate Region by cursor."
-	(my-deactivate-region))
-(defadvice left-char (before deactivate-region activate)
-	"Deactivate Region by cursor."
-	(my-deactivate-region))
-(defadvice right-char (before deactivate-region activate)
-	"Deactivate Region by cursor."
-	(my-deactivate-region))
+(defvar is-deactivate-region nil)
+(when is-deactivate-region
+	;; regionの解除advice版 - Hookよりこちらのほうが軽い!?
+	(defadvice previous-line (before deactivate-region activate)
+		"Deactivate Region by cursor."
+		(my-deactivate-region))
+	(defadvice next-line (before deactivate-region activate)
+		"Deactivate Region by cursor."
+		(my-deactivate-region))
+	(defadvice left-char (before deactivate-region activate)
+		"Deactivate Region by cursor."
+		(my-deactivate-region))
+	(defadvice right-char (before deactivate-region activate)
+		"Deactivate Region by cursor."
+		(my-deactivate-region))
 
-;; リージョン解除関数
-(defun my-deactivate-region ()
-	"Logic of deactivate region by cursor."
-	(when (and (region-active-p)
-						 (not (memq last-input-event '(S-left S-right S-down S-up))))
-		(cond
-		 ((memq last-input-event '(right down))
-			(goto-char (region-end)))
-		 ((memq this-command '(left-char previous-line))
-			(goto-char (region-beginning))))
-		(deactivate-mark)))
+	;; リージョン解除関数
+	(defun my-deactivate-region ()
+		"Logic of deactivate region by cursor."
+		(when (and (region-active-p)
+							 (not (memq last-input-event '(S-left S-right S-down S-up))))
+			(cond
+			 ((memq last-input-event '(right down))
+				(goto-char (region-end)))
+			 ((memq this-command '(left-char previous-line))
+				(goto-char (region-beginning))))
+			(deactivate-mark))))
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
@@ -463,12 +469,6 @@
 ;; redo (cmd+shft+z)
 (require 'undo-tree)
 (global-undo-tree-mode t)
-
-;; point-undo
-;; カーソル位置履歴 (undo: M-s-left, redo: M-s-right)
-(require 'point-undo)
-(bind-key* "<S-s-left>" 'point-undo)
-(bind-key* "<S-s-right>" 'point-redo)
 
 ;; undo in regionしない
 (defadvice undo-tree-undo (before deactivate-region activate)
@@ -523,7 +523,7 @@
 	'((name . "open Fetch.app")
 		(candidates . (lambda ()
 										(with-temp-buffer
-											(insert (shell-command-to-string "find /Users/jidaikobo/FTP -name \"*_NON_*\" -prune -o -name \"*.app\""))
+											(insert (shell-command-to-string (concat "find " my-fetch-app-dir " -name \"*_NON_*\" -prune -o -name \"*.app\"")))
 											(ucs-normalize-NFC-region (point-min) (point-max))
 											(split-string (buffer-string) "\n"))))
 		(type . file)
@@ -537,7 +537,7 @@
 ;;; よく使うプロジェクトに対する操作
 (defvar anything-c-source-cd-to-projects
 	'((name . "cd to projects")
-		(candidates . (lambda () (split-string (shell-command-to-string "find ~/Sites -maxdepth 1 -type d") "\n")))
+		(candidates . (lambda () (split-string (shell-command-to-string (concat "find " my-work-dir " -maxdepth 1 -type d") "\n"))))
 		(action . (("Change internal directory" . anything-change-internal-directory)
 							 ("Dired" . anything-project-dired)
 							 ("Generate gtags at project" . anything-generate-gtags-at-project)))))
@@ -687,7 +687,7 @@
 
 ;; elscreen or tabbar
 (defvar is-use-tabbar nil)
-(defvar is-use-elscreen t)
+(defvar is-use-elscreen nil)
 
 ;;; ------------------------------------------------------------
 ;;; tabbar
