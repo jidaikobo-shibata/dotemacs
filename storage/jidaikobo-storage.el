@@ -213,6 +213,15 @@
 
 ;; wget http://www.ne.jp/asahi/alpha/kazu/pub/emacs/phpdoc.el
 
+
+;;; ウィンドウ構成を変えようとしたら検索置換窓を閉じる
+;;(add-hook 'window-configuration-change-hook 'es-delete-window-fn)
+;;(defun es-delete-window-fn ()
+;;	"Delete search mode windows."
+;;	(unless es-ignore-delete-window-hook
+;;		(select-window es-target-window)
+;;		(delete-other-windows)))
+
 ;; ;;; ------------------------------------------------------------
 ;; ;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
 ;; ;; macふうの挙動だが、Emacsふうでないので、ちょっと様子見しつつ運用
