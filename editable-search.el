@@ -45,6 +45,7 @@
 (defvar es-re-modeline-background "orange")
 (defvar es-re-modeline-foreground "black")
 (defvar es-is-foregin-regexp nil)
+(defvar es-is-sync-isearch t)
 (defvar es-split-direction "horizontal")
 
 ;;; ------------------------------------------------------------
@@ -107,13 +108,20 @@
 ;;; ------------------------------------------------------------
 ;;; hook
 
-;;; ウィンドウ構成を変えようとしたら検索置換窓を閉じる
-;;(add-hook 'window-configuration-change-hook 'es-delete-window-fn)
-;;(defun es-delete-window-fn ()
-;;	"Delete search mode windows."
-;;	(unless es-ignore-delete-window-hook
-;;		(select-window es-target-window)
-;;		(delete-other-windows)))
+;; isearchコマンドとの同期
+(when es-is-sync-isearch
+	(add-hook 'isearch-update-post-hook 'es-isearch-update-string)
+	(defun es-isearch-update-string ()
+		(when (and (not (or isearch-regexp isearch-word))
+							 (eq this-command 'isearch-printing-char))
+			(unless (get-buffer es-search-str-buffer) (get-buffer-create es-search-str-buffer))
+			(es-keep-target-buffer)
+			;; 文字列をセット
+			(with-current-buffer es-search-str-buffer
+				(delete-region (point-min) (point-max))
+				(insert isearch-string))
+			;; 次回用に文字列を保存
+			(setq es-previous-searched-str isearch-string))))
 
 ;;; ------------------------------------------------------------
 ;;; function alias for key-binds
