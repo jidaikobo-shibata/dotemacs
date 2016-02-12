@@ -795,13 +795,13 @@
 
 		;; タブバー書き換え
 		(tabbar-set-template bufset nil)
-    (tabbar-display-update))
+    (tabbar-display-update)))
 
 	;; キーバインド
 	(bind-key* "M-s-<right>" 'tabbar-forward-tab)
 	(bind-key* "M-s-<left>" 'tabbar-backward-tab)
 	(bind-key* "s-t" 'my-new-tab)
-	(bind-key* "M-s-t" 'move-current-tab-to-top)))
+	(bind-key* "M-s-t" 'move-current-tab-to-top))
 
 ;;; ------------------------------------------------------------
 ;;; elscreen
