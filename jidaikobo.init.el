@@ -205,6 +205,7 @@
 			tabbar
 			foreign-regexp
 			rainbow-mode
+			popwin
 			elscreen))
 
 	;; my-packagesからインストールしていないパッケージをインストール
@@ -420,6 +421,17 @@
 			 ((memq this-command '(left-char previous-line))
 				(goto-char (region-beginning))))
 			(deactivate-mark))))
+
+;;; ------------------------------------------------------------
+;;; popwin
+;; thx http://valvallow.blogspot.jp/2011/03/emacs-popwinel.html
+
+(require 'popwin)
+(setq display-buffer-function 'popwin:display-buffer)
+
+;; key-binds
+(global-set-key (kbd "M-p p") 'popwin:display-last-buffer)
+(global-set-key (kbd "M-p m") 'popwin:messages)
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
