@@ -215,13 +215,13 @@
 ;;; ------------------------------------------------------------
 ;;; jidaikobo's elisp.
 
-;;; 編集可能な検索置換仕組み
-;;; editable-search
+;;; 検索センター
+;;; search-center
 (custom-set-variables
-'(es-is-use-super t)
-'(es-split-direction "vertical"))
-(require 'editable-search)
-(editable-search-mode t)
+'(sc/is-use-super t)
+'(sc/split-direction "vertical"))
+(require 'search-center)
+(search-center-mode t)
 
 ;;; HTMLのマークアップのキーバインド集
 ;;; web-authoring-set

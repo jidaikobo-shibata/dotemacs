@@ -1,3 +1,128 @@
+;; ;; 日本語の自動判別
+;; ;; thx http://dev.ariel-networks.com/articles/emacs/part1/
+;; (setq grep-host-defaults-alist nil)
+;; (when mac-carbon-version-string
+;; 	(setq grep-template "lgrep <C> -n <R> <F> <N>")
+;; 	(setq grep-find-template "find . <X> -type f <F> -print0 | xargs -0 -e lgrep <C> -n <R> <N>"))
+
+;; ;; Windows
+;; (defvar quote-argument-for-windows-p t "enables `shell-quote-argument' workaround for windows.")
+;; (defadvice shell-quote-argument (around shell-quote-argument-for-win activate)
+;; 	"workaround for windows."
+;; 	(if quote-argument-for-windows-p
+;; 			(let ((argument (ad-get-arg 0)))
+;; 				(setq argument (replace-regexp-in-string "\\\\" "\\\\" argument nil t))
+;; 				(setq argument (replace-regexp-in-string "'" "'\\''" argument nil t))
+;; 				(setq ad-return-value (concat "'" argument "'")))
+;; 		ad-do-it)
+;; 	(setq grep-template "lgrep -Ks -Os <C> -n <R> <F> <N>")
+;; 	(setq grep-find-template "find . <X> -type f <F> -print0 | xargs -0 -e lgrep -Ks -Os <C> -n <R> <N>")
+;; thx http://qiita.com/ybiquitous/items/2f2206ff7a557c4cbc11
+;; (setq find-program "\"C:\\Program Files\\Git\\usr\\bin\\find.exe\""
+;;       grep-program "\"C:\\Program Files\\Git\\usr\\bin\\grep.exe\""
+;;       null-device "/dev/null"))
+
+;; ;;; ------------------------------------------------------------
+;; ;;; experiment 検索履歴
+;; ;; (global-set-key (kbd "C--") 'sc/anything-grep)
+;; ;;; 検索か置換をしたら、候補をファイルに保存する
+;; ;;; thx undohist
+;; (defcustom sc/history-directory
+;; 	(expand-file-name
+;; 	 (concat
+;; 		(if (boundp 'user-emacs-directory) user-emacs-directory "~/.emacs.d")
+;; 		"/es-hist"))
+;; 	"A directory being stored searched/replaced history files.")
+;; (defvar sc/history-filename (concat sc/history-directory "/es-hist.dat"))
+;; ;; (defun sc/initialize ()
+;; ;; 	"Initialize editable seacrh directory."
+;; ;; 	(interactive)
+;; ;; 	(if (not (file-directory-p sc/history-directory))
+;; ;; 			(make-directory sc/history-directory t))
+;; ;; 	(if (not (file-p (concat sc/history-directory "/es-hist.txt"))
+;; ;; 			(make-file sc/history-directory t))))
+;; ;; undohistでは、hookを使って、saveしているので、そうするのがよいか。
+;; ;;; multibyte-base64-encode-string
+;; (defun multibyte-base64-encode-string (str)
+;; 	"Multibyte base64 encode string.  STR."
+;; 	(interactive)
+;; 	(base64-encode-string (encode-coding-string str 'raw-text) t))
+
+;; ;;; multibyte-base64-decode-string
+;; (defun multibyte-base64-decode-string (str)
+;; 	"Multibyte base64 decode string.  STR."
+;; 	(interactive)
+;; 	(decode-coding-string (base64-decode-string str) 'utf-8))
+
+;; ;;; sc/hist-load
+;; (defun sc/hist-load ()
+;; 	"Load es history."
+;; 	(interactive)
+;; 		(with-temp-buffer
+;; 			(insert-file-contents sc/history-filename)
+;; 			(if (<= (point-max) 2)
+;; 					(list)
+;; 				(read (buffer-string)))))
+
+;; ;;; sc/hist-save
+;; (defun sc/hist-save ()
+;; 	"Save es history."
+;; 	(interactive)
+;; 	(let
+;; 			(search-str
+;; 			 replace-str
+;; 			 history)
+;; 		(when (and (windowp (get-buffer-window sc/search-str-buffer))
+;; 							 (windowp (get-buffer-window sc/replace-str-buffer)))
+;; 			(setq search-str (multibyte-base64-encode-string (sc/get-str-from-window "search")))
+;; 			(setq replace-str (multibyte-base64-encode-string (sc/get-str-from-window "replace")))
+;; 			(when search-str
+;; 				(with-temp-buffer
+;; 					(insert-file-contents sc/history-filename)
+;; 					(setq history (sc/hist-load))
+;; 					(add-to-list 'history (list search-str replace-str))
+;; 					(insert (format "%s" history))
+;; 					(write-region (point-min) (point-max) sc/history-filename nil 0))))))
+;; ;;; 履歴から検索置換文字列を復活
+;; (defun sc/hist-prev ()
+;; 	"Call previous set."
+;; 	(let (history
+;; 				current)
+;; 		(with-temp-buffer
+;; 			(insert-file-contents sc/history-filename)
+;; 			(setq history (sc/hist-load))
+;; 			(setq current (car history))
+;; 			;; (cdr history)
+;; 			(message "%s" current)
+;; 			)))
+;; ;; 保存すべき文字列がないときの処理
+;; ;; すでに保存されているセットの場合。古いものを削除して、一番上に
+;; ;; 保存すべき数の上限をdefvarで
+;; ;; (sc/hist-save)
+;; ;; (sc/hist-prev)
+;;   ;; (if (consp buffer-undo-list)
+;;   ;;     (let ((file (make-undohist-file-name (buffer-file-name)))
+;;   ;;           (contents `((digest . ,(md5 (current-buffer)))
+;;   ;;                       (undo-list . ,(undohist-encode buffer-undo-list)))))
+;;   ;;       (with-temp-buffer
+;;   ;;         (print contents (current-buffer))
+;;   ;;         (write-region (point-min) (point-max) file nil 0)
+;;   ;;         (set-file-modes file ?\600)))))
+
+;; ;; (defcustom es-is-next-window-by-tab nil
+;; ;; 	"*Mac-like behavior."
+;; ;; 	:group 'editable-search
+;; ;; 	:type 'boolean)
+;; ;;; es-is-next-window-by-tab
+;; ;; (when es-is-next-window-by-tab
+;; ;; 	(define-key editable-search-mode-map [tab] 'es-next-windows-dwim))
+;; ;; (defun es-next-windows-dwim ()
+;; ;; 	"Next windows dwim."
+;; ;; 	(interactive)
+;; ;; 	(when (or (equal (selected-window) (get-buffer-window es-search-str-buffer))
+;; ;; 					(equal (selected-window) (get-buffer-window es-replace-str-buffer)))
+;; ;; 			(select-window (next-window))))
+
 ;; ;;; ------------------------------------------------------------
 ;; ;;; 自分好みのタブの振る舞い
 ;; ;;; read-onlyバッファではリンクの移動
