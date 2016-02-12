@@ -300,7 +300,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い
-;;; read-onlyバッファではリンクの移動
+;;; ewww/read-onlyバッファではリンクの移動
 ;;; ミニバッファだったらミニバッファ補完
 ;;; 直前の動作が改行か選択範囲があったらインデント
 ;;; あとは\tを挿入
@@ -309,6 +309,9 @@
 	"Insert tab or jump to link."
 	(interactive)
 	(cond
+	 ;; ewwバッファだったら次のリンク
+	 ((eq major-mode 'eww-mode)
+		(shr-next-link))
 	 ;; read onlyバッファだったら次のリンク
 	 (buffer-read-only
 		(forward-button 1 t))
@@ -329,15 +332,6 @@
 
 ;; opt+¥でバックスラッシュを入力
 (global-set-key (kbd "M-¥") "\\")
-
-;;; ------------------------------------------------------------
-;;; バッファの状態を保存
-;;; thx http://d.hatena.ne.jp/katsu_w/20080319/1205923300
-
-;; (autoload 'save-current-configuration "revive" "Save status" t)
-;; (autoload 'resume "revive" "Resume Emacs" t)
-;; (autoload 'wipe "revive" "Wipe emacs" t)
-;; (add-hook 'kill-emacs-hook 'save-current-configuration)   ; 終了時に状態保存
 
 ;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
@@ -424,6 +418,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; popwin
+;; thx http://d.hatena.ne.jp/m2ym/20110228/1298868721
 ;; thx http://valvallow.blogspot.jp/2011/03/emacs-popwinel.html
 
 (require 'popwin)
@@ -432,6 +427,7 @@
 ;; key-binds
 (global-set-key (kbd "M-p p") 'popwin:display-last-buffer)
 (global-set-key (kbd "M-p m") 'popwin:messages)
+;; popwin:popup-buffer-tail
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
@@ -735,6 +731,8 @@
 											 ((char-equal ?\  (aref (buffer-name b) 0)) nil)
 											 ;; *scratch*バッファは表示する
 											 ((equal "*scratch*" (buffer-name b)) b)
+											 ;; *eww*バッファは表示する
+											 ((equal "*eww*" (buffer-name b)) b)
 											 ;; それ以外の * で始まるバッファは表示しない
 											 ((char-equal ?* (aref (buffer-name b) 0)) nil)
 											 ((buffer-live-p b) b)))
@@ -977,6 +975,13 @@
 			 (interactive "P")
 			 (let* ((fn-list (dired-get-marked-files nil arg)))
 				 (mapc 'find-file fn-list)))))
+
+
+;; ディレクトリを再帰的にコピーする
+(setq dired-recursive-copies 'always)
+
+;; diredバッファでC-sした時にファイル名だけにマッチするように
+(setq dired-isearch-filenames t)
 
 ;; diredでタブを開きすぎないようにする
 ;; http://nishikawasasaki.hatenablog.com/entry/20120222/1329932699
@@ -1429,6 +1434,40 @@
 ;;; gist
 
 (require 'gist)
+
+;;; ------------------------------------------------------------
+;;; eww
+
+(require 'eww)
+
+(define-key eww-mode-map (kbd "<backtab>") 'shr-previous-link)
+(define-key eww-mode-map "r" 'eww-reload)
+(define-key eww-mode-map "c 0" 'eww-copy-page-url)
+(define-key eww-mode-map "p" 'scroll-down)
+(define-key eww-mode-map "n" 'scroll-up)
+(setq eww-search-prefix "http://www.google.co.jp/search?q=")
+(setq eww-download-directory "~/Desktop")
+
+;; eww で色を反映しない
+(defvar eww-disable-colorize t)
+(defun shr-colorize-region--disable (orig start end fg &optional bg &rest _)
+  (unless eww-disable-colorize
+    (funcall orig start end fg)))
+(advice-add 'shr-colorize-region :around 'shr-colorize-region--disable)
+(advice-add 'eww-colorize-region :around 'shr-colorize-region--disable)
+(defun eww-disable-color ()
+  "eww で文字色を反映させない"
+  (interactive)
+  (setq-local eww-disable-colorize t)
+  (eww-reload))
+
+;; ewwを複数開く
+(when (fboundp 'eww)
+  (progn
+    (defun xah-rename-eww-hook ()
+      "Rename eww browser's buffer so sites open in new page."
+      (rename-buffer "eww" t))
+    (add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
 
 ;;; ------------------------------------------------------------
 ;;; Todo:
