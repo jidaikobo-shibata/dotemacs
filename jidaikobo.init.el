@@ -371,7 +371,6 @@
 (bind-key* "<M-s-down>" (lambda () (interactive) (next-block "next")))
 (bind-key* "<M-s-up>" (lambda () (interactive) (next-block "prev")))
 
-
 ;;; ------------------------------------------------------------
 ;;; 釣り合いのとれる括弧のハイライト
 ;;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
@@ -495,6 +494,15 @@
 (require 'anything)
 (require 'anything-config)
 
+(setq alist-anything-for-files
+			'((anything-c-source-emacs-commands
+				 anything-c-source-gtags-select)
+				;; anything-c-source-files-in-current-dir+
+				;; anything-c-source-buffers-list ;; *のバッファでAnythingを止めることがある
+				anything-c-source-find-by-gtags
+				anything-c-source-bookmarks
+				anything-c-source-recentf))
+
 ;;; ------------------------------------------------------------
 ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
 (defvar anything-c-source-find-by-gtags
@@ -519,40 +527,76 @@
 
 ;;; ------------------------------------------------------------
 ;;; FTP by Fetch
-(defvar anything-c-source-my-fetch
-	'((name . "open Fetch.app")
-		(candidates . (lambda ()
-										(with-temp-buffer
-											(insert (shell-command-to-string (concat "find " my-fetch-app-dir " -name \"*_NON_*\" -prune -o -name \"*.app\"")))
-											(ucs-normalize-NFC-region (point-min) (point-max))
-											(split-string (buffer-string) "\n"))))
-		(type . file)
-		(action . (("open Fetch" . anything-fetch-open)))))
+(defun func-anything-c-source-my-fetch ()
+	(let (ret)
+	(with-temp-buffer
+		(insert (shell-command-to-string (concat "find " my-fetch-app-dir " -name \"*_NON_*\" -prune -o -name \"*.app\"")))
+		(ucs-normalize-NFC-region (point-min) (point-max))
+		(setq ret (split-string (buffer-string) "\n")))
+	ret))
 
-(defun anything-fetch-open (app)
-	"Fetch open.  APP is path."
-	(shell-command (concat "open " app)))
+;; 結果がなければたさない
+(when (func-anything-c-source-my-fetch)
+	(defvar anything-c-source-my-fetch
+		'((name . "open Fetch.app")
+			(candidates . (lambda () (interactive) (func-anything-c-source-my-fetch)))
+			(type . file)
+			(action . (("open Fetch" . anything-fetch-open)))))
+
+	(defun anything-fetch-open (app)
+		"Fetch open.  APP is path."
+		(shell-command (concat "open " app)))
+
+	(add-to-list 'alist-anything-for-files 'anything-c-source-my-fetch t))
 
 ;;; ------------------------------------------------------------
 ;;; よく使うプロジェクトに対する操作
-(defvar anything-c-source-cd-to-projects
-	'((name . "cd to projects")
-		(candidates . (lambda () (split-string (shell-command-to-string (concat "find " my-work-dir " -maxdepth 1 -type d") "\n"))))
-		(action . (("Change internal directory" . anything-change-internal-directory)
-							 ("Dired" . anything-project-dired)
-							 ("Generate gtags at project" . anything-generate-gtags-at-project)))))
+(defun func-anything-c-source-cd-to-projects ()
+	(let (ret)
+	(with-temp-buffer
+		(insert (shell-command-to-string (concat "find " my-work-dir " -maxdepth 1 -type d")) "\n")
+		(ucs-normalize-NFC-region (point-min) (point-max))
+		(setq ret (split-string (buffer-string) "\n")))
+	ret))
 
-(defun anything-change-internal-directory (dir)
-	"Change internal directory at Sites.  DIR is path."
-	(cd dir))
+;; 結果がなければたさない
+(when (func-anything-c-source-cd-to-projects)
+	(defvar anything-c-source-cd-to-projects
+		'((name . "cd to projects")
+			(candidates . (lambda () (interactive) (func-anything-c-source-cd-to-projects)))
+			(action . (("Change internal directory" . anything-change-internal-directory)
+								 ("Dired" . anything-project-dired)
+								 ("Generate gtags at project" . anything-generate-gtags-at-project)))))
 
-(defun anything-project-dired (dir)
-	"Dired.  DIR is path."
-	(dired dir))
+	(defun anything-change-internal-directory (dir)
+		"Change internal directory at Sites.  DIR is path."
+		(cd dir))
 
-(defun anything-generate-gtags-at-project (dir)
-	"Generate gtags at project.  DIR is path."
-	(shell-command-to-string (concat "cd " dir " ; gtags -v")))
+	(defun anything-project-dired (dir)
+		"Dired.  DIR is path."
+		(dired dir))
+
+	(defun anything-generate-gtags-at-project (dir)
+		"Generate gtags at project.  DIR is path."
+		(shell-command-to-string (concat "cd " dir " ; gtags -v")))
+
+	(add-to-list 'alist-anything-for-files 'anything-c-source-cd-to-projects))
+
+;;; ------------------------------------------------------------
+;;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
+;;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
+(setq anything-c-boring-buffer-regexp
+			(rx "*" (+ not-newline) "*"))
+
+;;; ------------------------------------------------------------
+;;; my-anything-for-files
+(defun my-anything-for-files ()
+	"Anything command included find by gtags."
+	(interactive)
+	(anything-other-buffer
+	 alist-anything-for-files
+	 "*my-anything-for-files*"))
+(bind-key* "C-;" 'my-anything-for-files)
 
 ;;; ------------------------------------------------------------
 ;;; Encode and Line folding
@@ -595,30 +639,6 @@
 	 '(anything-c-source-coding-system)
 	 "*my-anything-c-source-coding-system*"))
 (bind-key* "C-^" 'my-anything-for-coding-system)
-
-;;; ------------------------------------------------------------
-;;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
-;;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
-(setq anything-c-boring-buffer-regexp
-			(rx "*" (+ not-newline) "*"))
-
-;;; ------------------------------------------------------------
-;;; my-anything-for-files
-(defun my-anything-for-files ()
-	"Anything command included find by gtags."
-	(interactive)
-	(anything-other-buffer
-	 '((anything-c-source-emacs-commands
-			anything-c-source-gtags-select)
-		 ;; anything-c-source-files-in-current-dir+
-		 ;; anything-c-source-buffers-list ;; *のバッファでAnythingを止めることがある
-		 anything-c-source-find-by-gtags
-		 anything-c-source-cd-to-projects
-		 anything-c-source-bookmarks
-		 anything-c-source-recentf
-		 anything-c-source-my-fetch)
-	 "*my-anything-for-files*"))
-(bind-key* "C-;" 'my-anything-for-files)
 
 ;;; ------------------------------------------------------------
 ;;; my-anything-for-functions
