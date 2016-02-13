@@ -1,3 +1,38 @@
+;;; ------------------------------------------------------------
+;; 単語境界を細かく。どうもシンタックステーブルの問題らしい。
+;; 文字カテゴリの作成
+;; http://smallsteps.seesaa.net/article/123661899.html
+;; (define-category ?U "Upper case")
+;; (define-category ?L "Lower case")
+;; ;; 文字の登録。とりあえずはAからZまでの英字のみ。
+;; (modify-category-entry (cons ?A ?Z) ?U)
+;; (modify-category-entry (cons ?a ?z) ?L)
+;; 小文字に大文字が続く場合を単語境界とする。
+;; (add-to-list 'word-separating-categories (cons ?L ?U))
+
+;;; ------------------------------------------------------------
+;; my-anything-c-source-buffers-list
+;; (defvar my-anything-c-source-buffers-list
+;; 	`((name . "Buffers")
+;; 		(candidates . (lambda ()
+;; 										(buffer-list)))))
+;; my-anything-c-source-buffers-list
+;; (buffer-list)
+;; anything-c-source-buffers-list
+;; (anything-c-buffer-list)
+;; (anything-c-highlight-buffers)
+
+;; http://d.hatena.ne.jp/tomoya/20101213/1292166026
+;; (defun create-hyper-link-at-point-url ()
+;;   "カーソル位置のURLを HTML でマークアップする"
+;;   (interactive)
+;;   (let* ((bounds (bounds-of-thing-at-point 'url))
+;;          (start (car bounds))
+;;          (end (cdr bounds))
+;;          (link (format "<a href=\"%s\"></a>" (thing-at-point 'url))))
+;;     (delete-region start end)
+;;     (insert link)))
+
 ;; ;; 日本語の自動判別
 ;; ;; thx http://dev.ariel-networks.com/articles/emacs/part1/
 ;; (setq grep-host-defaults-alist nil)

@@ -41,7 +41,7 @@
 
 ;; 設定ファイルのパス
 (setq jidaikobo-dir (file-name-directory
-										(or (buffer-file-name) load-file-name)))
+										 (or (buffer-file-name) load-file-name)))
 (setq dotfiles-dir (expand-file-name (concat jidaikobo-dir "../")))
 
 ;; ディレクトリ類
@@ -200,7 +200,6 @@
 			js2-mode
 			mic-paren
 			gtags
-			magit
 			gist
 			tabbar
 			foreign-regexp
@@ -219,8 +218,8 @@
 ;;; 検索センター
 ;;; search-center
 (custom-set-variables
-'(sc/is-use-super t)
-'(sc/split-direction "vertical"))
+ '(sc/is-use-super t)
+ '(sc/split-direction "vertical"))
 (require 'search-center)
 (search-center-mode t)
 
@@ -298,6 +297,9 @@
 (global-set-key (kbd "M-g") 'goto-line)
 (global-set-key (kbd "M-s-j") 'goto-line)
 
+;; opt+¥でバックスラッシュを入力
+(global-set-key (kbd "M-¥") "\\")
+
 ;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い
 ;;; ewww/read-onlyバッファではリンクの移動
@@ -328,12 +330,6 @@
 (global-set-key (kbd "<tab>") 'my-tab-dwim)
 
 ;;; ------------------------------------------------------------
-;;; 文字入力
-
-;; opt+¥でバックスラッシュを入力
-(global-set-key (kbd "M-¥") "\\")
-
-;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
 
 (defvar next-block-previous-direction nil)
@@ -341,7 +337,7 @@
 	"Go to next block by mode.  DIRECTION[prev|next]."
 	(interactive)
 	(when (not (string= next-block-previous-direction direction))
-			(if (string= direction "prev") (beginning-of-line) (end-of-line)))
+		(if (string= direction "prev") (beginning-of-line) (end-of-line)))
 	(setq next-block-previous-direction direction)
 	(let
 			(target)
@@ -444,19 +440,19 @@
 (global-unset-key "\C-t")
 
 (smartrep-define-key global-map "C-t"
-	'(("C-t"  . 'mc/mark-next-like-this)
-		("n"    . 'mc/mark-next-like-this)
-		("p"    . 'mc/mark-previous-like-this)
-		("m"    . 'mc/mark-more-like-this-extended)
-		("u"    . 'mc/unmark-next-like-this)
-		("U"    . 'mc/unmark-previous-like-this)
-		("s"    . 'mc/skip-to-next-like-this)
-		("S"    . 'mc/skip-to-previous-like-this)
-		("*"    . 'mc/mark-all-like-this)
-		("d"    . 'mc/mark-all-like-this-dwim)
-		("i"    . 'mc/insert-numbers)
-		("o"    . 'mc/sort-regions)
-		("O"    . 'mc/reverse-regions)))
+	'(("C-t" . 'mc/mark-next-like-this)
+		("n"   . 'mc/mark-next-like-this)
+		("p"   . 'mc/mark-previous-like-this)
+		("m"   . 'mc/mark-more-like-this-extended)
+		("u"   . 'mc/unmark-next-like-this)
+		("U"   . 'mc/unmark-previous-like-this)
+		("s"   . 'mc/skip-to-next-like-this)
+		("S"   . 'mc/skip-to-previous-like-this)
+		("*"   . 'mc/mark-all-like-this)
+		("d"   . 'mc/mark-all-like-this-dwim)
+		("i"   . 'mc/insert-numbers)
+		("o"   . 'mc/sort-regions)
+		("O"   . 'mc/reverse-regions)))
 
 ;;; ------------------------------------------------------------
 ;;; undo関連
@@ -519,7 +515,10 @@
 											 ((gtags-get-rootpath)
 												(split-string
 												 (shell-command-to-string
-													(concat "find " (directory-file-name (gtags-get-rootpath)) find-opt)) "\n"))
+													(concat "find "
+																	(directory-file-name (gtags-get-rootpath))
+																	find-opt))
+												 "\n"))
 											 ;; gtagsがないならls
 											 (t
 												(split-string
@@ -531,11 +530,13 @@
 ;;; FTP by Fetch
 (defun func-anything-c-source-my-fetch ()
 	(let (ret)
-	(with-temp-buffer
-		(insert (shell-command-to-string (concat "find " my-fetch-app-dir " -name \"*_NON_*\" -prune -o -name \"*.app\"")))
-		(ucs-normalize-NFC-region (point-min) (point-max))
-		(setq ret (split-string (buffer-string) "\n")))
-	ret))
+		(with-temp-buffer
+			(insert
+			 (shell-command-to-string
+				(concat "find " my-fetch-app-dir " -name \"*_NON_*\" -prune -o -name \"*.app\"")))
+			(ucs-normalize-NFC-region (point-min) (point-max))
+			(setq ret (split-string (buffer-string) "\n")))
+		ret))
 
 ;; 結果がなければたさない
 (when (func-anything-c-source-my-fetch)
@@ -555,11 +556,12 @@
 ;;; よく使うプロジェクトに対する操作
 (defun func-anything-c-source-cd-to-projects ()
 	(let (ret)
-	(with-temp-buffer
-		(insert (shell-command-to-string (concat "find " my-work-dir " -maxdepth 1 -type d")) "\n")
-		(ucs-normalize-NFC-region (point-min) (point-max))
-		(setq ret (split-string (buffer-string) "\n")))
-	ret))
+		(with-temp-buffer
+			(insert
+			 (shell-command-to-string (concat "find " my-work-dir " -maxdepth 1 -type d")) "\n")
+			(ucs-normalize-NFC-region (point-min) (point-max))
+			(setq ret (split-string (buffer-string) "\n")))
+		ret))
 
 ;; 結果がなければたさない
 (when (func-anything-c-source-cd-to-projects)
@@ -606,12 +608,12 @@
 (defvar anything-c-source-coding-system
 	'((name . "Encode and Line Folding")
 		(candidates . (lambda () '("set UTF-8"
-										"set EUC-JP"
-										"set Shift-JIS"
-										"set ISO-2022-JP"
-										"set LF"
-										"set CR"
-										"set CR+LF")))
+															 "set EUC-JP"
+															 "set Shift-JIS"
+															 "set ISO-2022-JP"
+															 "set LF"
+															 "set CR"
+															 "set CR+LF")))
 		(action ("default" . anything-coding-system))))
 
 (defun anything-coding-system (act)
@@ -669,15 +671,15 @@
 
 ;; キーバインド
 (setq-default gtags-mode-hook
-			'(lambda ()
-				 (local-set-key "\M-t" 'gtags-find-tag)
-				 (local-set-key "\M-r" 'gtags-find-rtag)
-				 (local-set-key "\M-s" 'gtags-find-symbol)
-				 (local-set-key "\M-T" 'gtags-pop-stack)))
+							'(lambda ()
+								 (local-set-key "\M-t" 'gtags-find-tag)
+								 (local-set-key "\M-r" 'gtags-find-rtag)
+								 (local-set-key "\M-s" 'gtags-find-symbol)
+								 (local-set-key "\M-T" 'gtags-pop-stack)))
 
 (setq-default gtags-select-mode-hook
-			'(lambda ()
-				 (local-set-key (kbd "RET") 'gtags-select-tag)))
+							'(lambda ()
+								 (local-set-key (kbd "RET") 'gtags-select-tag)))
 
 ;; gtags-mode を使いたい mode の hook に追加する
 (add-hook 'php-mode-hook
@@ -777,29 +779,29 @@
 		"My new tab"
 		(interactive)
 		(let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
-										 (get-buffer-create bufname)
-										 (switch-to-buffer bufname)
-										 (text-mode)))
+			(get-buffer-create bufname)
+			(switch-to-buffer bufname)
+			(text-mode)))
 
-;; move-current-tab-to-top
-(defun move-current-tab-to-top ()
-	"Move current tab to top."
-	(interactive)
-	(let* ((bufset (tabbar-current-tabset t))
-				 (bufs (tabbar-tabs bufset))
-				 (car-bufs (list))
-				 (cdr-bufs (list)))
-		;; 現在のバッファと一致するものを探して先頭へ
-		(dolist (buf bufs)
-			(if (string= (buffer-name) (format "%s" (car buf)))
-					(add-to-list 'car-bufs buf)
-				(add-to-list 'cdr-bufs buf)))
-		(setq cdr-bufs (reverse cdr-bufs))
-		(set bufset (append car-bufs cdr-bufs))
+	;; move-current-tab-to-top
+	(defun move-current-tab-to-top ()
+		"Move current tab to top."
+		(interactive)
+		(let* ((bufset (tabbar-current-tabset t))
+					 (bufs (tabbar-tabs bufset))
+					 (car-bufs (list))
+					 (cdr-bufs (list)))
+			;; 現在のバッファと一致するものを探して先頭へ
+			(dolist (buf bufs)
+				(if (string= (buffer-name) (format "%s" (car buf)))
+						(add-to-list 'car-bufs buf)
+					(add-to-list 'cdr-bufs buf)))
+			(setq cdr-bufs (reverse cdr-bufs))
+			(set bufset (append car-bufs cdr-bufs))
 
-		;; タブバー書き換え
-		(tabbar-set-template bufset nil)
-    (tabbar-display-update)))
+			;; タブバー書き換え
+			(tabbar-set-template bufset nil)
+			(tabbar-display-update)))
 
 	;; キーバインド
 	(global-set-key (kbd "M-s-<right>") 'tabbar-forward-tab)
@@ -826,9 +828,9 @@
 
 	;; 新しいスクリーン
 	(global-set-key (kbd "s-t") (lambda () (interactive)
-										 (elscreen-create)
-										 (switch-to-buffer "*scratch*")
-										 (text-mode))))
+																(elscreen-create)
+																(switch-to-buffer "*scratch*")
+																(text-mode))))
 
 ;;; ------------------------------------------------------------
 ;;; ウィンドウ/スクリーンを閉じる
@@ -842,14 +844,14 @@
 
 	 ;; ウィンドウ構成がひとつでバッファに変更があれば破棄を確認する
 	 ((or (and (buffer-modified-p)
-				 ;; read-onlyなら無視
-				 (not buffer-read-only)
-				 ;; スクラッチ以外でアスタリスクで始まるバッファ名も保存を尋ねない
-				 (not (string=
-							 (substring (buffer-name (current-buffer)) 0 1)
-							 "*")))
-				 ;; スクラッチバッファでメモ代わりに使っていたら保存を尋ねる
-				 (and (buffer-modified-p) (string= (buffer-name) "*scratch*")))
+						 ;; read-onlyなら無視
+						 (not buffer-read-only)
+						 ;; スクラッチ以外でアスタリスクで始まるバッファ名も保存を尋ねない
+						 (not (string=
+									 (substring (buffer-name (current-buffer)) 0 1)
+									 "*")))
+				;; スクラッチバッファでメモ代わりに使っていたら保存を尋ねる
+				(and (buffer-modified-p) (string= (buffer-name) "*scratch*")))
 		(unless (yes-or-no-p "Buffer is modified. Close anyway?")
 			(call-interactively (save-buffer)))
 		(kill-buffer)
@@ -898,7 +900,7 @@
 	(let ((global-hl-line-mode t))
 		(global-hl-line-highlight)))
 (setq-default global-hl-line-timer
-			(run-with-idle-timer 0.03 t 'global-hl-line-timer-function))
+							(run-with-idle-timer 0.03 t 'global-hl-line-timer-function))
 ;; (cancel-timer global-hl-line-timer)
 
 ;; 行間隔を少し広げる
@@ -952,10 +954,10 @@
 ;;; s+RETでeval-bufferかeval-region
 
 (global-set-key (kbd "<s-return>") (lambda () (interactive)
-														 (if (region-active-p)
-																 (eval-region (region-beginning) (region-end))
-															 (eval-buffer))
-														 (message "eval done.")))
+																		 (if (region-active-p)
+																				 (eval-region (region-beginning) (region-end))
+																			 (eval-buffer))
+																		 (message "eval done.")))
 
 ;;; ------------------------------------------------------------
 ;;; ファイラ (dired)
@@ -1216,15 +1218,17 @@
 	(my-indext-region nil))
 
 (global-set-key (kbd "s-}") 'my-inc-region)
+(global-set-key (kbd "s-]") 'my-inc-region)
 (global-set-key (kbd "s-{") 'my-dec-region)
+(global-set-key (kbd "s-[") 'my-dec-region)
 
 ;;; ------------------------------------------------------------
 ;;; 現在バッファのファイルのフルパスを取得
 
 (defun get-current-path ()
-"Get current file path."
-(interactive)
-(insert (or (buffer-file-name) (expand-file-name default-directory))))
+	"Get current file path."
+	(interactive)
+	(insert (or (buffer-file-name) (expand-file-name default-directory))))
 (global-set-key (kbd "M-s-k") 'get-current-path)
 
 ;;; ------------------------------------------------------------
@@ -1234,32 +1238,32 @@
 ;; http://rubikitch.com/2014/12/07/google-translate/
 (require 'google-translate)
 (defvar google-translate-english-chars "[:ascii:]"
-"Ascii means English.")
+	"Ascii means English.")
 (defun google-translate-enja-or-jaen (&optional string)
-"Google translate enja or jaen.  STRING in region."
-(interactive)
-(setq string
-			(cond ((stringp string) string)
-						(current-prefix-arg
-						 (read-string "Google Translate: "))
-						((use-region-p)
-						 (buffer-substring (region-beginning) (region-end)))
-						(t
-						 (save-excursion
-							 (let (s)
-								 (forward-char 1)
-								 (backward-sentence)
-								 (setq s (point))
-								 (forward-sentence)
-								 (buffer-substring s (point)))))))
-(let* ((asciip (string-match
-								(format "\\`[%s]+\\'" google-translate-english-chars)
-								string)))
-	(run-at-time 0.1 nil 'deactivate-mark)
-	(google-translate-translate
-	 (if asciip "en" "ja")
-	 (if asciip "ja" "en")
-	 string)))
+	"Google translate enja or jaen.  STRING in region."
+	(interactive)
+	(setq string
+				(cond ((stringp string) string)
+							(current-prefix-arg
+							 (read-string "Google Translate: "))
+							((use-region-p)
+							 (buffer-substring (region-beginning) (region-end)))
+							(t
+							 (save-excursion
+								 (let (s)
+									 (forward-char 1)
+									 (backward-sentence)
+									 (setq s (point))
+									 (forward-sentence)
+									 (buffer-substring s (point)))))))
+	(let* ((asciip (string-match
+									(format "\\`[%s]+\\'" google-translate-english-chars)
+									string)))
+		(run-at-time 0.1 nil 'deactivate-mark)
+		(google-translate-translate
+		 (if asciip "en" "ja")
+		 (if asciip "ja" "en")
+		 string)))
 (global-set-key (kbd "C-c t") 'google-translate-enja-or-jaen)
 
 ;;; ------------------------------------------------------------
@@ -1289,8 +1293,8 @@
 
 ;; html-mode-hook
 (add-hook 'html-mode-hook
-				'(lambda()
-					 (define-key html-mode-map "/" 'self-insert-command)))
+					'(lambda()
+						 (define-key html-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; web-mode
@@ -1299,9 +1303,9 @@
 
 ;; web-mode-hook
 (add-hook 'web-mode-hook
-				'(lambda()
-					 (setq web-mode-markup-indent-offset 2)
-					 (define-key web-mode-map "/" 'self-insert-command)))
+					'(lambda()
+						 (setq web-mode-markup-indent-offset 2)
+						 (define-key web-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; js2-mode
@@ -1320,15 +1324,15 @@
 
 ;; php-mode-hook
 (add-hook 'php-mode-hook
-				'(lambda()
-					 (setq tab-width 2)
-					 (setq indent-tabs-mode t)
-					 (setq c-basic-offset 2)
-					 (define-key php-mode-map ")" 'self-insert-command)
-					 (define-key php-mode-map "(" 'self-insert-command)
-					 (define-key php-mode-map "{" 'self-insert-command)
-					 (define-key php-mode-map "}" 'self-insert-command)
-					 (define-key php-mode-map "/" 'self-insert-command)))
+					'(lambda()
+						 (setq tab-width 2)
+						 (setq indent-tabs-mode t)
+						 (setq c-basic-offset 2)
+						 (define-key php-mode-map ")" 'self-insert-command)
+						 (define-key php-mode-map "(" 'self-insert-command)
+						 (define-key php-mode-map "{" 'self-insert-command)
+						 (define-key php-mode-map "}" 'self-insert-command)
+						 (define-key php-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; text-mode
@@ -1337,35 +1341,35 @@
 ;; thx http://lioon.net/how-to-customize-face-emacs
 ;; M-x list-faces-display
 (add-hook 'text-mode-hook
-				'(lambda()
-					 (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))))
+					'(lambda()
+						 (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; kontiki-mode
 
 ;; ワイアフレームモード
 (easy-mmode-define-minor-mode kontiki-mode
-														"This is a Mode for Kontiki-Draft."
-														nil
-														" Kontiki-Draft")
+															"This is a Mode for Kontiki-Draft."
+															nil
+															" Kontiki-Draft")
 
 (add-hook 'kontiki-mode-hook
-				'(lambda()
-					 (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
-					 (font-lock-add-keywords nil '(("<.+?>" . font-lock-keyword-face)))
-					 (font-lock-add-keywords nil '(("\\[memo:.+?\\]" . font-lock-builtin-face)))
-					 (font-lock-add-keywords nil '(("^[a-zA-Z_]+?:" . font-lock-function-name-face)))
-					 (font-lock-add-keywords nil '(("^\\*.+" . font-lock-function-name-face)))))
+					'(lambda()
+						 (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
+						 (font-lock-add-keywords nil '(("<.+?>" . font-lock-keyword-face)))
+						 (font-lock-add-keywords nil '(("\\[memo:.+?\\]" . font-lock-builtin-face)))
+						 (font-lock-add-keywords nil '(("^[a-zA-Z_]+?:" . font-lock-function-name-face)))
+						 (font-lock-add-keywords nil '(("^\\*.+" . font-lock-function-name-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; mail-mode
 
 ;; メールモード（mail-mode）のカラーリング
 (add-hook 'mail-mode-hook
-				'(lambda()
-					 (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
-					 (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
-					 (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
+					'(lambda()
+						 (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
+						 (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
+						 (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; フレームの大きさと位置を変更 (cmd+shift+w)
@@ -1396,33 +1400,24 @@
 ;; 辞書追加
 ;; 英語
 (defvar ac-english-cache
-(ac-file-dictionary (concat ac-user-dict-dir "english")))
+	(ac-file-dictionary (concat ac-user-dict-dir "english")))
 (defvar ac-english-dict
-'((candidates . ac-english-cache)))
+	'((candidates . ac-english-cache)))
 
 ;; 技術語
 (defvar ac-technical-term-cache
-(ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
+	(ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
 (defvar ac-technical-term-dict
-'((candidates . ac-technical-term-cache)))
+	'((candidates . ac-technical-term-cache)))
 
 ;; 条件の追加
 (add-to-list 'ac-modes 'text-mode)
 (add-to-list 'ac-modes 'fundamental-mode)
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
-												 ;; ac-source-filename
-												 ac-technical-term-dict
-												 ;; ac-source-symbols
-												 ac-english-dict))
-
-;;; ------------------------------------------------------------
-;;; magit
-
-;; (setq my-emacsclient "/Applications/Emacs.app/Contents/MacOS/bin/emacsclient")
-;; (set-variable 'magit-emacsclient-executable (lambda () (if (file-exists-p my-emacsclient) nil)))
-(set-variable 'magit-push-always-verify nil)
-(set-variable 'with-editor-show-usage nil)
-(global-set-key (kbd "M-s-m") 'magit-status)
+													 ;; ac-source-filename
+													 ac-technical-term-dict
+													 ;; ac-source-symbols
+													 ac-english-dict))
 
 ;;; ------------------------------------------------------------
 ;;; gist
@@ -1466,56 +1461,16 @@
 ;;; ------------------------------------------------------------
 ;;; Todo:
 ;; doctypeを見てのbrやタグの挿入
-;; 単語境界をもうちょっと細かくしたい
+;; 単語境界をもうちょっと細かくしたい（シンタックステーブルか？）
 ;; 複数の検索置換セット
-;; 複数ファイルの検索置換
 ;; portのEmacsを試してみる？
-;; なるべく余計なことをしないphpモード。シンタックステーブルだけ持ってきて、用語とタブキーの振る舞いは自分で設定する
 ;; auto-completeの技術語辞書をもうちょっと厳選
 ;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
 ;; curchg-input-method-cursor-colorの挙動を確認
-;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる。
+;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
-
-;;; ------------------------------------------------------------
-;; 単語境界を細かく。どうもシンタックステーブルの問題らしい。
-;; 文字カテゴリの作成
-;; http://smallsteps.seesaa.net/article/123661899.html
-;; (define-category ?U "Upper case")
-;; (define-category ?L "Lower case")
-;; ;; 文字の登録。とりあえずはAからZまでの英字のみ。
-;; (modify-category-entry (cons ?A ?Z) ?U)
-;; (modify-category-entry (cons ?a ?z) ?L)
-;; 小文字に大文字が続く場合を単語境界とする。
-;; (add-to-list 'word-separating-categories (cons ?L ?U))
-
-;;; ------------------------------------------------------------
-;; my-anything-c-source-buffers-list
-;; (defvar my-anything-c-source-buffers-list
-;; 	`((name . "Buffers")
-;; 		(candidates . (lambda ()
-;; 										(buffer-list)))))
-;; my-anything-c-source-buffers-list
-;; (buffer-list)
-;; anything-c-source-buffers-list
-;; (anything-c-buffer-list)
-;; (anything-c-highlight-buffers)
-
-;; http://d.hatena.ne.jp/tomoya/20101213/1292166026
-;; (defun create-hyper-link-at-point-url ()
-;;   "カーソル位置のURLを HTML でマークアップする"
-;;   (interactive)
-;;   (let* ((bounds (bounds-of-thing-at-point 'url))
-;;          (start (car bounds))
-;;          (end (cdr bounds))
-;;          (link (format "<a href=\"%s\"></a>" (thing-at-point 'url))))
-;;     (delete-region start end)
-;;     (insert link)))
-
-;;; ------------------------------------------------------------
-;;; よくつかう
 ;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
 ;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
 
