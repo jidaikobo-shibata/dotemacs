@@ -16,14 +16,14 @@
 
 ;;; ------------------------------------------------------------
 ;;; whitespace関連設定
-;;; thx http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
+;; thx http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
 (require 'whitespace)
-(setq whitespace-style '(face          ; faceで可視化
-												trailing       ; 行末
-												tabs           ; タブ
-												spaces         ; スペース
-												empty          ; 先頭/末尾の空行
-												space-mark     ; 表示のマッピング
+(setq whitespace-style '(face      ; faceで可視化
+												trailing   ; 行末
+												tabs       ; タブ
+												spaces     ; スペース
+												empty      ; 先頭/末尾の空行
+												space-mark ; 表示のマッピング
 												tab-mark
 												))
 (setq whitespace-display-mappings

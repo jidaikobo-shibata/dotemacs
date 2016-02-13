@@ -1,7 +1,13 @@
-;;; ------------------------------------------------------------
-;; 単語境界を細かく。どうもシンタックステーブルの問題らしい。
-;; 文字カテゴリの作成
-;; http://smallsteps.seesaa.net/article/123661899.html
+;; ;;; ------------------------------------------------------------
+;; ;; 関数名をヘッダに表示
+;; (setq which-func-modes t)
+;; (delete (assoc 'which-func-mode mode-line-format) mode-line-format)
+;; (setq-default header-line-format '(which-func-mode ("" which-func-format)))
+
+;; ;;; ------------------------------------------------------------
+;; ;; 単語境界を細かく。どうもシンタックステーブルの問題らしい。
+;; ;; 文字カテゴリの作成
+;; ;; http://smallsteps.seesaa.net/article/123661899.html
 ;; (define-category ?U "Upper case")
 ;; (define-category ?L "Lower case")
 ;; ;; 文字の登録。とりあえずはAからZまでの英字のみ。
@@ -10,19 +16,20 @@
 ;; 小文字に大文字が続く場合を単語境界とする。
 ;; (add-to-list 'word-separating-categories (cons ?L ?U))
 
-;;; ------------------------------------------------------------
-;; my-anything-c-source-buffers-list
+;; ;;; ------------------------------------------------------------
+;; ;; my-anything-c-source-buffers-list
 ;; (defvar my-anything-c-source-buffers-list
 ;; 	`((name . "Buffers")
 ;; 		(candidates . (lambda ()
 ;; 										(buffer-list)))))
-;; my-anything-c-source-buffers-list
-;; (buffer-list)
-;; anything-c-source-buffers-list
-;; (anything-c-buffer-list)
-;; (anything-c-highlight-buffers)
+;; ;; my-anything-c-source-buffers-list
+;; ;; (buffer-list)
+;; ;; anything-c-source-buffers-list
+;; ;; (anything-c-buffer-list)
+;; ;; (anything-c-highlight-buffers)
 
-;; http://d.hatena.ne.jp/tomoya/20101213/1292166026
+;; ;;; ------------------------------------------------------------
+;; ;; http://d.hatena.ne.jp/tomoya/20101213/1292166026
 ;; (defun create-hyper-link-at-point-url ()
 ;;   "カーソル位置のURLを HTML でマークアップする"
 ;;   (interactive)
@@ -33,6 +40,7 @@
 ;;     (delete-region start end)
 ;;     (insert link)))
 
+;; ;;; ------------------------------------------------------------
 ;; ;; 日本語の自動判別
 ;; ;; thx http://dev.ariel-networks.com/articles/emacs/part1/
 ;; (setq grep-host-defaults-alist nil)
@@ -208,9 +216,9 @@
 ;; 			(insert "\t"))))))
 ;; (bind-key* "<tab>" 'my-tab-dwim)
 
-;;; ------------------------------------------------------------
-;;; isearchに文字列をセット
-;;; http://blog.livedoor.jp/tek_nishi/archives/4866943.html
+;; ;;; ------------------------------------------------------------
+;; ;;; isearchに文字列をセット
+;; ;;; http://blog.livedoor.jp/tek_nishi/archives/4866943.html
 ;; (defun my-isearch-get-word()
 ;; 	"Set region to isearch."
 ;; 	(interactive)
@@ -225,10 +233,11 @@
 ;; 					(isearch-yank-string string)))))
 ;; (bind-key* "C-S-s" 'my-isearch-get-word)
 
-;; 入力モードが英語の時はカーソルの色をWhiteに、日本語の時はfirebrickにする
-;; thx http://masutaka.net/chalow/2015-01-04-1.html
-;; これを有効にするためには、Mac OS Xの入力ソースを適切なものにしておくこと
-;; thx http://pc-karuma.net/mac-keyboard-input-source/
+;; ;;; ------------------------------------------------------------
+;; ;; 入力モードが英語の時はカーソルの色をWhiteに、日本語の時はfirebrickにする
+;; ;; thx http://masutaka.net/chalow/2015-01-04-1.html
+;; ;; これを有効にするためには、Mac OS Xの入力ソースを適切なものにしておくこと
+;; ;; thx http://pc-karuma.net/mac-keyboard-input-source/
 ;; (when (fboundp 'mac-input-source)
 ;; 	(defun my-mac-selected-keyboard-input-source-chage-function ()
 ;; 		"Change Cursor Color."
@@ -242,23 +251,9 @@
 ;; 	(add-hook 'after-save-hook
 ;; 					'my-mac-selected-keyboard-input-source-chage-function))
 
-;; (defun my-anything-for-functions ()
-;; 	"Anything command for program."
-;; 	(interactive)
-;; 	(anything-other-buffer
-;; 	 '(anything-c-source-imenu
-;; 		 anything-c-source-emacs-commands
-;; 		 anything-c-source-emacs-functions)
-;; 	 "*my-anything-for-functions*"))
-;; (bind-key* "C-," (lambda ()
-;; 									 (interactive)
-;; 									 (when (< (frame-width) 110)
-;; 										 (set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))
-;; 									 (my-anything-for-functions)))
-
-;;; ------------------------------------------------------------
-;;; control+shift+cursorでウィンドウ内バッファ履歴
-;; thx http://pc12.2ch.net/test/read.cgi/unix/1261307488/
+;; ;;; ------------------------------------------------------------
+;; ;;; control+shift+cursorでウィンドウ内バッファ履歴
+;; ;; thx http://pc12.2ch.net/test/read.cgi/unix/1261307488/
 
 ;; (bind-key* "<C-S-left>" 'my-switch-to-prev-buffer)
 ;; (bind-key* "<C-S-right>" 'my-switch-to-next-buffer)
@@ -296,13 +291,14 @@
 ;; 								 (switch-to-buffer (car blist) t)
 ;; 								 (setq blist nil))))))
 
-;; (setq hl-line-face 'underline)
-;; (global-hl-line-mode)
-;; 下線だと、日本語入力時の候補領域がわかりづらいのでやめる。
+;; ;;; ------------------------------------------------------------
+;; ;; (setq hl-line-face 'underline)
+;; ;; (global-hl-line-mode)
+;; ;; 下線だと、日本語入力時の候補領域がわかりづらいのでやめる。
 
-;;; ------------------------------------------------------------
-;; カラーリングをテストする
-;; http://d.hatena.ne.jp/buzztaiki/20111209/1323444755
+;; ;;; ------------------------------------------------------------
+;; ;; カラーリングをテストする
+;; ;; http://d.hatena.ne.jp/buzztaiki/20111209/1323444755
 
 ;; (defun font-lock-user-keywords (mode &optional keywords)
 ;;   "Add user highlighting to MODE to KEYWORDS.
@@ -313,7 +309,8 @@
 ;;   (font-lock-add-keywords mode keywords)
 ;;   (put mode 'font-lock-user-keywords keywords))
 
-;; rainbow-modeで16進数だけカラーリング
+;; ;;; ------------------------------------------------------------
+;; ;; rainbow-modeで16進数だけカラーリング
 ;; (font-lock-remove-keywords
 ;;    nil
 ;;    `(,@rainbow-x-colors-font-lock-keywords
@@ -322,6 +319,7 @@
 ;;      ,@rainbow-html-colors-font-lock-keywords
 ;;      ,@rainbow-html-rgb-colors-font-lock-keywords))
 
+;; ;;; ------------------------------------------------------------
 ;; ;;; 接続先Hostを書いた情報源を探して、tramp接続
 ;; (defvar anything-c-source-my-hosts
 ;; 	'((name . "hosts")
@@ -342,45 +340,41 @@
 ;; 	"Tramp close.  PATH is path."
 ;; 	(find-file path))
 
-;; (bind-key* "s-t" (lambda () (interactive)
-;; 									 (let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
-;; 										 (get-buffer-create bufname)
-;; 										 (switch-to-buffer bufname)
-;; 										 (text-mode))))
-	;; (bind-key* "s-t" (lambda () (interactive)
-	;; 										 (switch-to-buffer "*scratch*")))
-;;; Memo:
-;; anything-c-source-google-suggest（面白いのだけど使いどころがない）
-;; M-x install-packageで、入らないものがあるが、
-;; M-x list-packagesで、C-sで探し、ページ移動の後installでなら入る。
+;; ;;; ------------------------------------------------------------
+;; ;;; Memo:
+;; ;; anything-c-source-google-suggest（面白いのだけど使いどころがない）
+;; ;; M-x install-packageで、入らないものがあるが、
+;; ;; M-x list-packagesで、C-sで探し、ページ移動の後installでなら入る。
 
-;;; Memo2:
-;; tempbuf（idle buffer）を自動的にkill-bufferしてくれるelispだけど、
-;; 結構不意に必要なbufferをkillしていることがあるので、使わない方向で。
-;; multi-termもよさそうだけど、やっぱりterminalを使う。
+;; ;;; ------------------------------------------------------------
+;; ;;; Memo2:
+;; ;; tempbuf（idle buffer）を自動的にkill-bufferしてくれるelispだけど、
+;; ;; 結構不意に必要なbufferをkillしていることがあるので、使わない方向で。
+;; ;; multi-termもよさそうだけど、やっぱりterminalを使う。
 
-;;; Memo3:
-;; しばらくauto-install.elを使っていたが、anythingもpackageで入るのでpackageに。
-;; auto installはつかわなくてもいける
-;; wget http://www.emacswiki.org/emacs/download/auto-install.el
-;; M-x byte-compile-file RET ~/.emacs.d/elisp/auto-install.el RET
-;; (add-to-list 'load-path "~/.emacs.d/elisp")
-;; (require 'auto-install)
-;; (setq auto-install-directory "~/.emacs.d/elisp")
-;; (auto-install-update-emacswiki-package-name t)
-;; (auto-install-compatibility-setup)
-;; M-x auto-install-batch RET anything RET
-
-;; wget http://www.ne.jp/asahi/alpha/kazu/pub/emacs/phpdoc.el
+;; ;;; ------------------------------------------------------------
+;; ;;; Memo3:
+;; ;; しばらくauto-install.elを使っていたが、anythingもpackageで入るのでpackageに。
+;; ;; auto installはつかわなくてもいける
+;; ;; wget http://www.emacswiki.org/emacs/download/auto-install.el
+;; ;; M-x byte-compile-file RET ~/.emacs.d/elisp/auto-install.el RET
+;; ;; (add-to-list 'load-path "~/.emacs.d/elisp")
+;; ;; (require 'auto-install)
+;; ;; (setq auto-install-directory "~/.emacs.d/elisp")
+;; ;; (auto-install-update-emacswiki-package-name t)
+;; ;; (auto-install-compatibility-setup)
+;; ;; M-x auto-install-batch RET anything RET
+;; ;; wget http://www.ne.jp/asahi/alpha/kazu/pub/emacs/phpdoc.el
 
 
-;;; ウィンドウ構成を変えようとしたら検索置換窓を閉じる
-;;(add-hook 'window-configuration-change-hook 'es-delete-window-fn)
-;;(defun es-delete-window-fn ()
-;;	"Delete search mode windows."
-;;	(unless es-ignore-delete-window-hook
-;;		(select-window es-target-window)
-;;		(delete-other-windows)))
+;; ;;; ------------------------------------------------------------
+;; ;;; ウィンドウ構成を変えようとしたら検索置換窓を閉じる
+;; (add-hook 'window-configuration-change-hook 'es-delete-window-fn)
+;; (defun es-delete-window-fn ()
+;; 	"Delete search mode windows."
+;; 	(unless es-ignore-delete-window-hook
+;; 		(select-window es-target-window)
+;; 		(delete-other-windows)))
 
 ;; ;;; ------------------------------------------------------------
 ;; ;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
@@ -390,39 +384,7 @@
 ;; 	:group 'Convenience
 ;; 	:type 'boolean)
 
-;; (unless is-deactivate-region-by-cursor
-;; 	;; regionの解除advice版 - Hookよりこちらのほうが軽い!?
-;; 	(defadvice previous-line (before deactivate-region activate)
-;; 		"Deactivate Region by cursor."
-;; 		(my-deactivate-region))
-;; 	(defadvice next-line (before deactivate-region activate)
-;; 		"Deactivate Region by cursor."
-;; 		(my-deactivate-region))
-;; 	(defadvice left-char (before deactivate-region activate)
-;; 		"Deactivate Region by cursor."
-;; 		(my-deactivate-region))
-;; 	(defadvice right-char (before deactivate-region activate)
-;; 		"Deactivate Region by cursor."
-;; 		(my-deactivate-region))
-
-;; 	;; undo in regionしない
-;; 	(defadvice undo-tree-undo (before deactivate-region activate)
-;; 		"Deactivate Region when attempt to undo."
-;; 		(my-deactivate-region))
-
-;; 	;; リージョン解除関数
-;; 	(defun my-deactivate-region ()
-;; 		"Logic of deactivate region by cursor."
-;; 		(when (and (region-active-p) (not (memq last-input-event '(S-left S-right S-down S-up))))
-;; 			(cond
-;; 			 ((memq last-input-event '(right down))
-;; 				(goto-char (region-end)))
-;; 			 ((memq this-command '(left-char previous-line))
-;; 				(goto-char (region-beginning))))
-;; 			(deactivate-mark))))
-
-;; M-x install-elisp-from-emacswiki RET eldoc-extension.el RET
-
+;; ;;; ------------------------------------------------------------
 ;; ;;; 新規フレーム作成 (cmd+shift+n)
 ;; (defun create-new-frame ()
 ;; 	"Create new frame."
@@ -432,45 +394,8 @@
 ;; (bind-key* "s-N" 'create-new-frame)
 ;; (add-hook 'after-make-frame-functions 'show-line-number)
 
-;;; ------------------------------------------------------------
-;;; eww
-;; thx http://futurismo.biz/archives/2950
-
-;; duckduckgoの設定
-;; (setq eww-search-prefix "https://duckduckgo.com/html/?kl=jp-jp&k1=-1&kc=1&kf=-1&q=")
-
-;; 画像表示
-;; (defun eww-disable-images ()
-;; 	"Don't show images."
-;; 	(interactive)
-;; 	(setq-local shr-put-image-function 'shr-put-image-alt)
-;; 	(eww-reload))
-;; (defun eww-enable-images ()
-;; 	"Show images."
-;; 	(interactive)
-;; 	(setq-local shr-put-image-function 'shr-put-image)
-;; 	(eww-reload))
-;; (defun shr-put-image-alt (spec alt &optional flags)
-;; 	"Show alt instead of image.  SPEC, ALT, FLAGS."
-;; 	(insert alt))
-;; ;; はじめから非表示
-;; (defun eww-mode-hook--disable-image ()
-;; 	"Don't show images."
-;; 	(setq-local shr-put-image-function 'shr-put-image-alt))
-;; ;; (add-hook 'eww-mode-hook 'eww-mode-hook--disable-image)
-
-;;; diredでマークをつけたファイルをviewモードで開く（V）
-;; (eval-after-load "dired"
-;; 	'(progn
-;; 		 (define-key dired-mode-map (kbd "V") 'my-dired-view-marked-files)
-;; 		 (defun my-dired-view-marked-files (&optional arg)
-;; 			 "Open each of the marked files, or the file under the point, or when prefix arg, the next N files "
-;; 			 (interactive "P")
-;; 			 (let* ((fn-list (dired-get-marked-files nil arg)))
-;; 				 (mapc 'view-file fn-list)))))
-
-;;; 釣り合う行カッコが画面外だったらミニバッファに表示
-;; thx http://emacswiki.org/emacs/ShowParenMode
+;; ;;; 釣り合う行カッコが画面外だったらミニバッファに表示
+;; ;; thx http://emacswiki.org/emacs/ShowParenMode
 ;; (defadvice show-paren-function
 ;; 		(after show-matching-paren-offscreen activate)
 ;; 	"If the matching paren is offscreen, show the matching line in theecho area.  Has no effect if the character before point is not ofthe syntax class ')'."
@@ -481,8 +406,8 @@
 ;; 														 (blink-matching-open))))
 ;; 		(when matching-text (message matching-text))))
 
-;;; 右ボタンの割り当て(押しながらの操作)をはずす。
-;;; thx http://cave.under.jp/_contents/emacs.html#60
+;; ;;; 右ボタンの割り当て(押しながらの操作)をはずす。
+;; ;;; thx http://cave.under.jp/_contents/emacs.html#60
 ;; (if window-system
 ;; 		(progn
 ;; 			(global-unset-key [down-mouse-3])
@@ -492,16 +417,16 @@
 ;; 				(popup-menu menu-bar-edit-menu))
 ;; 			(bind-key* "<mouse-3>" 'bingalls-edit-menu)))
 
-;; モードラインにカレントディレクトリを表示する
+;; ;; モードラインにカレントディレクトリを表示する
 ;; (let ((ls (member 'mode-line-buffer-identification mode-line-format)))
 ;; 	(setcdr ls
 ;; 					(cons
 ;; 					 '(:eval (concat " (" (abbreviate-file-name default-directory) ")"))
 ;; 					 (cdr ls))))
 
-;;; よくあるマイナーモードを非表示
-;; thx http://qiita.com/tadsan/items/8b5976682b955788c262
-;; これは一通り処理が終わった後呼ぶ必要がある。
+;; ;;; よくあるマイナーモードを非表示
+;; ;; thx http://qiita.com/tadsan/items/8b5976682b955788c262
+;; ;; これは一通り処理が終わった後呼ぶ必要がある。
 ;; (setq my/hidden-minor-modes
 ;; 			'(undo-tree-mode
 ;; 				eldoc-mode
@@ -515,11 +440,7 @@
 ;; 							(cons (list mode "") (assq-delete-all mode minor-mode-alist))))
 ;; 			my/hidden-minor-modes)
 
-;; ;;; 関数名の表示
-;; (which-func-mode 1)
-
 ;; ;;; アスタリスクで終わるバッファ名を除いたリストを取得
-;; ;;; とりあえず使っていないけど、何かの役に立つかもなので、取っておく。
 ;; (defun eliminated-buffers ()
 ;; 	"Eleminate buffers."
 ;; 	(let (result
@@ -528,10 +449,8 @@
 ;; 			(unless (string= "*" (substring (format "%s" buf) -1 nil))
 ;; 				(add-to-list 'result buf)))))
 
-;;; ------------------------------------------------------------
-;;; バッファ関連
-
-;;; f2キーでmessageと今のバッファをトグル
+;; ;;; ------------------------------------------------------------
+;; ;;; f2キーでmessageと今のバッファをトグル
 ;; (bind-key* "<f2>" (lambda () (interactive)
 ;; 											 (let (current-buffer-for-return)
 ;; 												 (if (eq (selected-window) (get-buffer-window "*Messages*"))
@@ -539,11 +458,9 @@
 ;; 													 (setq current-buffer-for-return (current-buffer))
 ;; 													 (switch-to-buffer "*Messages*")))))
 
-;;; ------------------------------------------------------------
-;;; ウィンドウ関連
-
-;;; mac like new window (cmd+n)
-;; cmd+n でウィンドウを増やす。分割方法は対話式
+;; ;;; ------------------------------------------------------------
+;; ;;; mac like new window (cmd+n)
+;; ;; cmd+n でウィンドウを増やす。分割方法は対話式
 ;; (defun create-new-window-intaractive (act)
 ;; 	"Mac like new window (cmd+n).  ACT is interactive."
 ;; 	(interactive "nchoose (holizntal:1, vertical:2):")
@@ -551,13 +468,16 @@
 ;; 				(t (split-window-vertically))))
 ;; (bind-key* "s-n" 'create-new-window-intaractive)
 
+;; ;;; ------------------------------------------------------------
 ;; ;;; eldoc
+;; ;; 重い……
 ;; (require 'eldoc-extension)
 ;; (add-hook 'emacs-lisp-mode-hook 'turn-on-eldoc-mode)
 ;; (add-hook 'lisp-interaction-mode-hook 'turn-on-eldoc-mode)
 ;; (setq eldoc-idle-delay 0.2)
 ;; (setq eldoc-minor-mode-string "")
 
+;; ;;; ------------------------------------------------------------
 ;; ;;; eldoc-php
 ;; ;; thx http://www.ne.jp/asahi/alpha/kazu/php.html
 ;; (require 'phpdoc)
@@ -572,6 +492,7 @@
 ;; 	(when (file-exists-p destination)
 ;; 		(insert-file-contents destination)))
 
+;; ;;; ------------------------------------------------------------
 ;; (defvar anything-c-source-find-by-gtags
 ;; 	'((name . "Find by gtags or ls")
 ;; 		(candidates . (lambda ()
@@ -599,8 +520,9 @@
 ;; 		;; (requires-pattern . 3)
 ;; 		;; (delayed)))
 
-;;; create-temporary-buffer
-;; あたらしい空のバッファを作る (cmd+t)
+;; ;;; ------------------------------------------------------------
+;; ;;; create-temporary-buffer
+;; ;; あたらしい空のバッファを作る (cmd+t)
 ;; (defun create-temporary-buffer ()
 ;; 	"Create temporal buffer."
 ;; 	(interactive)
@@ -608,8 +530,9 @@
 ;; 	(global-auto-complete-mode t))
 ;; (global-set-key (kbd "s-t") 'create-temporary-buffer) ; (cmd+t)
 
-;;; mac like close window (cmd+w)
-;; cmd+wで、開いているウィンドウを閉じる。単一のバッファなら、変更を確認してバッファを閉じる
+;; ;;; ------------------------------------------------------------
+;; ;;; mac like close window (cmd+w)
+;; ;; cmd+wで、開いているウィンドウを閉じる。単一のバッファなら、変更を確認してバッファを閉じる
 ;; (defun contexual-close-window ()
 ;; 	"Mac like close window (cmd+w)."
 ;; 	(interactive)
@@ -639,10 +562,9 @@
 ;; 			(delete-window))))
 ;; (global-set-key (kbd "s-w") 'contexual-close-window)
 
-;;; ------------------------------------------------------------
-;;; Macの辞書で検索
-;; thx http://moyashi.air-nifty.com/hitori/2007/12/emacscarbon_ema_5f82.html
-
+;; ;;; ------------------------------------------------------------
+;; ;;; Macの辞書で検索
+;; ;; thx http://moyashi.air-nifty.com/hitori/2007/12/emacscarbon_ema_5f82.html
 ;; (defun my-search-at-dictionary-app ()
 ;; 	"Search at dictionary app."
 ;; 	(interactive)
@@ -673,7 +595,8 @@
 
 ;; (global-set-key (kbd "s-D") 'my-search-at-dictionary-app)
 
-;;; Rictyを等幅で使う
+;; ;;; ------------------------------------------------------------
+;; ;;; Rictyを等幅で使う
 ;; (add-to-list 'default-frame-alist '(font . "ricty-16"))
 
 ;; thx http://tam5917.hatenablog.com/entry/20120915/1347688961
@@ -705,24 +628,24 @@
 ;; 			(set-face-attribute 'fixed-pitch nil :family "Ricty")
 ;; 			))
 
-;;; Rictyの準備の仕方
-;; thx Rictyなるものがあるらしい | cozy attic
-;; https://cozyattic.wordpress.com/2013/07/24/ricty%E3%81%AA%E3%82%8B%E3%82%82%E3%81%AE%E3%81%8C%E3%81%82%E3%82%8B%E3%82%89%E3%81%97%E3%81%84/
-; sudo port install fontforge
-; で、fontforgeをインストール
-; fontforge -version
-; で、インストールの確認。
-; https://github.com/yascentur/Ricty/tree/3.2.2
-; で、Ricty-3.2.2.zipをダウンロード。
-; http://levien.com/type/myfonts/inconsolata.html
-; で、OpenType fileのInconsolata.otfをダウンロード。
-; http://mix-mplus-ipa.sourceforge.jp/migu/
-; で、migu-1m-20150712.zipのダウンロード。
-; 全て解凍し、Inconsolata.otf、migu-1m-bold.ttf、migu-1m-regular.ttfをRictyのフォルダへ移動
-; ターミナルでRictyフォルダに移動
-; sh ricty_generator.sh Inconsolata.otf migu-1m-regular.ttf migu-1m-bold.ttf
-; とする。僕はデフォルトだと全角スペースが目立ちすぎるので、
-; sh ricty_generator.sh -z Inconsolata.otf migu-1m-regular.ttf migu-1m-bold.ttf
-; として、全角スペースを不可視にしている。
-; https://github.com/yascentur/Ricty/tree/3.2.2
-; のREADMEには、このシェルスクリプトのオプションがあるので、参考にすると良い。
+;; ;;; Rictyの準備の仕方
+;; ;; thx Rictyなるものがあるらしい | cozy attic
+;; ;; https://cozyattic.wordpress.com/2013/07/24/ricty%E3%81%AA%E3%82%8B%E3%82%82%E3%81%AE%E3%81%8C%E3%81%82%E3%82%8B%E3%82%89%E3%81%97%E3%81%84/
+;; ; sudo port install fontforge
+;; ; で、fontforgeをインストール
+;; ; fontforge -version
+;; ; で、インストールの確認。
+;; ; https://github.com/yascentur/Ricty/tree/3.2.2
+;; ; で、Ricty-3.2.2.zipをダウンロード。
+;; ; http://levien.com/type/myfonts/inconsolata.html
+;; ; で、OpenType fileのInconsolata.otfをダウンロード。
+;; ; http://mix-mplus-ipa.sourceforge.jp/migu/
+;; ; で、migu-1m-20150712.zipのダウンロード。
+;; ; 全て解凍し、Inconsolata.otf、migu-1m-bold.ttf、migu-1m-regular.ttfをRictyのフォルダへ移動
+;; ; ターミナルでRictyフォルダに移動
+;; ; sh ricty_generator.sh Inconsolata.otf migu-1m-regular.ttf migu-1m-bold.ttf
+;; ; とする。僕はデフォルトだと全角スペースが目立ちすぎるので、
+;; ; sh ricty_generator.sh -z Inconsolata.otf migu-1m-regular.ttf migu-1m-bold.ttf
+;; ; として、全角スペースを不可視にしている。
+;; ; https://github.com/yascentur/Ricty/tree/3.2.2
+;; ; のREADMEには、このシェルスクリプトのオプションがあるので、参考にすると良い。

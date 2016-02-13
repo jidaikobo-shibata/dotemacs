@@ -2,11 +2,11 @@
 ;; Copyright (C) 2015 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
-;;
+
 ;;; Commentary:
 ;; minor mode for search and replace.
 ;; 検索置換のためのマイナーモード。
-;;
+
 ;;; Ussage:
 ;; "o" means smartrep mode
 ;; | s-f | C-f f |   | show search/replace windows        | 検索置換窓の表示
@@ -85,14 +85,14 @@
 			 '(foreign-regexp/regexp-type 'perl)
 			 '(reb-re-syntax 'foreign-regexp))
 			(setq sc/is-foregin-regexp t)))
-	(declare-function foreign-regexp/search/forward  "foreign-regexp")
+	(declare-function foreign-regexp/search/forward "foreign-regexp")
 	(declare-function foreign-regexp/search/backward "foreign-regexp")
 	(declare-function foreign-regexp/replace/perform-replace "foreign-regexp"))
 
 ;;; ------------------------------------------------------------
 ;;; minor-mode
 
-;;; 検索置換用のマイナーモード
+;; 検索置換用のマイナーモード
 (define-minor-mode search-center-mode
 	"Provide search/replace environment."
 	:init-value
@@ -102,7 +102,7 @@
 	:keymap
 	search-center-mode-map)
 
-;;; 正規表現のマイナーモード
+;; 正規表現のマイナーモード
 (define-minor-mode search-center-re-mode
 	"Provide regular expression search/replace environment."
 	:init-value
@@ -627,8 +627,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; マルチファイル検索
-;;; 対象ディレクトリと拡張子を指定したら検索する
-;;; ただのrgrepのwrapper
+;; 対象ディレクトリと拡張子を指定したら検索する。ただのrgrepのwrapper
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090225/1235526604
 
 (require 'grep)
@@ -642,29 +641,31 @@
 
 ;; sc/grep
 (defun sc/grep (string ext pwd)
-  "It asks STRING and EXT for grep command line and PWD for current directory."
-  (interactive
-   (progn
-     (let ((default (sc/get-strings "search"))
+	"It asks STRING and EXT for grep command line and PWD for current directory."
+	(interactive
+	 (progn
+		 (let ((default (sc/get-strings "search"))
 					 (target-ext (concat "*." (file-name-extension (buffer-file-name))))
 					 (target-dir (if (gtags-get-rootpath)
 													 (directory-file-name (gtags-get-rootpath))
 												 default-directory)))
 			 (grep-compute-defaults)
-       (list (read-from-minibuffer "Search: " default nil nil 'grep-history (if current-prefix-arg nil default))
+			 (list (read-from-minibuffer "Search: " default nil nil 'grep-history (if current-prefix-arg nil default))
 						 (read-from-minibuffer "Extension (plural available): " target-ext)
-             (read-directory-name "Directory: " target-dir target-dir t)))))
-  (rgrep string ext pwd nil))
+						 (read-directory-name "Directory: " target-dir target-dir t)))))
+	(rgrep string ext pwd nil))
 
 ;; defadvice rgrep
 ;; thx http://d.hatena.ne.jp/kitokitoki/20101009/p6
 (defadvice rgrep (before my-rgrep activate)
-  "Confirm delete grep buffer."
-  (when (get-buffer "*grep*")
-    (when (y-or-n-p "Delete existing *grep* buffer?")
-      (kill-buffer (get-buffer "*grep*")))))
+	"Confirm delete grep buffer."
+	(when (get-buffer "*grep*")
+		(when (y-or-n-p "Delete existing *grep* buffer?")
+			(kill-buffer (get-buffer "*grep*")))))
 
-;; (global-set-key (kbd "C--") 'anything-grep2)
+;;; ------------------------------------------------------------
+;;; experimental area
+;; (global-set-key (kbd "C--") 'func)
 
 ;;; ------------------------------------------------------------
 ;;; Provide

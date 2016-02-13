@@ -3,11 +3,11 @@
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
-;;; ------------------------------------------------------------
 ;;; Commentary:
-;;; usage: emacsのインストール（要X-code Command Line Tools）
-;;; thx http://masutaka.net/chalow/2015-04-12-1.html
-;;; ftp://ftp.math.s.chiba-u.ac.jp/emacsを確認して、あたらしいパッチの存在を確認すると良い
+;; usage: emacsのインストール（要X-code Command Line Tools）
+;; thx http://masutaka.net/chalow/2015-04-12-1.html
+;; ftp://ftp.math.s.chiba-u.ac.jp/emacsを確認して、あたらしいパッチの存在を確認すると良い
+;; @ terminal
 ;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-24.5.tar.xz
 ;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-24.5-mac-5.15.tar.gz
 ;; tar xfJ emacs-24.5.tar.xz
@@ -23,18 +23,13 @@
 ;; make GZIP_PROG='' install
 ;; cp -r mac/Emacs.app /Applications
 
-;;; ------------------------------------------------------------
 ;;; Usage: 利用前の準備
-;;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
+;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
 ;; @ terminal
 ;; sudo port install global
 ;; emacs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
 
 ;;; Code:
-;;; ------------------------------------------------------------
-;;; package類のロード等
-;; how to update package
-;; M-x package-list-packages RET U x
 
 ;;; ------------------------------------------------------------
 ;;; 最小限設定 - 以降でエラーがあっても、最小限保証される設定
@@ -119,6 +114,9 @@
 ;; ファイルが #! から始まる場合、+xを付けて保存する
 (add-hook 'after-save-hook
 					'executable-make-buffer-file-executable-if-script-p)
+
+;;; 関数名の表示
+(which-func-mode 1)
 
 ;; emacsclient（使いたいのだけど、今のところうまくいかない）
 (if (eq window-system 'ns) (server-start))
@@ -302,10 +300,10 @@
 
 ;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い
-;;; ewww/read-onlyバッファではリンクの移動
-;;; ミニバッファだったらミニバッファ補完
-;;; 直前の動作が改行か選択範囲があったらインデント
-;;; あとは\tを挿入
+;; ewww/read-onlyバッファではリンクの移動
+;; ミニバッファだったらミニバッファ補完
+;; 直前の動作が改行か選択範囲があったらインデント
+;; あとは\tを挿入
 
 (defun my-tab-dwim ()
 	"Insert tab or jump to link."
@@ -358,7 +356,8 @@
 
 ;;; ------------------------------------------------------------
 ;;; 釣り合いのとれる括弧のハイライト
-;;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
+;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
+
 (require 'mic-paren)
 (paren-activate)
 (setq paren-match-face 'underline paren-sexp-mode t)
@@ -371,7 +370,7 @@
 (add-hook 'post-command-hook 'my-goto-the-edge)
 (defun my-goto-the-edge ()
 	"Go to the edge of the line."
-	;; (message "this-event:  %s\nthis-command:%s" last-input-event this-command)
+	;; (message "this-event: %s\nthis-command: %s" last-input-event this-command)
 	(when (and (eq prev-line-num 1) (memq last-input-event '(up S-up)))
 		(beginning-of-line))
 	(when (and (eq prev-line-num (count-lines 1 (point-max)))
@@ -474,7 +473,6 @@
 
 ;;; ------------------------------------------------------------
 ;;; recentf
-;;; 最近開いたファイルの履歴
 
 (require 'recentf-ext)
 (recentf-mode 1)
@@ -503,6 +501,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
+
 (defvar anything-c-source-find-by-gtags
 	'((name . "Find by gtags or ls")
 		(candidates . (lambda ()
@@ -528,6 +527,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; FTP by Fetch
+
 (defun func-anything-c-source-my-fetch ()
 	(let (ret)
 		(with-temp-buffer
@@ -554,6 +554,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; よく使うプロジェクトに対する操作
+
 (defun func-anything-c-source-cd-to-projects ()
 	(let (ret)
 		(with-temp-buffer
@@ -588,12 +589,14 @@
 
 ;;; ------------------------------------------------------------
 ;;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
-;;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
+;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
+
 (setq anything-c-boring-buffer-regexp
 			(rx "*" (+ not-newline) "*"))
 
 ;;; ------------------------------------------------------------
 ;;; my-anything-for-files
+
 (defun my-anything-for-files ()
 	"Anything command included find by gtags."
 	(interactive)
@@ -646,6 +649,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; my-anything-for-functions
+
 (defun my-anything-for-functions ()
 	"Anything command for program."
 	(interactive)
@@ -658,7 +662,8 @@
 
 ;;; ------------------------------------------------------------
 ;;; descbinds-anythingの乗っ取り
-;;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
+;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
+
 (require 'descbinds-anything)
 (descbinds-anything-install)
 (global-set-key (kbd "C-.") 'descbinds-anything)
@@ -730,7 +735,7 @@
 											 ;; Always include the current buffer.
 											 ((eq (current-buffer) b) b)
 											 ((buffer-file-name b) b)
-											 ((char-equal ?\  (aref (buffer-name b) 0)) nil)
+											 ((char-equal ?\ (aref (buffer-name b) 0)) nil)
 											 ;; *scratch*バッファは表示する
 											 ((equal "*scratch*" (buffer-name b)) b)
 											 ;; *eww*バッファは表示する
@@ -1026,6 +1031,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; whitespace関連設定
+
 (require 'whitespace)
 
 ;; 保存前に自動でクリーンアップ
@@ -1084,10 +1090,9 @@
 (global-set-key (kbd "s-C") 'capitalize-region)
 
 ;;; ------------------------------------------------------------
-;;; 全角英数字を半角英数字に、半角カナを全角に、
-;;; ucs-normalize-NFC-region で濁点分離を直す
-;;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
-;;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
+;;; 全角英数字を半角英数字に、半角カナを全角に、UTF-8の濁点分離を直す
+;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
+;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
 
 (require 'ucs-normalize)
 (prefer-coding-system 'utf-8)
@@ -1278,7 +1283,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; rainbow-mode
-;;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
+;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
 
 (require 'rainbow-mode)
 (add-hook 'fundamental-mode-hook 'rainbow-mode)
@@ -1440,23 +1445,23 @@
 ;; eww で色を反映しない
 (defvar eww-disable-colorize t)
 (defun shr-colorize-region--disable (orig start end fg &optional bg &rest _)
-  (unless eww-disable-colorize
-    (funcall orig start end fg)))
+	(unless eww-disable-colorize
+		(funcall orig start end fg)))
 (advice-add 'shr-colorize-region :around 'shr-colorize-region--disable)
 (advice-add 'eww-colorize-region :around 'shr-colorize-region--disable)
 (defun eww-disable-color ()
-  "eww で文字色を反映させない"
-  (interactive)
-  (setq-local eww-disable-colorize t)
-  (eww-reload))
+	"eww で文字色を反映させない"
+	(interactive)
+	(setq-local eww-disable-colorize t)
+	(eww-reload))
 
 ;; ewwを複数開く
 (when (fboundp 'eww)
-  (progn
-    (defun xah-rename-eww-hook ()
-      "Rename eww browser's buffer so sites open in new page."
-      (rename-buffer "eww" t))
-    (add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
+	(progn
+		(defun xah-rename-eww-hook ()
+			"Rename eww browser's buffer so sites open in new page."
+			(rename-buffer "eww" t))
+		(add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
 
 ;;; ------------------------------------------------------------
 ;;; Todo:
@@ -1471,7 +1476,8 @@
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
-;; (message "%s" (concat (format "%s" last-input-event) " - " (format "%s" last-command)))
-;; (message "%s" (concat (format "%s" initial-point) "-" (format "%s" (point))))
+;; (global-set-key (kbd "C--") 'func)
+;; (message "this-event: %s this-command: %s" last-input-event this-command)
+;; (message "initial: %s point: %s" initial-point (point))
 
 ;;; jidaikobo.init.el ends here
