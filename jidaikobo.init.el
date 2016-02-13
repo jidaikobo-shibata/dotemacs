@@ -1082,26 +1082,7 @@
 (global-set-key (kbd "s-C") 'capitalize-region)
 
 ;;; ------------------------------------------------------------
-;;; 全角英数字を半角英数字に
-
-(global-set-key (kbd "s-u") (lambda () (interactive)
-									 (japanese-hankaku-region
-										(region-beginning)
-										(region-end)
-										t)))
-
-;; 音引、句読点等を除外
-;; thx http://d.hatena.ne.jp/khiker/20061014/1160861915
-(put-char-code-property ?ー 'ascii nil)
-(put-char-code-property ?～ 'ascii nil)
-(put-char-code-property ?、 'ascii nil)
-(put-char-code-property ?。 'ascii nil)
-
-;; 確実に変換
-(put-char-code-property ?， 'jisx0208 ?,)
-(put-char-code-property ?． 'jisx0208 ?.)
-
-;;; ------------------------------------------------------------
+;;; 全角英数字を半角英数字に、半角カナを全角に、
 ;;; ucs-normalize-NFC-region で濁点分離を直す
 ;;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
 ;;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
@@ -1110,8 +1091,8 @@
 (prefer-coding-system 'utf-8)
 (setq file-name-coding-system 'utf-8-hfs)
 (setq locale-coding-system 'utf-8-hfs)
-(defun ucs-normalize-NFC-buffer ()
-	"Normarize UTF-8."
+(defun normalize-chars ()
+	"Normarize chars."
 	(interactive)
 	;; 選択範囲があればそこを対象にする
 	(let (type
@@ -1128,8 +1109,21 @@
 							(setq beg (point-min))
 							(setq end (point-max)))
 					(error "Error: no target region"))))
+		(japanese-zenkaku-region beg end t)
+		(japanese-hankaku-region beg end t)
 		(ucs-normalize-NFC-region beg end)))
-(global-set-key (kbd "C-s-u") 'ucs-normalize-NFC-buffer)
+(global-set-key (kbd "s-u") 'normalize-chars)
+
+;; 音引、句読点等を除外
+;; thx http://d.hatena.ne.jp/khiker/20061014/1160861915
+(put-char-code-property ?ー 'ascii nil)
+(put-char-code-property ?～ 'ascii nil)
+(put-char-code-property ?、 'ascii nil)
+(put-char-code-property ?。 'ascii nil)
+
+;; 確実に変換
+(put-char-code-property ?， 'jisx0208 ?,)
+(put-char-code-property ?． 'jisx0208 ?.)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を1行にする
