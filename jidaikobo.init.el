@@ -1337,7 +1337,8 @@
 						 (define-key php-mode-map "(" 'self-insert-command)
 						 (define-key php-mode-map "{" 'self-insert-command)
 						 (define-key php-mode-map "}" 'self-insert-command)
-						 (define-key php-mode-map "/" 'self-insert-command)))
+						 (define-key php-mode-map "/" 'self-insert-command)
+						 (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
 
 ;;; ------------------------------------------------------------
 ;;; text-mode
