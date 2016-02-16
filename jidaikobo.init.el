@@ -1074,25 +1074,24 @@
 (global-set-key (kbd "s-d") 'duplicate-region-or-line)
 
 ;;; ------------------------------------------------------------
-;;; 選択範囲を計算
-;; gist-description: calculate region
+;;; 選択範囲を計算してバッファに出力
+;; gist-description: calculate region and insert.
 ;; gist-id: b967d6a7441f85aa541d
-;; gist-name: my-calc.el
+;; gist-name: calculate-region-and-insert.el
 ;; gist-private: nil
 
-(defun my-calc ()
-	"My-Calc."
-	(interactive)
-	(let* ((beg (if mark-active (region-beginning)))
-				 (end (if mark-active (region-end)))
-				 (strings (if mark-active
+(defun calculate-region-and-insert (beg end)
+	"Calculate region and insert to current buffer."
+	(interactive "r")
+	(let* ((strings (if mark-active
 											(buffer-substring-no-properties beg end)
 										(read-string " Expression: " ""))))
 		(when mark-active
 			(end-of-line)
 			(newline))
 		(insert (calc-eval strings))))
-(global-set-key (kbd "M-c") 'my-calc)
+
+(global-set-key (kbd "M-c") 'calculate-region-and-insert)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を[大文字|小文字|キャピタライズ]に
