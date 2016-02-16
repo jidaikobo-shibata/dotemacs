@@ -133,8 +133,11 @@
 
 ;;; ------------------------------------------------------------
 ;;; 1日1回のチェック
+;; gist-description: Check is once in a day.
+;; gist-id: 33e072cea6aa96a19f58
+;; gist-name: is-once-in-a-day.el
+;; gist-private: nil
 
-;; is-once-in-a-day
 (defun is-once-in-a-day ()
 	"Is once in a day."
 	(interactive)
@@ -198,11 +201,11 @@
 			js2-mode
 			mic-paren
 			gtags
-			gist
 			tabbar
 			foreign-regexp
 			rainbow-mode
 			popwin
+			yagist
 			elscreen))
 
 	;; my-packagesからインストールしていないパッケージをインストール
@@ -789,6 +792,10 @@
 			(text-mode)))
 
 	;; move-current-tab-to-top
+	;; gist-description: move current tab to top at tabbar-mode
+	;; gist-id: 54dab2fc5f2e278833f5
+	;; gist-name: move-current-tab-to-top.el
+	;; gist-private: nil
 	(defun move-current-tab-to-top ()
 		"Move current tab to top."
 		(interactive)
@@ -803,7 +810,6 @@
 					(add-to-list 'cdr-bufs buf)))
 			(setq cdr-bufs (reverse cdr-bufs))
 			(set bufset (append car-bufs cdr-bufs))
-
 			;; タブバー書き換え
 			(tabbar-set-template bufset nil)
 			(tabbar-display-update)))
@@ -1042,8 +1048,11 @@
 
 ;;; ------------------------------------------------------------
 ;;; 行／選択範囲の複製 (cmd+d)
+;; gist-description: duplicate region or line
+;; gist-id: 297fe973cde66b384fa1
+;; gist-name: duplicate-region-or-line.el
+;; gist-private: nil
 
-;; duplicate-region-or-line
 (defun duplicate-region-or-line ()
 	"Duplicate region or line."
 	(interactive)
@@ -1061,10 +1070,15 @@
 									(insert "\n" selected)
 									(beginning-of-line))
 			(insert selected))))
+
 (global-set-key (kbd "s-d") 'duplicate-region-or-line)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を計算
+;; gist-description: calculate region
+;; gist-id: b967d6a7441f85aa541d
+;; gist-name: my-calc.el
+;; gist-private: nil
 
 (defun my-calc ()
 	"My-Calc."
@@ -1093,6 +1107,10 @@
 ;;; 全角英数字を半角英数字に、半角カナを全角に、UTF-8の濁点分離を直す
 ;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
 ;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
+;; gist-description: 全角英数字を半角英数字に、半角カナを全角に、UTF-8の濁点分離を直す
+;; gist-id: 08a752b04107dbc50ef5
+;; gist-name: normalize-chars.el
+;; gist-private: nil
 
 (require 'ucs-normalize)
 (prefer-coding-system 'utf-8)
@@ -1119,7 +1137,6 @@
 		(japanese-zenkaku-region beg end t)
 		(japanese-hankaku-region beg end t)
 		(ucs-normalize-NFC-region beg end)))
-(global-set-key (kbd "s-u") 'normalize-chars)
 
 ;; 音引、句読点等を除外
 ;; thx http://d.hatena.ne.jp/khiker/20061014/1160861915
@@ -1132,8 +1149,14 @@
 (put-char-code-property ?， 'jisx0208 ?,)
 (put-char-code-property ?． 'jisx0208 ?.)
 
+(global-set-key (kbd "s-u") 'normalize-chars)
+
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を1行にする
+;; gist-description: Join multi lines to one.
+;; gist-id: ee6b2f8ef659ed58605d
+;; gist-name: join-multi-lines-to-one.el
+;; gist-private: nil
 
 (defun join-multi-lines-to-one ()
 	"Join multi lines."
@@ -1154,6 +1177,10 @@
 
 ;;; ------------------------------------------------------------
 ;;; インデント整形
+;; gist-description: sequencial indent region
+;; gist-id: f941e7f365872920c7f8
+;; gist-name: my-indext-region.el
+;; gist-private: nil
 
 (defvar my-indent-region-beg 0)
 (defvar my-indent-region-end 0)
@@ -1165,13 +1192,11 @@
 				 (beg (if (use-region-p) (region-beginning) (point)))
 				 (end (if (use-region-p) (region-end) (point)))
 				 lines)
-
 		;; dwim
 		(goto-char end)
 		(goto-char (- (point) 1))
 		(end-of-line)
 		(setq end (point))
-
 		;; single line
 		(when (and (not (use-region-p))
 							 (not (memq last-command '(my-inc-region my-dec-region))))
@@ -1179,16 +1204,13 @@
 			(setq beg (point))
 			(end-of-line)
 			(setq end (point)))
-
 		;; regenerate region
 		(when (and
 					 (memq last-command '(my-inc-region my-dec-region)))
 			(setq beg my-indent-region-beg
 						end my-indent-region-end))
-
 		;; lines
 		(setq lines (count-lines beg end))
-
 		;; set search and replace words
 		(if is-inc
 				;; increase
@@ -1202,12 +1224,9 @@
 			(if (eq major-mode 'mail-mode)
 					(setq search-str "^>" replace-str "")
 				(setq search-str "^\t" replace-str "")))
-
 		;; perform-replace
 		(perform-replace search-str replace-str nil t nil nil nil beg end)
-
 		(setq end (if is-inc (+ end lines) (- end lines)))
-
 		;; redefine region
 		(setq my-indent-region-beg beg
 					my-indent-region-end end)))
@@ -1427,8 +1446,65 @@
 
 ;;; ------------------------------------------------------------
 ;;; gist
+;; thx http://d.hatena.ne.jp/mhayashi1120/20120920/1348144820
 
-(require 'gist)
+(require 'yagist)
+
+;;; ------------------------------------------------------------
+;; gist-description: yagistでregionのgistをupdateする
+;; gist-id: a20cd2d106edba225115
+;; gist-name: yagist-region-create-or-update.el
+;; gist-private: nil
+
+(defun yagist-region-create-or-update (beg end)
+  "Post the current region as a create or update at gist.github.com
+After create copies the URL into the kill ring.
+If gist-id exists update gist."
+  (interactive "r")
+  (let* ((raw (buffer-substring-no-properties beg end))
+				 (lines (split-string raw "\n"))
+				 (description nil)
+				 (id nil)
+				 (name nil)
+				 (private nil))
+		;; attributes
+		;; use concat to avoide synonym :-(
+		(while lines
+			(cond ((and (string-match (concat "gist" "-description: ") (car lines))
+									(not description))
+						 (setq description (substring (car lines) (match-end 0))))
+						((and (string-match (concat "gist" "-id: ") (car lines))
+									(not id))
+						 (setq id (substring (car lines) (match-end 0))))
+						((and (string-match (concat "gist" "-name: ") (car lines))
+									(not name))
+						 (setq name (substring (car lines) (match-end 0))))
+						((and (string-match (concat "gist" "-private: ") (car lines))
+									(not private))
+						 (setq private (substring (car lines) (match-end 0)))))
+			(setq lines (cdr lines)))
+		;; tab to space
+		(when raw
+			(setq raw (replace-regexp-in-string "\t" "  " raw)))
+		;; update
+		(when (and id name raw description)
+			(yagist-request
+			 "PATCH"
+			 (format "https://api.github.com/gists/%s" id)
+			 (yagist-simple-receiver "Update")
+			 `(("description" . ,description)
+				 ("files" . ((,name . (("content" . ,raw))))))))
+		;; create
+		(when (and name raw description (not id))
+			(yagist-request
+			 "POST"
+			 "https://api.github.com/gists"
+			 'yagist-created-callback
+			 `(("description" . ,description)
+				 ("public" . ,(if private :json-false 't))
+				 ("files" . ((,name . (("content" . ,raw))))))))))
+
+(global-set-key (kbd "C-M-g") 'yagist-region-create-or-update)
 
 ;;; ------------------------------------------------------------
 ;;; eww
