@@ -852,7 +852,6 @@
 	(cond
 	 ;; ウィンドウ構成が多ければまず他のウィンドウを消してから、ウィンドウを消す
 	 ((not (one-window-p)) (delete-other-windows) (my-delete-windows))
-
 	 ;; ウィンドウ構成がひとつでバッファに変更があれば破棄を確認する
 	 ((or (and (buffer-modified-p)
 						 ;; read-onlyなら無視
@@ -865,15 +864,14 @@
 				(and (buffer-modified-p) (string= (buffer-name) "*scratch*")))
 		(unless (yes-or-no-p "Buffer is modified. Close anyway?")
 			(call-interactively (save-buffer)))
-		(kill-buffer)
-		;; screenが複数だったらelscreen-kill
-		(unless (and is-use-elscreen (elscreen-one-screen-p)) (elscreen-kill)))
+		(kill-buffer))
+	 ;; screenが複数だったらelscreen-kill
+	 ((and is-use-elscreen (not (elscreen-one-screen-p))) (elscreen-kill))
 	 ;; screenがひとつだったらkill-buffer
 	 ((and is-use-elscreen (elscreen-one-screen-p)) (kill-buffer))
-	 ;; とりあえずkill
-	 (is-use-elscreen (elscreen-kill-screen-and-buffers))
 	 ;; kill-buffer for is-use-tabbar and other situation
 	 (t (kill-buffer))))
+
 (global-set-key (kbd "s-w") 'my-delete-windows)
 
 ;;; ------------------------------------------------------------
@@ -1151,7 +1149,7 @@
 (global-set-key (kbd "s-u") 'normalize-chars)
 
 ;;; ------------------------------------------------------------
-;;; 選択範囲を1行にする
+;;; 選択範囲を1行にする。最初のインデントは残す。
 ;; gist-description: Join multi lines to one.
 ;; gist-id: ee6b2f8ef659ed58605d
 ;; gist-name: join-multi-lines-to-one.el
@@ -1171,6 +1169,7 @@
 		(setq end (point))
 		(perform-replace "\n\\|^>+ *\\|^[\t　 ]+" "" nil t nil nil nil beg end)
 		(goto-char beg)))
+
 (global-set-key (kbd "<s-kp-divide>") 'join-multi-lines-to-one) ; cmd+/
 (global-set-key (kbd "s-/") 'join-multi-lines-to-one) ; cmd+/
 
