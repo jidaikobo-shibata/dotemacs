@@ -133,7 +133,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 1日1回のチェック
-;; gist-description: Check is once in a day.
+;; gist-description: Emacs(Elisp): return t once in a day. 1日一回tを返すelispです。
 ;; gist-id: 33e072cea6aa96a19f58
 ;; gist-name: is-once-in-a-day.el
 ;; gist-private: nil
@@ -792,10 +792,11 @@
 			(text-mode)))
 
 	;; move-current-tab-to-top
-	;; gist-description: move current tab to top at tabbar-mode
+	;; gist-description: Emacs(Elisp): move current tab (buffer) to top at tabbar-mode. tabbarで選択中のタブ（バッファ）を左端に移動します。
 	;; gist-id: 54dab2fc5f2e278833f5
 	;; gist-name: move-current-tab-to-top.el
 	;; gist-private: nil
+
 	(defun move-current-tab-to-top ()
 		"Move current tab to top."
 		(interactive)
@@ -1046,7 +1047,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 行／選択範囲の複製 (cmd+d)
-;; gist-description: duplicate region or line
+;; gist-description: Emacs(Elisp): duplicate region or line. 選択範囲がある場合は選択範囲を、選択範囲がない場合は、行を複製します。
 ;; gist-id: 297fe973cde66b384fa1
 ;; gist-name: duplicate-region-or-line.el
 ;; gist-private: nil
@@ -1073,7 +1074,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を計算してバッファに出力
-;; gist-description: calculate region and insert.
+;; gist-description: Emacs(Elisp): calculate region and insert. 選択範囲の数式を計算して、次の行にinsertします。
 ;; gist-id: b967d6a7441f85aa541d
 ;; gist-name: calculate-region-and-insert.el
 ;; gist-private: nil
@@ -1104,7 +1105,7 @@
 ;;; 全角英数字を半角英数字に、半角カナを全角に、UTF-8の濁点分離を直す
 ;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
 ;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
-;; gist-description: 全角英数字を半角英数字に、半角カナを全角に、UTF-8の濁点分離を直す
+;; gist-description: Emacs(Elisp): 全角英数字を半角英数字に、半角カナを全角に、UTF-8の濁点分離を直す。
 ;; gist-id: 08a752b04107dbc50ef5
 ;; gist-name: normalize-chars.el
 ;; gist-private: nil
@@ -1150,7 +1151,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を1行にする。最初のインデントは残す。
-;; gist-description: Join multi lines to one.
+;; gist-description: Emacs(Elisp): Join multi lines to one. 選択範囲を1行にまとめます。
 ;; gist-id: ee6b2f8ef659ed58605d
 ;; gist-name: join-multi-lines-to-one.el
 ;; gist-private: nil
@@ -1175,7 +1176,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; インデント整形
-;; gist-description: sequencial indent region
+;; gist-description: Emacs(Elisp): sequencial indent region. 選択範囲のインデントを連続的に増減します。
 ;; gist-id: f941e7f365872920c7f8
 ;; gist-name: my-indext-region.el
 ;; gist-private: nil
@@ -1449,7 +1450,7 @@
 (require 'yagist)
 
 ;;; ------------------------------------------------------------
-;; gist-description: yagistでregionのgistをupdateする
+;; gist-description: Emacs(Elisp): create or update gist by using yagist. yagistでregionのgistをupdateする。
 ;; gist-id: a20cd2d106edba225115
 ;; gist-name: yagist-region-create-or-update.el
 ;; gist-private: nil
@@ -1503,6 +1504,19 @@ If gist-id exists update gist."
 				 ("files" . ((,name . (("content" . ,raw))))))))))
 
 (global-set-key (kbd "C-M-g") 'yagist-region-create-or-update)
+
+;;; ------------------------------------------------------------
+;;; jump-match-paren
+;; thx https://gist.github.com/donghee/3937661
+
+(defun jump-match-paren (arg)
+	"Go to the matching parenthesis."
+	(interactive "p")
+	(cond ((looking-at "\\s\(\\|\\s\[") (forward-list 1) (backward-char 1))
+				((looking-at "\\s\)\\|\\s\]") (forward-char 1) (backward-list 1))
+				(t (back-to-indentation))
+				))
+(global-set-key (kbd "C-b") 'jump-match-paren)
 
 ;;; ------------------------------------------------------------
 ;;; eww
