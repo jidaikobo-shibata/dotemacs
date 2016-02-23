@@ -1,4 +1,4 @@
-;;; jidaikobo.init.el --- jidaikobo.init.el for jidaikobo
+;;; jidaikobo.init.el --- jidaikobo.init.el for jidaikobo.  Provides Mac OS like interface.
 ;; Copyright (C) 2015 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
@@ -216,20 +216,20 @@
 ;;; ------------------------------------------------------------
 ;;; jidaikobo's elisp.
 
-;;; 検索センター
-;;; search-center
+;; 検索センター
+;; search-center
 (custom-set-variables
  '(sc/is-use-super t)
  '(sc/split-direction "vertical"))
 (require 'search-center)
 (search-center-mode t)
 
-;;; HTMLのマークアップのキーバインド集
-;;; web-authoring-set
+;; HTMLのマークアップのキーバインド集
+;; web-authoring-set
 (require 'web-authoring-set)
 
 ;;; ------------------------------------------------------------
-;;; theme
+;;; jidaikobo's theme
 
 (add-to-list 'custom-theme-load-path
 						 (file-name-as-directory (concat jidaikobo-dir "themes/")))
@@ -328,6 +328,7 @@
 	 ;; タブを挿入
 	 (t
 		(insert "\t"))))
+
 (global-set-key (kbd "<tab>") 'my-tab-dwim)
 
 ;;; ------------------------------------------------------------
@@ -354,6 +355,7 @@
 		(if (string= direction "prev")
 				(re-search-backward target)
 			(re-search-forward target))))
+
 (global-set-key (kbd "<M-s-down>") (lambda () (interactive) (next-block "next")))
 (global-set-key (kbd "<M-s-up>") (lambda () (interactive) (next-block "prev")))
 
@@ -484,7 +486,7 @@
 												".recentf"
 												"^/[^/:]+:" ; TRAMP
 												".+Fetch Temporary Folder.+"))
-(setq recentf-max-saved-items 100)
+(setq recentf-max-saved-items 1000)
 
 ;;; ------------------------------------------------------------
 ;;; Anything関連
@@ -606,6 +608,7 @@
 	(anything-other-buffer
 	 alist-anything-for-files
 	 "*my-anything-for-files*"))
+
 (global-set-key (kbd "C-;") 'my-anything-for-files)
 
 ;;; ------------------------------------------------------------
@@ -648,6 +651,7 @@
 	(anything-other-buffer
 	 '(anything-c-source-coding-system)
 	 "*my-anything-c-source-coding-system*"))
+
 (global-set-key (kbd "C-^") 'my-anything-for-coding-system)
 
 ;;; ------------------------------------------------------------
@@ -661,6 +665,7 @@
 		 anything-c-source-emacs-commands
 		 anything-c-source-emacs-functions)
 	 "*my-anything-for-functions*"))
+
 (global-set-key (kbd "C-,") 'my-anything-for-functions)
 
 ;;; ------------------------------------------------------------
@@ -712,6 +717,7 @@
 						(if (= 0 result)
 								(message "GTAGS successfully updated.")
 							(message "update GTAGS error with exit status %d" result))))))))
+
 (add-hook 'after-save-hook 'update-gtags)
 
 ;;; ------------------------------------------------------------
@@ -896,6 +902,7 @@
 	(let (($starting-position (progn (back-to-indentation) (point))))
 		(if (eq $starting-position position)
 				(move-beginning-of-line 1))))
+
 (global-set-key (kbd "C-a") 'my-goto-line-beginning-or-indent)
 
 ;;; ------------------------------------------------------------
@@ -988,7 +995,6 @@
 			 (let* ((fn-list (dired-get-marked-files nil arg)))
 				 (mapc 'find-file fn-list)))))
 
-
 ;; ディレクトリを再帰的にコピーする
 (setq dired-recursive-copies 'always)
 
@@ -1015,6 +1021,7 @@
 				 '(anything-c-source-files-in-current-dir+)
 				 "*anything-dired*")
 				(kill-buffer curbuf))))
+
 (define-key dired-mode-map (kbd "p") 'my/anything-dired)
 
 ;;; ------------------------------------------------------------
@@ -1074,7 +1081,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を計算してバッファに出力
-;; gist-description: Emacs(Elisp): calculate region and insert. 選択範囲の数式を計算して、次の行にinsertします。
+;; gist-description: Emacs(Elisp): calculate region and insert. 選択範囲の数式を計算して、次の行にinsertします。地味に便利。
 ;; gist-id: b967d6a7441f85aa541d
 ;; gist-name: calculate-region-and-insert.el
 ;; gist-private: nil
@@ -1222,7 +1229,7 @@
 			;; decrease
 			(if (eq major-mode 'mail-mode)
 					(setq search-str "^>" replace-str "")
-				(setq search-str "^\t" replace-str "")))
+				(setq search-str "^\t\\|^ \\|^　" replace-str "")))
 		;; perform-replace
 		(perform-replace search-str replace-str nil t nil nil nil beg end)
 		(setq end (if is-inc (+ end lines) (- end lines)))
@@ -1252,6 +1259,7 @@
 	"Get current file path."
 	(interactive)
 	(insert (or (buffer-file-name) (expand-file-name default-directory))))
+
 (global-set-key (kbd "M-s-k") 'get-current-path)
 
 ;;; ------------------------------------------------------------
@@ -1287,6 +1295,7 @@
 		 (if asciip "en" "ja")
 		 (if asciip "ja" "en")
 		 string)))
+
 (global-set-key (kbd "C-c t") 'google-translate-enja-or-jaen)
 
 ;;; ------------------------------------------------------------
@@ -1366,7 +1375,11 @@
 ;; M-x list-faces-display
 (add-hook 'text-mode-hook
 					'(lambda()
-						 (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))))
+						 (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))
+						 (font-lock-add-keywords nil '(("^●.+" . font-lock-keyword-face)))
+						 (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
+						 (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
+						 (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; kontiki-mode
@@ -1406,6 +1419,7 @@
 ;; (if (= (frame-width) 200)
 ;; 		(set-frame-size (selected-frame) 100 55)
 ;; 	(set-frame-size (selected-frame) 200 55)))
+
 (global-set-key (kbd "s-W") 'resize-selected-frame)
 
 ;;; ------------------------------------------------------------
@@ -1442,6 +1456,13 @@
 													 ac-technical-term-dict
 													 ;; ac-source-symbols
 													 ac-english-dict))
+
+;; auto-complete の候補に日本語を含む単語が含まれないようにする
+;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
+(defadvice ac-word-candidates (after remove-word-contain-japanese activate)
+	(let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
+		(setq ad-return-value
+					(remove-if contain-japanese ad-return-value))))
 
 ;;; ------------------------------------------------------------
 ;;; gist
@@ -1514,8 +1535,8 @@ If gist-id exists update gist."
 	(interactive "p")
 	(cond ((looking-at "\\s\(\\|\\s\[") (forward-list 1) (backward-char 1))
 				((looking-at "\\s\)\\|\\s\]") (forward-char 1) (backward-list 1))
-				(t (back-to-indentation))
-				))
+				(t (back-to-indentation))))
+
 (global-set-key (kbd "C-b") 'jump-match-paren)
 
 ;;; ------------------------------------------------------------
