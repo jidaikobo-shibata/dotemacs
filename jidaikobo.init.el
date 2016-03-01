@@ -1263,6 +1263,16 @@
 (global-set-key (kbd "M-s-k") 'get-current-path)
 
 ;;; ------------------------------------------------------------
+;;; Finderで現在バッファのファイルを表示
+
+(defun point-current-buffer-by-finder ()
+	"Point current buffer by Mac Finder."
+	(interactive)
+	(shell-command (concat "open " (expand-file-name default-directory))))
+
+(global-set-key (kbd "M-s-K") 'point-current-buffer-by-finder)
+
+;;; ------------------------------------------------------------
 ;;; 選択範囲の言語を確認して翻訳 (C-c t)
 
 ;; google-translate
