@@ -121,6 +121,15 @@
 ;; emacsclient（使いたいのだけど、今のところうまくいかない）
 (if (eq window-system 'ns) (server-start))
 
+;; 機能の有効化
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+(put 'scroll-left 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'narrow-to-page 'disabled nil)
+(put 'delete-region 'disabled nil)
+
 ;;; ------------------------------------------------------------
 ;;; フレーム初期値
 
@@ -949,6 +958,12 @@
 ;; 何文字目にいるか表示
 (column-number-mode 1)
 
+;; 改行の種類表示の変更
+;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
+(setq-default eol-mnemonic-unix "(LF)")
+(setq-default eol-mnemonic-dos "(CRLF)")
+(setq-default eol-mnemonic-mac "(CR)")
+
 ;;; ------------------------------------------------------------
 ;;; マウス設定
 
@@ -1336,6 +1351,7 @@
 ;; html-mode-hook
 (add-hook 'html-mode-hook
 					'(lambda()
+						 ;; (font-lock-add-keywords nil '(("<{\\*\\([^^J]\\|^J\\)+?\\*}>" . font-lock-comment-face)))
 						 (define-key html-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
@@ -1375,6 +1391,7 @@
 						 (define-key php-mode-map "{" 'self-insert-command)
 						 (define-key php-mode-map "}" 'self-insert-command)
 						 (define-key php-mode-map "/" 'self-insert-command)
+						 (define-key php-mode-map "#" 'self-insert-command)
 						 (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
 
 ;;; ------------------------------------------------------------
