@@ -121,6 +121,9 @@
 ;; emacsclient（使いたいのだけど、今のところうまくいかない）
 (if (eq window-system 'ns) (server-start))
 
+;; キーストロークのミニバッファへの表示を早く
+(setq echo-keystrokes 0.1)
+
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
@@ -949,6 +952,7 @@
 (add-hook 'text-mode-hook 'show-line-number)
 (add-hook 'fundamental-mode-hook 'show-line-number)
 (add-hook 'php-mode-hook 'show-line-number)
+(add-hook 'css-mode-hook 'show-line-number)
 (add-hook 'web-mode-hook 'show-line-number)
 (add-hook 'html-mode-hook 'show-line-number)
 
@@ -1432,6 +1436,17 @@ It defaults to a comma."
 					'(lambda()
 						 (setq web-mode-markup-indent-offset 2)
 						 (define-key web-mode-map "/" 'self-insert-command)))
+
+;;; ------------------------------------------------------------
+;;; css-mode
+
+(autoload 'css-mode "css-mode")
+(setq auto-mode-alist
+      (cons '("\\.css$" . css-mode) auto-mode-alist))
+(add-hook 'css-mode-hook
+					(lambda ()
+						(setq css-indent-offset 2)
+						(setq cssm-indent-function #'cssm-c-style-indenter)))
 
 ;;; ------------------------------------------------------------
 ;;; js2-mode
