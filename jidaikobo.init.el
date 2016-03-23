@@ -1068,9 +1068,11 @@
 (global-whitespace-mode 1)
 
 ;;; ------------------------------------------------------------
-;;; 次の空行
-;; forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。
-;; thx https://gist.github.com/jewel12/2873112
+;;; 次/前の空行
+;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。選択範囲をものぐさして作りたいので、ちょっとfork。thx https://gist.github.com/jewel12/2873112
+;; gist-id: ad27b19dd3779ccc1ff2
+;; gist-name: move(region)-to-next(previous)-blank-line.el
+;; gist-private: nil
 
 (defun blank-line? ()
 	(string-match "^\n$" (substring-no-properties (thing-at-point 'line))))
@@ -1078,15 +1080,31 @@
 (defun move-to-next-blank-line ()
 	(interactive)
 	(progn (forward-line 1)
-				 (if (blank-line?) () (move-to-next-blank-line))))
+				 (unless (blank-line?) (move-to-next-blank-line))))
+
+(defun region-to-next-blank-line ()
+	(interactive)
+	(when (and (not (memq last-command '(region-to-next-blank-line)))
+						 (not mark-active))
+		(set-mark-command nil))
+	(move-to-next-blank-line))
 
 (defun move-to-previous-blank-line ()
 	(interactive)
 	(progn (forward-line -1)
-				 (if (blank-line?) () (move-to-previous-blank-line))))
+				 (unless (blank-line?) (move-to-previous-blank-line))))
 
-(global-set-key (kbd "<C-up>") 'move-to-previous-blank-line) ; Control-down
-(global-set-key (kbd "<C-down>") 'move-to-next-blank-line) ; Control-down
+(defun region-to-previous-blank-line ()
+	(interactive)
+	(when (and (not (memq last-command '(region-to-previous-blank-line)))
+						 (not mark-active))
+		(set-mark-command nil))
+	(move-to-previous-blank-line))
+
+(global-set-key (kbd "<C-up>") 'move-to-previous-blank-line)
+(global-set-key (kbd "<C-down>") 'move-to-next-blank-line)
+(global-set-key (kbd "<C-S-up>") 'region-to-previous-blank-line)
+(global-set-key (kbd "<C-S-down>") 'region-to-next-blank-line)
 
 ;;; ------------------------------------------------------------
 ;;; 行／選択範囲の複製 (cmd+d)
@@ -1117,22 +1135,47 @@
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を計算してバッファに出力
-;; gist-description: Emacs(Elisp): calculate region and insert. 選択範囲の数式を計算して、次の行にinsertします。地味に便利。
+;; gist-description: Emacs(Elisp): calculate region and insert. 選択範囲の数式を計算して、次の行にinsertします。数字が羅列されている場合は、加算します。数字や式と自然な文章が混在している場合は、数式のみを計算します。
 ;; gist-id: b967d6a7441f85aa541d
 ;; gist-name: calculate-region-and-insert.el
 ;; gist-private: nil
 
+(defun add-number-grouping (number &optional separator)
+	"Add commas to NUMBER and return it as a string.
+Optional SEPARATOR is the string to use to separate groups.
+It defaults to a comma."
+	(let ((num (number-to-string number))
+				(op (or separator ",")))
+		(while (string-match "\\(.*[0-9]\\)\\([0-9][0-9][0-9].*\\)" num)
+			(setq num (concat
+								 (match-string 1 num) op
+								 (match-string 2 num))))
+		num))
+
 (defun calculate-region-and-insert (beg end)
-	"Calculate region and insert to current buffer."
+	"Calculate natural text of region and insert to current buffer."
 	(interactive "r")
 	(let* ((strings (if mark-active
 											(buffer-substring-no-properties beg end)
-										(read-string " Expression: " ""))))
+										(read-string " Expression: " "")))
+				 (is_num_format (string-match "," (buffer-substring-no-properties beg end)))
+				 result)
 		(when mark-active
+			(with-temp-buffer
+				(insert strings)
+				(perform-replace "[\t,　 ]+" "" nil t nil nil nil (point-min) (point-max))
+				(perform-replace "\n" "+" nil t nil nil nil (point-min) (point-max))
+				(perform-replace "[^0-9\\+\\*/\\(\\)^-]" "+" nil t nil nil nil (point-min) (point-max))
+				(perform-replace "\\++" "+" nil t nil nil nil (point-min) (point-max))
+				(perform-replace "\\+$" "" nil t nil nil nil (point-min) (point-max))
+				(perform-replace "^\\++" "" nil t nil nil nil (point-min) (point-max))
+				(setq strings (buffer-substring-no-properties (point-min) (point-max))))
+			(goto-char end)
 			(end-of-line)
 			(newline))
-		(insert (calc-eval strings))))
-
+		(setq result (calc-eval strings))
+		(if is_num_format (setq result (add-number-grouping (string-to-number result) ",")))
+		(insert result)))
 (global-set-key (kbd "M-c") 'calculate-region-and-insert)
 
 ;;; ------------------------------------------------------------
@@ -1567,14 +1610,15 @@ If gist-id exists update gist."
 			 `(("description" . ,description)
 				 ("files" . ((,name . (("content" . ,raw))))))))
 		;; create
-		(when (and name raw description (not id))
-			(yagist-request
-			 "POST"
-			 "https://api.github.com/gists"
-			 'yagist-created-callback
-			 `(("description" . ,description)
-				 ("public" . ,(if private :json-false 't))
-				 ("files" . ((,name . (("content" . ,raw))))))))))
+		(if (and name raw description (not id))
+				(progn (yagist-request
+								"POST"
+								"https://api.github.com/gists"
+								'yagist-created-callback
+								`(("description" . ,description)
+									("public" . ,(if private :json-false 't))
+									("files" . ((,name . (("content" . ,raw))))))))
+			(error "lack of parameters"))))
 
 (global-set-key (kbd "C-M-g") 'yagist-region-create-or-update)
 
