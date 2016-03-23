@@ -272,11 +272,11 @@
 (global-set-key (kbd "<s-down>") 'end-of-buffer) ; cmd+down
 (global-set-key (kbd "<s-left>") 'beginning-of-line) ; cmd+left
 (global-set-key (kbd "<s-right>") 'end-of-line) ; cmd+right
-(global-set-key (kbd "<C-up>") 'backward-paragraph) ; Control-down
-(global-set-key (kbd "<C-down>") 'forward-paragraph) ; Control-down
 (global-set-key (kbd "<backspace>") 'delete-backward-char) ; delete
 (global-set-key (kbd "<backtab>") 'indent-for-tab-command)
 (global-set-key (kbd "<C-tab>") 'indent-for-tab-command)
+;; (global-set-key (kbd "<C-up>") 'backward-paragraph) ; Control-down
+;; (global-set-key (kbd "<C-down>") 'forward-paragraph) ; Control-down
 ;; (global-set-key (kbd "M-right") 'forward-symbol)
 ;; (global-set-key (kbd "M-left") (lambda () (interactive) (forward-symbol -1)))
 
@@ -1068,6 +1068,27 @@
 (global-whitespace-mode 1)
 
 ;;; ------------------------------------------------------------
+;;; 次の空行
+;; forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。
+;; thx https://gist.github.com/jewel12/2873112
+
+(defun blank-line? ()
+	(string-match "^\n$" (substring-no-properties (thing-at-point 'line))))
+
+(defun move-to-next-blank-line ()
+	(interactive)
+	(progn (forward-line 1)
+				 (if (blank-line?) () (move-to-next-blank-line))))
+
+(defun move-to-previous-blank-line ()
+	(interactive)
+	(progn (forward-line -1)
+				 (if (blank-line?) () (move-to-previous-blank-line))))
+
+(global-set-key (kbd "<C-up>") 'move-to-previous-blank-line) ; Control-down
+(global-set-key (kbd "<C-down>") 'move-to-next-blank-line) ; Control-down
+
+;;; ------------------------------------------------------------
 ;;; 行／選択範囲の複製 (cmd+d)
 ;; gist-description: Emacs(Elisp): duplicate region or line. 選択範囲がある場合は選択範囲を、選択範囲がない場合は、行を複製します。
 ;; gist-id: 297fe973cde66b384fa1
@@ -1213,6 +1234,10 @@
 				 (beg (if (use-region-p) (region-beginning) (point)))
 				 (end (if (use-region-p) (region-end) (point)))
 				 lines)
+		;; allow ambiguous beg
+		(goto-char beg)
+		(beginning-of-line)
+		(setq beg (point))
 		;; dwim
 		(goto-char end)
 		(goto-char (- (point) 1))
