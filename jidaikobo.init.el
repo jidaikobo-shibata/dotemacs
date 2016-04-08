@@ -837,7 +837,19 @@
 	(global-set-key (kbd "M-s-<right>") 'tabbar-forward-tab)
 	(global-set-key (kbd "M-s-<left>") 'tabbar-backward-tab)
 	(global-set-key (kbd "s-t") 'my-new-tab)
-	(global-set-key (kbd "M-s-t") 'move-current-tab-to-top))
+	(global-set-key (kbd "M-s-t") 'move-current-tab-to-top)
+
+	;; regexp-builderでは、タブ移動しない
+	(defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
+		"Do not forward at specified baffers."
+		(if (member (buffer-name) '("*RE-Builder*"))
+			nil
+			ad-do-it))
+	(defadvice tabbar-backward-tab (around advise-tabbar-backward-tab activate)
+		"Do not backward at specified baffers."
+		(if (member (buffer-name) '("*RE-Builder*"))
+			nil
+			ad-do-it)))
 
 ;;; ------------------------------------------------------------
 ;;; elscreen
@@ -1169,7 +1181,7 @@ It defaults to a comma."
 				(insert strings)
 				(perform-replace "[\t,　 ]+" "" nil t nil nil nil (point-min) (point-max))
 				(perform-replace "\n" "+" nil t nil nil nil (point-min) (point-max))
-				(perform-replace "[^0-9\\+\\*/\\(\\)^-]" "+" nil t nil nil nil (point-min) (point-max))
+				(perform-replace "[^0-9\\+\\*/\\(\\)^\\.-]" "+" nil t nil nil nil (point-min) (point-max))
 				(perform-replace "\\++" "+" nil t nil nil nil (point-min) (point-max))
 				(perform-replace "\\+$" "" nil t nil nil nil (point-min) (point-max))
 				(perform-replace "^\\++" "" nil t nil nil nil (point-min) (point-max))
@@ -1266,78 +1278,15 @@ It defaults to a comma."
 
 ;;; ------------------------------------------------------------
 ;;; インデント整形
-;; gist-description: Emacs(Elisp): sequencial indent region. 選択範囲のインデントを連続的に増減します。
+;; gist-description: Emacs(Elisp): indent.elにそのままの機能があったので、そちらに置き換え。
 ;; gist-id: f941e7f365872920c7f8
 ;; gist-name: my-indext-region.el
 ;; gist-private: nil
 
-(defvar my-indent-region-beg 0)
-(defvar my-indent-region-end 0)
-(defun my-indext-region (is-inc)
-	"Increase/decrease (mail) indentation.  IS-INC is direction."
-	(interactive)
-	(let* (search-str
-				 replace-str
-				 (beg (if (use-region-p) (region-beginning) (point)))
-				 (end (if (use-region-p) (region-end) (point)))
-				 lines)
-		;; allow ambiguous beg
-		(goto-char beg)
-		(beginning-of-line)
-		(setq beg (point))
-		;; dwim
-		(goto-char end)
-		(goto-char (- (point) 1))
-		(end-of-line)
-		(setq end (point))
-		;; single line
-		(when (and (not (use-region-p))
-							 (not (memq last-command '(my-inc-region my-dec-region))))
-			(beginning-of-line)
-			(setq beg (point))
-			(end-of-line)
-			(setq end (point)))
-		;; regenerate region
-		(when (and
-					 (memq last-command '(my-inc-region my-dec-region)))
-			(setq beg my-indent-region-beg
-						end my-indent-region-end))
-		;; lines
-		(setq lines (count-lines beg end))
-		;; set search and replace words
-		(if is-inc
-				;; increase
-				(if (eq major-mode 'mail-mode)
-						(if (string-match "^>" (buffer-substring-no-properties beg end))
-								(setq search-str "^" replace-str ">")
-							(setq search-str "^" replace-str "> "
-										lines (* lines 2)))
-					(setq search-str "^" replace-str "\t"))
-			;; decrease
-			(if (eq major-mode 'mail-mode)
-					(setq search-str "^>" replace-str "")
-				(setq search-str "^\t\\|^ \\|^　" replace-str "")))
-		;; perform-replace
-		(perform-replace search-str replace-str nil t nil nil nil beg end)
-		(setq end (if is-inc (+ end lines) (- end lines)))
-		;; redefine region
-		(setq my-indent-region-beg beg
-					my-indent-region-end end)))
-
-(defun my-inc-region ()
-	"Increase region."
-	(interactive)
-	(my-indext-region t))
-
-(defun my-dec-region ()
-	"Decrease region."
-	(interactive)
-	(my-indext-region nil))
-
-(global-set-key (kbd "s-}") 'my-inc-region)
-(global-set-key (kbd "s-]") 'my-inc-region)
-(global-set-key (kbd "s-{") 'my-dec-region)
-(global-set-key (kbd "s-[") 'my-dec-region)
+(global-set-key (kbd "s-}") 'indent-rigidly-right)
+(global-set-key (kbd "s-]") 'indent-rigidly-right)
+(global-set-key (kbd "s-{") 'indent-rigidly-left)
+(global-set-key (kbd "s-[") 'indent-rigidly-left)
 
 ;;; ------------------------------------------------------------
 ;;; 現在バッファのファイルのフルパスを取得
@@ -1419,6 +1368,15 @@ It defaults to a comma."
 
 ;;; ------------------------------------------------------------
 ;;; html-mode
+
+;(defun xoops-smarty-comment-setting ()
+;  (make-local-variable 'comment-start)
+;  (setq comment-start "<{*")
+;  (make-local-variable 'comment-end)
+;  (setq comment-end "*}>")
+;  (make-local-variable 'comment-multi-line)
+;  (setq comment-multi-line t))
+;(add-hook 'html-mode-hook 'xoops-smarty-comment-setting)
 
 ;; html-mode-hook
 (add-hook 'html-mode-hook
@@ -1563,8 +1521,8 @@ It defaults to a comma."
 (add-to-list 'ac-modes 'fundamental-mode)
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
 													 ;; ac-source-filename
-													 ac-technical-term-dict
 													 ;; ac-source-symbols
+													 ac-technical-term-dict
 													 ac-english-dict))
 
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
@@ -1694,6 +1652,7 @@ If gist-id exists update gist."
 ;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
 ;; curchg-input-method-cursor-colorの挙動を確認
 ;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる？
+;; regexp-builderでタブ移動しないように。popでもか？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
