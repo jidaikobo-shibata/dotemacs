@@ -15,10 +15,10 @@
 ;; | s-E | C-f E |   | set region to replace              | 置換文字にセット
 ;; | s-g | C-f g | o | search next                        | 次を検索
 ;; | s-G | C-f G | o | Search previous                    | 前を検索
-;; | s-l | C-f l | o | replace and Search next            | 置換して次を検索
+;; | s-l | C-f l | o | replace and search next            | 置換して次を検索
 ;; | s-r | C-f r | o | replace current region             | 選択範囲を置換
 ;; | s-R | C-f R | o | replace all                        | バッファ内全てを置換
-;; | s-p | C-f p |   | interactive rgrep by Search string | 対話的にrgrep
+;; | s-p | C-f p |   | interactive rgrep by search string | 対話的にrgrep
 ;; | s-h | C-f h |   | select target window               | 対象ウィンドウを選択
 ;;
 ;; sc/is-use-super nil
