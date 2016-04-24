@@ -124,6 +124,9 @@
 ;; キーストロークのミニバッファへの表示を早く
 (setq echo-keystrokes 0.1)
 
+;; backward-delete-char-untabifyは、タブをバラさない
+(setq backward-delete-char-untabify-method nil)
+
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
@@ -1285,8 +1288,8 @@ It defaults to a comma."
 
 (global-set-key (kbd "s-}") 'indent-rigidly-right)
 (global-set-key (kbd "s-]") 'indent-rigidly-right)
-(global-set-key (kbd "s-{") 'indent-rigidly-left)
-(global-set-key (kbd "s-[") 'indent-rigidly-left)
+(global-set-key (kbd "s-{") 'indent-rigidly-left-to-tab-stop)
+(global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
 
 ;;; ------------------------------------------------------------
 ;;; 現在バッファのファイルのフルパスを取得
