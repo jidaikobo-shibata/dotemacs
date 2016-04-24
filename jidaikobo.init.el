@@ -346,6 +346,34 @@
 
 (global-set-key (kbd "<tab>") 'my-tab-dwim)
 
+;; defadvice-indent-for-tab-command
+;; gist-description: Emacs(Elisp): To integrate indent style, delete existing whitespaces before indent-for-tab-command. indent-for-tab-commandの前に存在する行頭ホワイトスペースを削除することでインデントスタイルを統一する
+;; gist-id: 604173d11ff376036635fd4811df6abb
+;; gist-name: defadvice-indent-for-tab-command.el
+;; gist-private: nil
+(defadvice indent-for-tab-command (around advise-indent-for-tab-command activate)
+	"To integrate indent style, delete existing whitespaces before indentation."
+	(let (beg
+				end)
+		(cond
+		 ((use-region-p)
+			(setq beg (region-beginning)
+						end (region-end)))
+		 (t
+			(beginning-of-line)
+			(setq beg (point))
+			(end-of-line)
+			(setq end (point))))
+
+		(perform-replace "^[\t\\| ]+" "" nil t nil nil nil beg end)
+		(goto-char beg)
+		(set-mark-command nil)
+		(goto-char end)
+
+		ad-do-it
+
+		(goto-char end)))
+
 ;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
 
