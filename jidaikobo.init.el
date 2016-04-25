@@ -351,14 +351,17 @@
 ;; gist-id: 604173d11ff376036635fd4811df6abb
 ;; gist-name: defadvice-indent-for-tab-command.el
 ;; gist-private: nil
+
 (defadvice indent-for-tab-command (around advise-indent-for-tab-command activate)
 	"To integrate indent style, delete existing whitespaces before indentation."
 	(let (beg
-				end)
+				end
+				(end-line nil))
 		(cond
 		 ((use-region-p)
 			(setq beg (region-beginning)
-						end (region-end)))
+						end (region-end)
+						end-line (line-number-at-pos end)))
 		 (t
 			(beginning-of-line)
 			(setq beg (point))
@@ -372,7 +375,8 @@
 
 		ad-do-it
 
-		(goto-char end)))
+		(when end-line (goto-line (- end-line 1))) ;; why should i have to do minus?
+		(back-to-indentation)))
 
 ;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
@@ -450,8 +454,13 @@
 	;; リージョン解除関数
 	(defun my-deactivate-region ()
 		"Logic of deactivate region by cursor."
-		(when (and (region-active-p)
+		;; (message "r: %s l: %s c: %s" (use-region-p) last-input-event this-command)
+		;; (message "m:%s r:%s u:%s" mark-active (region-active-p) (use-region-p))
+		;; (message "s:%s e:%s" (region-beginning) (region-end))
+
+		(when (and (use-region-p)
 							 (not (memq last-input-event '(S-left S-right S-down S-up))))
+			;; (message "r: %s" (memq last-input-event '(S-left S-right S-down S-up)))
 			(cond
 			 ((memq last-input-event '(right down))
 				(goto-char (region-end)))
@@ -1535,11 +1544,26 @@ It defaults to a comma."
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
 
 ;; 辞書追加
-;; 英語
-(defvar ac-english-cache
-	(ac-file-dictionary (concat ac-user-dict-dir "english")))
-(defvar ac-english-dict
-	'((candidates . ac-english-cache)))
+;; 英語 thx http://d.hatena.ne.jp/kitokitoki/20101205/p2
+(defun my-ac-look ()
+	"Get a list of English words by look command."
+	(interactive)
+	(unless (executable-find "look")
+		(error "command not found: look"))
+	(let ((search-word (thing-at-point 'word)))
+		(with-temp-buffer
+			(call-process-shell-command "look" nil t 0 search-word)
+			(split-string-and-unquote (buffer-string) "\n"))))
+
+(defun ac-complete-look ()
+	(interactive)
+	(let ((ac-menu-height 50)
+				(ac-candidate-limit t))
+		(auto-complete '(ac-source-look))))
+
+(defvar ac-source-look
+	'((candidates . my-ac-look)
+		(requires . 2)))
 
 ;; 技術語
 (defvar ac-technical-term-cache
@@ -1553,8 +1577,8 @@ It defaults to a comma."
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
 													 ;; ac-source-filename
 													 ;; ac-source-symbols
-													 ac-technical-term-dict
-													 ac-english-dict))
+													 ac-source-look
+													 ac-technical-term-dict))
 
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
@@ -1684,6 +1708,7 @@ If gist-id exists update gist."
 ;; curchg-input-method-cursor-colorの挙動を確認
 ;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる？
 ;; regexp-builderでタブ移動しないように。popでもか？
+;; リージョン解除関数がおかしい。C-@でマークしたら、たしかに解除するが、C-S-downのあとS-downしたりするとリージョンが解除される。ここは微調整したいところなので、なんとかしたい。S-downにadviceして、markを維持するような措置が必要？？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
