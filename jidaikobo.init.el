@@ -476,63 +476,13 @@
 (popwin-mode 1)
 (setq display-buffer-function 'popwin:display-buffer)
 
-(setq anything-samewindow nil)
-(push '("*anything*" :height 20) popwin:special-display-config)
-(push '("*Messages*" :height 10 :stick t :position bottom :tail t) popwin:special-display-config)
+(push '("*Messages*" :height 10 :stick t :position bottom :tail t :noselect t) popwin:special-display-config)
 
 ;; key-binds
 (global-set-key (kbd "M-p p") 'popwin:display-last-buffer)
-;; (global-set-key (kbd "M-p m") 'popwin:messages)
 (global-set-key (kbd "M-p m") (lambda () (interactive)
-																(display-buffer "*Messages*")))
-
-;;; ------------------------------------------------------------
-;;; *Messages*
-;; thx http://stackoverflow.com/questions/4682033/in-emacs-can-i-set-up-the-messages-buffer-so-that-it-tails
-
-;; (toggle-buffer-tail "*Messages*" "on")
-
-;; ;;alist of 'buffer-name / timer' items
-;; (defvar buffer-tail-alist nil)
-;; (defun buffer-tail (name)
-;; 	"follow buffer tails"
-;; 	(cond ((or (equal (buffer-name (current-buffer)) name)
-;; 						 (string-match "^ \\*Minibuf.*?\\*$" (buffer-name (current-buffer)))))
-;; 				((get-buffer name)
-;; 				 (with-current-buffer (get-buffer name)
-;; 					 (goto-char (point-max))
-;; 					 (let ((windows (get-buffer-window-list (current-buffer) nil t)))
-;; 						 (while windows (set-window-point (car windows) (point-max))
-;; 										(with-selected-window
-;; 												(car windows)
-;; 											(recenter -3))
-;; 										(setq windows (cdr windows))))))))
-
-;; (defun toggle-buffer-tail (name &optional force)
-;; 	"toggle tailing of buffer NAME. when called non-interactively, a FORCE arg of 'on' or 'off' can be used to to ensure a given state for buffer NAME"
-;; 	(interactive
-;; 	 (list
-;; 		(cond
-;; 		 ((if name name)
-;; 			(read-from-minibuffer
-;; 			 (concat "buffer name to tail"
-;; 							 (if buffer-tail-alist
-;; 									 (concat " (" (caar buffer-tail-alist) ")")
-;; 								 "")
-;; 							 ": ")
-;; 			 (if buffer-tail-alist (caar buffer-tail-alist)) nil nil
-;; 			 (mapcar '(lambda (x) (car x)) buffer-tail-alist)
-;; 			 (if buffer-tail-alist (caar buffer-tail-alist)))) nil)))
-;; 	(let ((toggle (cond (force force) ((assoc name buffer-tail-alist) "off") (t "on")) ))
-;; 		(if (not (or (equal toggle "on") (equal toggle "off")))
-;; 				(error "invalid 'force' arg. required 'on'/'off'")
-;; 			(progn
-;; 				(while (assoc name buffer-tail-alist)
-;; 					(cancel-timer (cdr (assoc name buffer-tail-alist)))
-;; 					(setq buffer-tail-alist (remove* name buffer-tail-alist :key 'car :test 'equal)))
-;; 				(if (equal toggle "on")
-;; 						(add-to-list 'buffer-tail-alist (cons name (run-at-time t 1 'buffer-tail name))))
-;; 				(message "toggled 'tail buffer' for '%s' %s" name toggle)))))
+																(display-buffer "*Messages*")
+																(auto-revert-mode 1)))
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択と編集
@@ -932,15 +882,15 @@
 	(global-set-key (kbd "s-t") 'my-new-tab)
 	(global-set-key (kbd "M-s-t") 'move-current-tab-to-top)
 
-	;; regexp-builderでは、タブ移動しない
+	;; 幾つかのウィンドウでは、タブ移動しない
 	(defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
 		"Do not forward at specified baffers."
-		(if (member (buffer-name) '("*RE-Builder*"))
+		(if (member (buffer-name) '("*RE-Builder*" "*Messages*"))
 			nil
 			ad-do-it))
 	(defadvice tabbar-backward-tab (around advise-tabbar-backward-tab activate)
 		"Do not backward at specified baffers."
-		(if (member (buffer-name) '("*RE-Builder*"))
+		(if (member (buffer-name) '("*RE-Builder*" "*Messages*"))
 			nil
 			ad-do-it)))
 
@@ -1762,7 +1712,7 @@ If gist-id exists update gist."
 ;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる？
 ;; regexp-builderでタブ移動しないように。popでもか？
 ;; リージョン解除関数がおかしい。C-@でマークしたら、たしかに解除するが、C-S-downのあとS-downしたりするとリージョンが解除される。ここは微調整したいところなので、なんとかしたい。S-downにadviceして、markを維持するような措置が必要？？
-;; popwinいまいち使いにくい。HELPは閉じてもらっていいし、toggleもしかして鬼のように重い？
+;; 「幾つかのウィンドウでは、タブ移動しない」popwinを判定すると良い？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
