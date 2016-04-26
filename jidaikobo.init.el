@@ -368,7 +368,7 @@
 			(end-of-line)
 			(setq end (point))))
 
-		(perform-replace "^[\t\\| ]+" "" nil t nil nil nil beg end)
+		(perform-replace "^[\t ]+" "" nil t nil nil nil beg end)
 		(goto-char beg)
 		(set-mark-command nil)
 		(goto-char end)
@@ -1580,7 +1580,7 @@ It defaults to a comma."
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
 													 ;; ac-source-filename
 													 ;; ac-source-symbols
-													 ac-source-look
+													 ;; ac-source-look
 													 ac-technical-term-dict))
 
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
