@@ -274,7 +274,6 @@
 (global-set-key (kbd "<s-kp-0>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "<s-0>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "s-q") 'save-buffers-kill-emacs) ; quit (cmd+q)
-(global-set-key (kbd "s-p") 'print-buffer) ; print buffer (cmd+p)
 (global-set-key (kbd "<s-up>") 'beginning-of-buffer) ; cmd+up
 (global-set-key (kbd "<s-down>") 'end-of-buffer) ; cmd+down
 (global-set-key (kbd "<s-left>") 'beginning-of-line) ; cmd+left
@@ -1659,6 +1658,34 @@ If gist-id exists update gist."
 				(t (back-to-indentation))))
 
 (global-set-key (kbd "C-b") 'jump-match-paren)
+
+;;; ------------------------------------------------------------
+;; 印刷設定
+;; thx https://tamosblog.wordpress.com/2013/12/11/cocoa-emacs24_print/
+;; see http://club.jidaikobo.com/knowledge/129.html
+
+;; 普通の印刷
+(global-set-key (kbd "s-p") 'print-buffer)
+
+;; 文字化け対応
+(setq ps-multibyte-buffer 'non-latin-printer)
+(require 'ps-mule)
+(defalias 'ps-mule-header-string-charsets 'ignore)
+
+;; 印刷プレビュー
+(when (load-file (concat jidaikobo-dir "pdf-preview.el"))
+	(require 'pdf-preview)
+	(setq pdf-preview-preview-command "open -a Preview.app")
+	(global-set-key (kbd "s-P")
+									(lambda ()
+										(interactive)
+										(when (and
+													 (yes-or-no-p "Show current buffer by Preview.app?")
+													 (or
+														(<= (length (buffer-string)) 10000)
+														(and (> (length (buffer-string)) 10000)
+																 (yes-or-no-p "Current buffer is large. Preview takes quite time. Preview this?"))))
+											(pdf-preview-buffer)))))
 
 ;;; ------------------------------------------------------------
 ;;; eww
