@@ -274,6 +274,7 @@
 (global-set-key (kbd "<s-kp-0>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "<s-0>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "s-q") 'save-buffers-kill-emacs) ; quit (cmd+q)
+(global-set-key (kbd "s-p") 'print-buffer) ; print buffer (cmd+p)
 (global-set-key (kbd "<s-up>") 'beginning-of-buffer) ; cmd+up
 (global-set-key (kbd "<s-down>") 'end-of-buffer) ; cmd+down
 (global-set-key (kbd "<s-left>") 'beginning-of-line) ; cmd+left
