@@ -1428,6 +1428,14 @@ It defaults to a comma."
 						 (define-key html-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
+;;; grep-mode
+
+(add-hook 'grep-mode-hook
+					'(lambda()
+						 (define-key grep-mode-map (kbd "C-o") (lambda () (interactive) (other-window 1)))
+						 (define-key grep-mode-map (kbd "C-S-o") (lambda () (interactive) (other-window -1)))))
+
+;;; ------------------------------------------------------------
 ;;; web-mode
 
 (require 'web-mode)
@@ -1546,27 +1554,12 @@ It defaults to a comma."
 ;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
 
-;; 辞書追加
-;; 英語 thx http://d.hatena.ne.jp/kitokitoki/20101205/p2
-(defun my-ac-look ()
-	"Get a list of English words by look command."
-	(interactive)
-	(unless (executable-find "look")
-		(error "command not found: look"))
-	(let ((search-word (thing-at-point 'word)))
-		(with-temp-buffer
-			(call-process-shell-command "look" nil t 0 search-word)
-			(split-string-and-unquote (buffer-string) "\n"))))
-
-(defun ac-complete-look ()
-	(interactive)
-	(let ((ac-menu-height 50)
-				(ac-candidate-limit t))
-		(auto-complete '(ac-source-look))))
-
-(defvar ac-source-look
-	'((candidates . my-ac-look)
-		(requires . 2)))
+;; 英語
+;; thx http://tech.basicinc.jp/Mac/2013/08/04/linux_command/
+(defvar ac-english-cache
+	(ac-file-dictionary "/usr/share/dict/words"))
+(defvar ac-english-dict
+	'((candidates . ac-english-cache)))
 
 ;; 技術語
 (defvar ac-technical-term-cache
@@ -1580,7 +1573,7 @@ It defaults to a comma."
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
 													 ;; ac-source-filename
 													 ;; ac-source-symbols
-													 ;; ac-source-look
+													 ac-english-dict
 													 ac-technical-term-dict))
 
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
@@ -1710,8 +1703,8 @@ If gist-id exists update gist."
 ;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
 ;; curchg-input-method-cursor-colorの挙動を確認
 ;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる？
-;; regexp-builderでタブ移動しないように。popでもか？
 ;; リージョン解除関数がおかしい。C-@でマークしたら、たしかに解除するが、C-S-downのあとS-downしたりするとリージョンが解除される。ここは微調整したいところなので、なんとかしたい。S-downにadviceして、markを維持するような措置が必要？？
+;; regexp-builderでタブ移動しないように。popでもか？
 ;; 「幾つかのウィンドウでは、タブ移動しない」popwinを判定すると良い？
 
 ;;; ------------------------------------------------------------
