@@ -127,6 +127,16 @@
 ;; backward-delete-char-untabifyは、タブをバラさない
 (setq backward-delete-char-untabify-method nil)
 
+;; 原則画面分割しない
+(setq display-buffer-function nil)
+
+;; Helpバッファを常に選択する
+(setq help-window-select t)
+
+;; エラーがあったら*Backtrace*を開く
+(add-hook 'after-init-hook
+					'(lambda () (setq debug-on-error t)))
+
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
@@ -476,7 +486,15 @@
 (popwin-mode 1)
 (setq display-buffer-function 'popwin:display-buffer)
 
+;; anything
+(setq anything-samewindow nil)
+(push '("*anything*" :height 20) popwin:special-display-config)
+
+;; Messages buffer
 (push '("*Messages*" :height 10 :stick t :position bottom :tail t :noselect t) popwin:special-display-config)
+
+;; Backtrace buffer
+(push '("*Backtrace*" :height 10) popwin:special-display-config)
 
 ;; key-binds
 (global-set-key (kbd "M-p p") 'popwin:display-last-buffer)
