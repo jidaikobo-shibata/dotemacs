@@ -9,14 +9,14 @@
 ;; ftp://ftp.math.s.chiba-u.ac.jp/emacsを確認して、あたらしいパッチの存在を確認すると良い
 ;; @ terminal
 ;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-24.5.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-24.5-mac-5.15.tar.gz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-24.5-mac-5.17.tar.gz
 ;; tar xfJ emacs-24.5.tar.xz
-;; tar xfz emacs-24.5-mac-5.15.tar.gz
+;; tar xfz emacs-24.5-mac-5.17.tar.gz
 ;; cd emacs-24.5
-;; patch -p 1 < ../emacs-24.5-mac-5.15/patch-mac
-;; cp -r ../emacs-24.5-mac-5.15/mac mac
-;; cp ../emacs-24.5-mac-5.15/src/* src
-;; cp ../emacs-24.5-mac-5.15/lisp/term/mac-win.el lisp/term
+;; patch -p 1 < ../emacs-24.5-mac-5.17/patch-mac
+;; cp -r ../emacs-24.5-mac-5.17/mac mac
+;; cp ../emacs-24.5-mac-5.17/src/* src
+;; cp ../emacs-24.5-mac-5.17/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
 ;; ./configure --prefix=$HOME/opt/emacs-24.5 --with-mac --without-x
 ;; make
