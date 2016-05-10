@@ -250,6 +250,8 @@
 (defun sc/toggle-search-mode ()
 	"Toggle search mode."
 	(interactive)
+	(unless (get-buffer sc/search-str-buffer) (get-buffer-create sc/search-str-buffer))
+	(unless (get-buffer sc/replace-str-buffer) (get-buffer-create sc/replace-str-buffer))
 	(sc/keep-target-buffer)
 	(if (eq search-center-re-mode nil)
 			;; 正規表現モードをオン
