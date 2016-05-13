@@ -4,7 +4,7 @@
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
 ;;; Commentary:
-;; usage: emacsのインストール（要X-code Command Line Tools）
+;; usage: emacsのインストール（要Xcode Command Line Tools）
 ;; thx http://masutaka.net/chalow/2015-04-12-1.html
 ;; ftp://ftp.math.s.chiba-u.ac.jp/emacsを確認して、あたらしいパッチの存在を確認すると良い
 ;; @ terminal
@@ -134,8 +134,8 @@
 (setq help-window-select t)
 
 ;; エラーがあったら*Backtrace*を開く
-(add-hook 'after-init-hook
-					'(lambda () (setq debug-on-error t)))
+;; (add-hook 'after-init-hook
+;; 					'(lambda () (setq debug-on-error t)))
 
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
@@ -231,6 +231,7 @@
 			rainbow-mode
 			popwin
 			yagist
+			web-beautify
 			elscreen))
 
 	;; my-packagesからインストールしていないパッケージをインストール
@@ -1606,6 +1607,16 @@ It defaults to a comma."
 ;; thx http://d.hatena.ne.jp/mhayashi1120/20120920/1348144820
 
 (require 'yagist)
+
+;;; ------------------------------------------------------------
+;;; web-beautify
+(require 'web-beautify)
+(setq-default web-beautify-args
+							'("-f"
+								"-"
+								"--indent_with_tabs"
+								"--indent-size 2"
+								"--end-with-newline"))
 
 ;;; ------------------------------------------------------------
 ;; gist-description: Emacs(Elisp): create or update gist by using yagist. yagistでregionのgistをupdateする。
