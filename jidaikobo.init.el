@@ -352,6 +352,9 @@
 	 ;; read onlyバッファだったら次のリンク
 	 (buffer-read-only
 		(forward-button 1 t))
+	 ;; grepバッファだったら次のリンク
+	 ;; ((string= (buffer-name) "*grep*")
+	 ;; 	(next-error-no-select))
 	 ;; ミニバッファだったらミニバッファ補完
 	 ((minibufferp (current-buffer))
 		(minibuffer-complete))
