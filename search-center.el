@@ -18,7 +18,7 @@
 ;; | s-l | C-f l | o | replace and search next            | 置換して次を検索
 ;; | s-r | C-f r | o | replace current region             | 選択範囲を置換
 ;; | s-R | C-f R | o | replace all                        | バッファ内全てを置換
-;; | s-m | C-f m |   | interactive rgrep by search string | 対話的にrgrep
+;; | s-M | C-f m |   | interactive rgrep by search string | 対話的にrgrep
 ;; | s-h | C-f h |   | select target window               | 対象ウィンドウを選択
 ;;
 ;; sc/is-use-super nil
@@ -198,7 +198,7 @@
 	(global-set-key (kbd "s-l") 'sc/alias-replace-next)
 	(global-set-key (kbd "s-r") 'sc/alias-replace-here)
 	(global-set-key (kbd "s-R") 'sc/alias-replace-region)
-	(global-set-key (kbd "s-m") 'sc/grep)
+	(global-set-key (kbd "s-M") 'sc/grep) ;; s-m is used by Mac OS X
 	(global-set-key (kbd "s-h") (lambda () (interactive) (select-window sc/target-window)))
 	(define-key search-center-mode-map [escape] 'keyboard-quit))
 
