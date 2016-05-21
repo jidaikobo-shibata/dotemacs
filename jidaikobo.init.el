@@ -232,7 +232,8 @@
 			popwin
 			yagist
 			web-beautify
-			elscreen))
+			elscreen
+			smex))
 
 	;; my-packagesからインストールしていないパッケージをインストール
 	(dolist (package my-packages)
@@ -326,6 +327,13 @@
 
 ;; opt+¥でバックスラッシュを入力
 (global-set-key (kbd "M-¥") "\\")
+
+;;; ------------------------------------------------------------
+;;; M-xをidoのflex-match対応に
+;; thx http://rubikitch.com/2014/12/16/smex/
+(smex-initialize)
+(global-set-key (kbd "M-x") 'smex)
+(global-set-key (kbd "M-X") 'smex-major-mode-commands)
 
 ;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い
@@ -1513,6 +1521,8 @@ It defaults to a comma."
 ;; M-x list-faces-display
 (add-hook 'text-mode-hook
 					'(lambda()
+						 (font-lock-add-keywords nil '(("^# .+" . font-lock-comment-face)))
+						 (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
 						 (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))
 						 (font-lock-add-keywords nil '(("^●.+" . font-lock-keyword-face)))
 						 (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
