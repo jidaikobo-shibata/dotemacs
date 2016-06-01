@@ -1,4 +1,15 @@
 ;; ;;; ------------------------------------------------------------
+;; (require 'js2-mode)
+;; (add-hook 'js2-mode-hook '(lambda ()
+;; 														(flycheck-mode t)
+;; 														(setq tab-width 2)
+;; 														(setq indent-tabs-mode t)))
+;; (autoload 'js2-mode "js2" nil t)
+;; (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
+;; (define-key js2-mode-map (kbd "M-up") 'previous-error))
+;; (define-key js2-mode-map (kbd "M-down") 'next-error)
+
+;; ;;; ------------------------------------------------------------
 ;; ;; 関数名をヘッダに表示
 ;; (setq which-func-modes t)
 ;; (delete (assoc 'which-func-mode mode-line-format) mode-line-format)

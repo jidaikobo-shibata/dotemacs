@@ -1,5 +1,5 @@
 ;;; jidaikobo.init.el --- jidaikobo.init.el for jidaikobo.  Provides Mac OS like interface.
-;; Copyright (C) 2015 by jidaikobo-shibata
+;; Copyright (C) 2016 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
@@ -223,7 +223,6 @@
 			flycheck
 			php-mode
 			web-mode
-			js2-mode
 			mic-paren
 			gtags
 			tabbar
@@ -1033,7 +1032,7 @@
 
 (add-hook 'emacs-lisp-mode-hook 'show-line-number)
 (add-hook 'lisp-mode-hook 'show-line-number)
-(add-hook 'js2-mode-hook 'show-line-number)
+(add-hook 'js-mode-hook 'show-line-number)
 (add-hook 'text-mode-hook 'show-line-number)
 (add-hook 'fundamental-mode-hook 'show-line-number)
 (add-hook 'php-mode-hook 'show-line-number)
@@ -1488,21 +1487,12 @@ It defaults to a comma."
 						(setq cssm-indent-function #'cssm-c-style-indenter)))
 
 ;;; ------------------------------------------------------------
-;;; js2-mode
+;;; js-mode
 
-(require 'js2-mode)
-(add-hook 'js2-mode-hook '(lambda ()
-														(flycheck-mode t)
-														(setq tab-width 2)
-														(setq indent-tabs-mode t)))
 (add-hook 'js-mode-hook '(lambda ()
 														(flycheck-mode t)
 														(setq js-indent-level 2)
 														(setq indent-tabs-mode t)))
-;; (autoload 'js2-mode "js2" nil t)
-;; (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-;; (define-key js2-mode-map (kbd "M-up") 'previous-error))
-;; (define-key js2-mode-map (kbd "M-down") 'next-error)
 
 ;;; ------------------------------------------------------------
 ;;; php-mode
@@ -1534,7 +1524,8 @@ It defaults to a comma."
 						 (font-lock-add-keywords nil '(("^# .+" . font-lock-comment-face)))
 						 (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
 						 (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))
-						 (font-lock-add-keywords nil '(("^●.+" . font-lock-keyword-face)))
+						 (font-lock-add-keywords nil '(("^●.+" . font-lock-builtin-face)))
+						 (font-lock-add-keywords nil '(("^○.+" . font-lock-keyword-face)))
 						 (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
 						 (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
 						 (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
@@ -1611,9 +1602,9 @@ It defaults to a comma."
 (add-to-list 'ac-modes 'fundamental-mode)
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
 													 ;; ac-source-filename
-													 ;; ac-source-symbols
-													 ac-english-dict
-													 ac-technical-term-dict))
+													 ac-source-symbols
+													 ac-technical-term-dict
+													 ac-english-dict))
 
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
