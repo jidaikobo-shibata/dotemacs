@@ -74,6 +74,9 @@
 ;;; ------------------------------------------------------------
 ;;; dependencies
 
+(require 'package)
+(package-initialize)
+
 (declare-function package-installed-p "package")
 
 ;; foreign-regexp
