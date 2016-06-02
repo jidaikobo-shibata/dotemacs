@@ -1,11 +1,15 @@
 ;;; search-center.el --- search center.
-;; Copyright (C) 2015 by jidaikobo-shibata
+;; Copyright (C) 2016 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
 ;;; Commentary:
 ;; minor mode for search and replace.
 ;; 検索置換のためのマイナーモード。
+
+;;; Todo:
+;; 正規表現モードの際、正規表現モードのバッファが対象かどうかを監視して、バーの色を変える
+;; 補助的依存状態のforeign-regrexとsmartrepがなくても動くようにする
 
 ;;; Ussage:
 ;; "o" means smartrep mode
@@ -93,8 +97,9 @@
 	(declare-function foreign-regexp/replace/perform-replace "foreign-regexp"))
 
 ;;; ------------------------------------------------------------
-;;; minor-mode
+;;; minor-modes
 
+;; minor-mode for sc/
 ;; 検索置換用のマイナーモード
 (define-minor-mode search-center-mode
 	"Provide search/replace environment."
@@ -105,6 +110,7 @@
 	:keymap
 	search-center-mode-map)
 
+;; minor-mode for regular expression
 ;; 正規表現のマイナーモード
 (define-minor-mode search-center-re-mode
 	"Provide regular expression search/replace environment."
@@ -116,16 +122,19 @@
 	search-center-re-mode-map
 	:after-hook
 	(progn
+		;; keep current color of mode line
 		;; 現在のモードラインを配色を保存しておく
 		(unless sc/modeline-saved
 			(setq sc/modeline-background (face-attribute 'mode-line :background)
 						sc/modeline-foreground (face-attribute 'mode-line :foreground)
 						sc/modeline-saved t))
 		(if (eq search-center-re-mode nil)
+				;; revert color of mode line
 				;; 保存されていたモードラインに戻す
 				(set-face-attribute 'mode-line nil
 														:foreground sc/modeline-foreground
 														:background sc/modeline-background)
+			;; change to regrex
 			;; モードラインを変更し、正規表現モードであることを明示する
 			(set-face-attribute 'mode-line nil
 													:foreground sc/re-modeline-foreground
@@ -134,6 +143,7 @@
 ;;; ------------------------------------------------------------
 ;;; hook
 
+;; compatible with isearch command
 ;; isearchコマンドとの同期
 (when sc/is-sync-isearch
 	(add-hook 'isearch-update-post-hook 'sc/isearch-update-string)
@@ -142,10 +152,12 @@
 							 (eq this-command 'isearch-printing-char))
 			(unless (get-buffer sc/search-str-buffer) (get-buffer-create sc/search-str-buffer))
 			(sc/keep-target-buffer)
+			;; set strings
 			;; 文字列をセット
 			(with-current-buffer sc/search-str-buffer
 				(delete-region (point-min) (point-max))
 				(insert isearch-string))
+			;; keep strings
 			;; 次回用に文字列を保存
 			(setq sc/previous-searched-str isearch-string))))
 
@@ -188,10 +200,9 @@
 		(sc/replace-all "re")))
 
 ;;; ------------------------------------------------------------
-;;; key-binds - s-key
+;;; key-binds - s-key Mac like behavior
 
 (when sc/is-use-super
-	;; global-map
 	(global-set-key (kbd "s-f") 'sc/show-windows)
 	(global-set-key (kbd "s-F") 'sc/toggle-search-mode)
 	(global-set-key (kbd "s-e") (lambda () (interactive) (sc/set-strings "search")))
@@ -257,6 +268,7 @@
 	(unless (get-buffer sc/replace-str-buffer) (get-buffer-create sc/replace-str-buffer))
 	(sc/keep-target-buffer)
 	(if (eq search-center-re-mode nil)
+			;; turn into regrex
 			;; 正規表現モードをオン
 			(progn
 				(with-current-buffer sc/target-buffer
@@ -266,6 +278,7 @@
 				(with-current-buffer sc/replace-str-buffer
 					(search-center-re-mode t))
 				(message (concat "turned into RE with " sc/target-buffer)))
+		;; turn off regrex
 		;; 正規表現モードをオフ
 		(with-current-buffer sc/target-buffer
 			(search-center-re-mode -1))
@@ -276,7 +289,8 @@
 		(message (concat "turned off RE with " sc/target-buffer))))
 
 ;;; ------------------------------------------------------------
-;;; 検索・置換文字列をセット
+;;; set strings to search/replace buffer
+;; 検索・置換文字列をセット
 
 (defun sc/set-strings (mode)
 	"Set strings to search or replace buffer.  MODE [search|replace]."
@@ -294,19 +308,22 @@
 
 		(sc/keep-target-buffer)
 
+		;; set strings
 		;; 文字列をセット
 		(with-current-buffer target
 			(delete-region (point-min) (point-max))
 			(insert strings)
 			(message (concat "set " mode " strings: " strings)))
 
+		;; keep strings
 		;; 次回用に文字列を保存
 		(if (string= mode "search")
 				(setq sc/previous-searched-str strings)
 			(setq sc/previous-replaced-str strings))))
 
 ;;; ------------------------------------------------------------
-;;; 検索・置換文字列を取得
+;;; get strings from search/replace buffer
+;; 検索・置換文字列を取得
 
 (defun sc/get-strings (mode)
 	"Get strings from search or replace buffer.  MODE [search|replace]."
@@ -330,7 +347,8 @@
 		ret))
 
 ;;; ------------------------------------------------------------
-;;; 検索・置換窓を表示
+;;; show search/replace windows
+;; 検索・置換窓を表示
 
 (defun sc/show-windows ()
 	"Show search/replace window."
@@ -341,18 +359,21 @@
 		(setq sc/ignore-delete-window-hook t)
 		(sc/keep-target-buffer)
 
+		;; search/replace wiondow cannot exists alone
 		;; どちらかだけ開いていたら、もう片方を閉じる
 		(when (and is-search-window-exist (not is-replace-window-exist))
 			(delete-window (get-buffer-window sc/search-str-buffer)))
 		(when (and is-replace-window-exist (not is-search-window-exist))
 			(delete-window (get-buffer-window sc/replace-str-buffer)))
 
+		;; split direction
 		;; 上下分割か左右分割を選択できるようにする
 		(unless (or is-search-window-exist is-replace-window-exist)
 			(if (string= sc/split-direction "horizontal")
 					(split-window-horizontally)
 				(split-window-vertically)))
 
+		;; prepare search window
 		;; 検索窓を準備
 		(unless is-search-window-exist
 			(select-window (next-window))
@@ -361,6 +382,7 @@
 			(linum-mode -1)
 			(search-center-mode t))
 
+		;; prepare replace window
 		;; 置換窓を用意
 		(unless is-replace-window-exist
 			(if (string= sc/split-direction "vertical")
@@ -372,14 +394,17 @@
 			(linum-mode -1)
 			(search-center-mode t))
 
+		;; suitable size
 		;; 上下分割ではあまりスペースを取らないように
 		(unless is-search-window-exist
 			(if (string= sc/split-direction "vertical")
 					(shrink-window 20)
+				;; enlarge frame when there is not enough space
 				;; 左右分割で検索置換窓を出せないくらい狭い時には拡張
 				(when (< (frame-width) 110)
 					(set-frame-size (selected-frame) (+ (frame-width) 100) (frame-height)))))
 
+		;; move cursor to search window
 		;; キャレットを検索窓にセットして選択
 		(select-window (get-buffer-window sc/search-str-buffer))
 		(mark-whole-buffer)
@@ -387,8 +412,10 @@
 		(setq sc/ignore-delete-window-hook t)))
 
 ;;; ------------------------------------------------------------
-;;; 共通関数
+;;; common function
+;; 共通関数
 
+;; replace region
 ;; 選択範囲の置換用関数
 (defun sc/replace-region (search-str replace-str is-re)
 	"(string)SEARCH-STR, (string)REPLACE-STR, (bool)IS-RE."
@@ -415,6 +442,7 @@
 					(delete-region beg end)
 					(insert replace-str))))))
 
+;; generate region and controll direction of search
 ;; 選択範囲の作成用関数
 ;; 検索方向に応じて、キャレットの位置を適切にする
 (defun sc/generate-region (direction len-search-string)
@@ -438,6 +466,7 @@
 			 (goto-char beg))) ;; not into mark-ring
 		 (setq deactivate-mark nil))))
 
+;; get strings from window
 ;; 文字列の取得
 (defun sc/get-str-from-window (type)
 	"Get str from window.  TYPE[search|replace]."
@@ -447,22 +476,24 @@
 											(get-buffer-window sc/replace-str-buffer)))
 				(ret ""))
 
+		;; search or replace
 		;; コンテクストに応じた文字列の取得
 		(setq ret (if (windowp window-obj)
 									(with-selected-window window-obj (buffer-string))
 								nil))
 
+		;; check global variable
 		;; グローバルな変数にも尋ねる
 		(if (and (not ret) (string= type "search"))
 			(setq ret (if (boundp 'sc/previous-searched-str) sc/previous-searched-str nil)))
 
-		;; search stringがなければerror
+		;; error
 		(when (and (not ret) (string= type "search"))
 				(error "Error: search word is empty"))
 
-		;; 戻り値
 		ret))
 
+;; empty line
 ;; 空行の検索を特別扱い
 (defun sc/replace-empty-line-regex (str)
 	"Get str from window.  STR is regex."
@@ -471,7 +502,8 @@
 " str))
 
 ;;; ------------------------------------------------------------
-;;; 検索用バッファの文字列で検索・置換する
+;;; search and replace
+;; 検索用バッファの文字列で検索・置換する
 
 (declare-function sc/move-region "sc/move-region" ())
 (defun sc/search-replace (mode)
@@ -495,30 +527,36 @@
 																	(string= mode "re-rep-here")) t nil))
 				 target-str)
 
+		;; change direction with situation
 		;; 検索方向が変わったら向きを変える
 		(when (and mark-active (not (string= sc/previous-searced-direction direction)))
 			(exchange-point-and-mark))
 		(setq sc/previous-searced-direction direction)
 
+		;; use target window
 		;; 現在のウィンドウが検索・置換編集用ウィンドウだったら、主たるウィンドウに移動する
 		(unless (eq (selected-window) sc/target-window)
 			(select-window sc/target-window))
 
+		;; get search strings
 		;; 検索用文字列の取得（必須）
 		(setq search-str (sc/get-str-from-window "search"))
 		(unless search-str
 			(setq search-str (if (boundp 'sc/previous-searched-str) sc/previous-searched-str nil)))
 		(unless search-str (error "Error: search word is empty"))
 
+		;; empty line
 		;; 空行表現（^$）を特別扱い
 		(when is-re (setq search-str (sc/replace-empty-line-regex search-str)))
 
+		;; get replace strings
 		;; 置換用文字列の取得（置換時必須）
 		(setq replace-str (sc/get-str-from-window "replace"))
 		(unless replace-str
 			(setq replace-str (if (boundp 'sc/previous-replaced-str) sc/previous-replaced-str nil)))
 		(if (and is-replace (not replace-str)) (error "Error: replace word is empty"))
 
+		;; move cursor and generate region
 		;; 検索文字列にキャレットを移動しリージョンにする関数
 		(defun sc/move-region ()
 			(cond
@@ -534,30 +572,38 @@
 				(if sc/is-foregin-regexp
 						(foreign-regexp/search/backward search-str)
 					(re-search-backward search-str))))
+			;; get length of searched strings
 			;; ヒットした文字長の取得
 			(if is-re
 					(setq len-search-string (length (match-string-no-properties 0)))
 				(setq len-search-string (length search-str)))
+			;; generate region
 			;; リージョン作成
 			(sc/generate-region (if is-next "next" "prev") len-search-string))
 
+		;; main process
 		;; 処理本体
 		(cond
+		 ;; replace and next
 		 ;; rep-nextやrep-prevは、いまの選択範囲を置換してから次に行くようにする
 		 ((or (and is-replace is-next) (and is-replace is-prev))
 			(progn (when mark-active (sc/replace-region search-str replace-str is-re))
 						 (sc/move-region)))
+		 ;; replace here
 		 ;; その場を置換
 		 (is-replace-here (sc/replace-region search-str replace-str is-re))
+		 ;; move corsor
 		 ;; 通常はただのキャレット移動
 		 (t (sc/move-region)))
 
+		;; keep strings
 		;; 今回検索・置換した文字を次回用に保存
 		(setq sc/previous-searched-str search-str)
 		(setq sc/previous-replaced-str replace-str)))
 
 ;;; ------------------------------------------------------------
-;;; すべて置換
+;;; replace all
+;; すべて置換
 
 (defun sc/replace-all (mode &optional opt-search-str opt-replace-str)
 	"Replace All.  MODE [re].  OPT-SEARCH-STR and OPT-REPLACE-STR are optional."
@@ -574,10 +620,12 @@
 			 target-str
 			 type)
 
+		;; target window
 		;; 現在のウィンドウが検索・置換編集用ウィンドウだったら、主たるウィンドウに移動する
 		(unless (eq (selected-window) sc/target-window)
 			(select-window sc/target-window))
 
+		;; get search strings
 		;; 検索用文字列の取得
 		(setq search-str (if opt-search-str
 												 opt-search-str
@@ -586,11 +634,12 @@
 			(setq search-str (if (boundp 'sc/previous-searched-str) sc/previous-searched-str nil)))
 		(unless search-str (error "Error: search word is empty"))
 
+		;; empty line
 		;; 空行表現（^$）を特別扱い
 		(when is-re (setq search-str (sc/replace-empty-line-regex search-str)))
 
+		;; get replace strings
 		;; 置換用文字列の取得
-
 		(setq replace-str (if opt-replace-str
 												 opt-replace-str
 											 (sc/get-str-from-window "replace")))
@@ -598,6 +647,7 @@
 			(setq replace-str (if (boundp 'sc/previous-replaced-str) sc/previous-replaced-str nil)))
 		(unless replace-str (error "Error: replace word is empty"))
 
+		;; replace region or whole buffer
 		;; 選択範囲があればそこを対象とする、なければ、すべてを対象にして良いか尋ねる
 		(if (region-active-p)
 				(progn
@@ -611,6 +661,7 @@
 							(setq end (point-max)))
 					(error "Error: no target region"))))
 
+		;; replace
 		;; 選択範囲内を置換する
 		(ignore-errors
 			(save-excursion
@@ -626,12 +677,14 @@
 								 (perform-replace
 									search-str replace-str nil nil nil nil nil beg end))))))
 
+		;; keep strings
 		;; 今回検索・置換した文字を次回用に保存
 		(setq sc/previous-searched-str search-str)
 		(setq sc/previous-replaced-str replace-str)))
 
 ;;; ------------------------------------------------------------
-;;; マルチファイル検索
+;; multi files search
+;; マルチファイル検索
 ;; 対象ディレクトリと拡張子を指定したら検索する。ただのrgrepのwrapper
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090225/1235526604
 
@@ -639,6 +692,7 @@
 (require 'gtags)
 (setq gtags-path-style 'relative)
 
+;; ignore directories
 ;; 除外ディレクトリ
 ;; 将来的には入力できるようにする
 (add-to-list 'grep-find-ignored-directories "logs")
