@@ -507,6 +507,9 @@
 ;; Backtrace buffer
 (push '("*Backtrace*" :height 10) popwin:special-display-config)
 
+;; grep/rgrep buffer
+(push '("*grep*" :height 10 :stick t :position bottom :noselect nil) popwin:special-display-config)
+
 ;; key-binds
 (global-set-key (kbd "M-p p") 'popwin:display-last-buffer)
 (global-set-key (kbd "M-p m") (lambda () (interactive)
@@ -831,6 +834,8 @@
 											 ((char-equal ?\ (aref (buffer-name b) 0)) nil)
 											 ;; *scratch*バッファは表示する
 											 ((equal "*scratch*" (buffer-name b)) b)
+											 ;; *grep*バッファは表示する
+											 ((equal "*grep*" (buffer-name b)) b)
 											 ;; *eww*バッファは表示する
 											 ((equal "*eww*" (buffer-name b)) b)
 											 ;; それ以外の * で始まるバッファは表示しない
