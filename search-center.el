@@ -278,7 +278,7 @@
 					(search-center-re-mode t))
 				(with-current-buffer sc/replace-str-buffer
 					(search-center-re-mode t))
-				(message (concat "turned into RE with " sc/target-buffer)))
+				(message "%s" (concat "turned into RE with " sc/target-buffer)))
 		;; turn off regrex
 		;; 正規表現モードをオフ
 		(with-current-buffer sc/target-buffer
@@ -287,7 +287,7 @@
 			(search-center-re-mode -1))
 		(with-current-buffer sc/replace-str-buffer
 			(search-center-re-mode -1))
-		(message (concat "turned off RE with " sc/target-buffer))))
+		(message "%s" (concat "turned off RE with " sc/target-buffer))))
 
 ;;; ------------------------------------------------------------
 ;;; set strings to search/replace buffer
@@ -314,7 +314,7 @@
 		(with-current-buffer target
 			(delete-region (point-min) (point-max))
 			(insert strings)
-			(message (concat "set " mode " strings: " strings)))
+			(message "%s" (concat "set " mode " strings: " strings)))
 
 		;; keep strings
 		;; 次回用に文字列を保存
