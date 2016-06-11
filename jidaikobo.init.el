@@ -919,12 +919,12 @@
 	;; 幾つかのウィンドウでは、タブ移動しない
 	(defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
 		"Do not forward at specified baffers."
-		(if (member (buffer-name) '("*RE-Builder*" "*Messages*"))
+		(if (member (buffer-name) '("*RE-Builder*" "*Messages*" "*grep*"))
 			nil
 			ad-do-it))
 	(defadvice tabbar-backward-tab (around advise-tabbar-backward-tab activate)
 		"Do not backward at specified baffers."
-		(if (member (buffer-name) '("*RE-Builder*" "*Messages*"))
+		(if (member (buffer-name) '("*RE-Builder*" "*Messages*" "*grep*"))
 			nil
 			ad-do-it)))
 

@@ -8,9 +8,14 @@
 ;; 検索置換のためのマイナーモード。
 
 ;;; Todo:
-;; 正規表現モードの際、正規表現モードのバッファが対象かどうかを監視して、バーの色を変える
 ;; 補助的依存状態のforeign-regrexとsmartrepがなくても動くようにする
-;; マルチファイル検索でタブキーで候補に行けるようにしたい
+;; http://qiita.com/mkit0031/items/85d66d08cd51c1c9e8a2 を参考に*grep*バッファの名称を変更したほうが便利か？ 現在は*grep*バッファを消すようにしている。
+;; ;;; .emacs.elの末尾に追加
+;; ;; grep実施時に複数のバッファで開けるよう設定
+;; (defadvice grep (after my-grep activate)
+;;   (let ((grep-buffer (get-buffer "*grep*")))
+;;     (set-buffer grep-buffer)
+;;     (rename-buffer (concat "*grep*" "<\"" (ad-get-arg 0) "\">" ) t)))
 
 ;;; Ussage:
 ;; "o" means smartrep mode
@@ -72,6 +77,7 @@
 (defvar sc/re-modeline-background "orange")
 (defvar sc/re-modeline-foreground "black")
 (defvar sc/is-foregin-regexp nil)
+(defvar sc/is-use-timer-for-modeline t)
 (defvar sc/split-direction "horizontal")
 (defvar search-center-mode-map (make-keymap))
 (defvar search-center-re-mode-map (make-keymap))
@@ -122,24 +128,37 @@
 	:keymap
 	search-center-re-mode-map
 	:after-hook
-	(progn
-		;; keep current color of mode line
-		;; 現在のモードラインを配色を保存しておく
-		(unless sc/modeline-saved
-			(setq sc/modeline-background (face-attribute 'mode-line :background)
-						sc/modeline-foreground (face-attribute 'mode-line :foreground)
-						sc/modeline-saved t))
-		(if (eq search-center-re-mode nil)
-				;; revert color of mode line
-				;; 保存されていたモードラインに戻す
-				(set-face-attribute 'mode-line nil
-														:foreground sc/modeline-foreground
-														:background sc/modeline-background)
-			;; change to regrex
-			;; モードラインを変更し、正規表現モードであることを明示する
-			(set-face-attribute 'mode-line nil
-													:foreground sc/re-modeline-foreground
-													:background sc/re-modeline-background))))
+	(sc/toggle-mode-line))
+
+;; Toggle Mode line
+;; モードラインのトグル
+(defun sc/toggle-mode-line ()
+	"Toggle Mode line."
+	(interactive)
+	;; keep current color of mode line at the first time
+	;; 最初に現在のモードラインを配色を保存しておく
+	(unless sc/modeline-saved
+		(setq sc/modeline-background (face-attribute 'mode-line :background)
+					sc/modeline-foreground (face-attribute 'mode-line :foreground)
+					sc/modeline-saved t))
+	(cond
+	 ;; 正規表現モード
+	 ((eq search-center-re-mode t)
+		(set-face-attribute 'mode-line nil
+												:foreground sc/re-modeline-foreground
+												:background sc/re-modeline-background))
+	 ;; 標準モード
+	 ((eq search-center-re-mode nil)
+		(set-face-attribute 'mode-line nil
+												:foreground sc/modeline-foreground
+												:background sc/modeline-background)))
+	(force-mode-line-update))
+
+;; timer for mode line
+;; モードラインの配色を監視するタイマー
+(if sc/is-use-timer-for-modeline
+		(setq-default global-re-toggle-timer
+									(run-with-idle-timer 0.03 t 'sc/toggle-mode-line)))
 
 ;;; ------------------------------------------------------------
 ;;; hook
