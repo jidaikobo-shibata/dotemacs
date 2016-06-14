@@ -724,7 +724,8 @@
 	(interactive
 	 (progn
 		 (let ((default (sc/get-strings "search"))
-					 (target-ext (concat "*." (file-name-extension (buffer-file-name))))
+					 (target-ext (concat "*." (ignore-errors
+																			(file-name-extension (buffer-file-name)))))
 					 (target-dir (if (gtags-get-rootpath)
 													 (directory-file-name (gtags-get-rootpath))
 												 default-directory)))
