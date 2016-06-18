@@ -292,6 +292,7 @@
 (global-set-key (kbd "<backspace>") 'delete-backward-char) ; delete
 (global-set-key (kbd "<backtab>") 'indent-for-tab-command)
 (global-set-key (kbd "<C-tab>") 'indent-for-tab-command)
+(global-set-key (kbd "M-/") (lambda () (interactive) (insert "／")))
 ;; (global-set-key (kbd "<C-up>") 'backward-paragraph) ; Control-down
 ;; (global-set-key (kbd "<C-down>") 'forward-paragraph) ; Control-down
 ;; (global-set-key (kbd "M-right") 'forward-symbol)
