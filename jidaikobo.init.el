@@ -29,6 +29,11 @@
 ;; sudo port install global
 ;; emacs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
 
+;; cd ~/.emacs.d
+;; mkdir elisp
+;; wget https://www.emacswiki.org/emacs/download/ac-anything.el ac-anything.el
+;; wget http://www.emacswiki.org/cgi-bin/wiki/download/anything-match-plugin.el anything-match-plugin.el
+
 ;;; Code:
 
 ;;; ------------------------------------------------------------
@@ -190,6 +195,7 @@
 
 ;; load-pathの追加
 (add-to-list 'load-path jidaikobo-dir)
+(add-to-list 'load-path (concat dotfiles-dir "elisp"))
 
 ;; package.override.el
 (setq override-el (concat dotfiles-dir "package.override.el"))
@@ -298,11 +304,25 @@
 (global-set-key (kbd "<backspace>") 'delete-backward-char) ; delete
 (global-set-key (kbd "<backtab>") 'indent-for-tab-command)
 (global-set-key (kbd "<C-tab>") 'indent-for-tab-command)
-(global-set-key (kbd "M-/") (lambda () (interactive) (insert "／")))
 ;; (global-set-key (kbd "<C-up>") 'backward-paragraph) ; Control-down
 ;; (global-set-key (kbd "<C-down>") 'forward-paragraph) ; Control-down
 ;; (global-set-key (kbd "M-right") 'forward-symbol)
 ;; (global-set-key (kbd "M-left") (lambda () (interactive) (forward-symbol -1)))
+
+;; 日本語入力のときだけM-/で、"／"を入力したい
+;; (global-set-key (kbd "M-/") (lambda () (interactive)
+;; 															(if (fboundp 'mac-input-source)
+;; 																	(let ((mac-input-source (mac-input-source)))
+;; 																		(if (string-match
+;; 																				 "com.apple.inputmethod.Kotoeri.japanese"
+;; 																				 mac-input-source)
+;; 																				(insert "／")
+;; 																			'dabbrev-expand))
+;; 																'dabbrev-expand)))
+
+;; ;; ミニバッファでは英数字入力に
+;; (when (functionp 'mac-auto-ascii-mode)
+;;     (mac-auto-ascii-mode 1))
 
 ;; window操作
 (global-set-key (kbd "C-o") (lambda () (interactive) (other-window 1)))
@@ -1322,7 +1342,7 @@ It defaults to a comma."
 ;; 音引、句読点等を除外
 ;; thx http://d.hatena.ne.jp/khiker/20061014/1160861915
 (put-char-code-property ?ー 'ascii nil)
-(put-char-code-property ?～ 'ascii nil)
+(put-char-code-property ?〜 'ascii nil)
 (put-char-code-property ?、 'ascii nil)
 (put-char-code-property ?。 'ascii nil)
 
@@ -1520,6 +1540,7 @@ It defaults to a comma."
 						 (define-key php-mode-map "}" 'self-insert-command)
 						 (define-key php-mode-map "/" 'self-insert-command)
 						 (define-key php-mode-map "#" 'self-insert-command)
+						 (define-key php-mode-map (kbd "M-TAB") 'auto-complete)
 						 (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
 
 ;;; ------------------------------------------------------------
@@ -1590,6 +1611,9 @@ It defaults to a comma."
 (setq ac-disable-faces nil)
 (setq ac-auto-start nil)
 (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+
+(require 'ac-anything)
+(define-key ac-complete-mode-map (kbd "C--") 'ac-complete-with-anything)
 
 ;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
@@ -1777,12 +1801,11 @@ If gist-id exists update gist."
 ;; 単語境界をもうちょっと細かくしたい（シンタックステーブルか？）
 ;; 複数の検索置換セット
 ;; portのEmacsを試してみる？
-;; auto-completeの技術語辞書をもうちょっと厳選
-;; auto-completeはハイフンがあっても機能して欲しい（けど、シンタックステーブルか？）
+;; ac-anythigをいきなり起動できないか
+;; ac-anythingのC--を変更。C--は、僕が開発に使うので。
 ;; curchg-input-method-cursor-colorの挙動を確認
 ;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる？
 ;; リージョン解除関数がおかしい。C-@でマークしたら、たしかに解除するが、C-S-downのあとS-downしたりするとリージョンが解除される。ここは微調整したいところなので、なんとかしたい。S-downにadviceして、markを維持するような措置が必要？？
-;; regexp-builderでタブ移動しないように。popでもか？
 ;; 「幾つかのウィンドウでは、タブ移動しない」popwinを判定すると良い？
 ;; 印刷設定を http://d.hatena.ne.jp/r_takaishi/20110304/1299203553 を参考に改良してみる
 
