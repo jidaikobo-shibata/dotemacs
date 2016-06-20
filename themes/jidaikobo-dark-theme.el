@@ -66,6 +66,29 @@
 			(jidaikobo-palevioletred     "#d33682"))
 
 ;;; ------------------------------------------------------------
+;;; cursor
+;; thx http://keisanbutsuriya.hateblo.jp/entry/2016/04/10/115945
+
+	(if (fboundp 'mac-input-source)
+			(progn
+				(defun my-mac-selected-keyboard-input-source-chage-function ()
+					(let ((mac-input-source (mac-input-source)))
+						(set-cursor-color
+						 (if (string-match "com.apple.inputmethod.Kotoeri.Roman" mac-input-source)
+								 "white" "Red"))))
+				;; hook for cursor
+				(add-hook 'mac-selected-keyboard-input-source-change-hook
+									'my-mac-selected-keyboard-input-source-chage-function)
+				;; timer for cursor
+				(setq-default global-cursor-color-timer
+											(run-with-idle-timer
+											 0.03
+											 t
+											 'my-mac-selected-keyboard-input-source-chage-function)))
+		;; if not mac
+		(set-cursor-color "white"))
+
+;;; ------------------------------------------------------------
 ;;; custom-theme-set-faces
 	(custom-theme-set-faces
 	 'jidaikobo-dark
@@ -75,9 +98,9 @@
 	 `(default
 			((t (:foreground ,jidaikobo-fg
 					 :background ,jidaikobo-bg))))
-	 `(cursor
-		 ((t (:foreground ,jidaikobo-bg
-					:background ,jidaikobo-fg))))
+	 ;; `(cursor
+	 ;; 	 ((t (:foreground ,jidaikobo-bg
+	 ;; 				:background ,jidaikobo-fg))))
 	 `(fringe
 		 ((t (:foreground ,jidaikobo-bg
 					:background ,jidaikobo-bg)))) ;; フレームの余白
