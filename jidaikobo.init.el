@@ -262,6 +262,12 @@
 (load-theme 'jidaikobo-dark t)
 
 ;;; ------------------------------------------------------------
+;;; localize
+
+(add-to-list 'Info-directory-list "~/info")
+
+
+;;; ------------------------------------------------------------
 ;;; キーボード操作
 
 ;; mac-likeなcmd関係
@@ -317,9 +323,6 @@
 (global-set-key (kbd "<escape>") 'keyboard-quit) ; everywhere else
 (global-set-key (kbd "M-ESC ESC") 'keyboard-quit)
 (define-key minibuffer-inactive-mode-map [escape] 'keyboard-quit) ; minibuffer
-
-;; ウィンドウ切り替え (opt+tab)
-(global-set-key (kbd "<M-tab>") 'other-window)
 
 ;; M-g or cmd+opt+j で指定行へジャンプ
 (global-set-key (kbd "M-g") 'goto-line)
@@ -1585,7 +1588,8 @@ It defaults to a comma."
 (global-auto-complete-mode t)
 (setq ac-dwim t)
 (setq ac-disable-faces nil)
-(setq ac-auto-start t)
+(setq ac-auto-start nil)
+(define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 
 ;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
