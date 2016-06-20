@@ -310,19 +310,19 @@
 ;; (global-set-key (kbd "M-left") (lambda () (interactive) (forward-symbol -1)))
 
 ;; 日本語入力のときだけM-/で、"／"を入力したい
-;; (global-set-key (kbd "M-/") (lambda () (interactive)
-;; 															(if (fboundp 'mac-input-source)
-;; 																	(let ((mac-input-source (mac-input-source)))
-;; 																		(if (string-match
-;; 																				 "com.apple.inputmethod.Kotoeri.japanese"
-;; 																				 mac-input-source)
-;; 																				(insert "／")
-;; 																			'dabbrev-expand))
-;; 																'dabbrev-expand)))
+(global-set-key (kbd "M-/") (lambda () (interactive)
+															(if (fboundp 'mac-input-source)
+																	(let ((mac-input-source (mac-input-source)))
+																		(if (string-match
+																				 "com.apple.inputmethod.Kotoeri.japanese"
+																				 mac-input-source)
+																				(insert "／")
+																			'dabbrev-expand))
+																'dabbrev-expand)))
 
-;; ;; ミニバッファでは英数字入力に
-;; (when (functionp 'mac-auto-ascii-mode)
-;;     (mac-auto-ascii-mode 1))
+;; ミニバッファでは英数字入力に
+(when (functionp 'mac-auto-ascii-mode)
+    (mac-auto-ascii-mode 1))
 
 ;; window操作
 (global-set-key (kbd "C-o") (lambda () (interactive) (other-window 1)))
