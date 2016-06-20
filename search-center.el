@@ -19,17 +19,17 @@
 
 ;;; Ussage:
 ;; "o" means smartrep mode
-;; | s-f | C-f f |   | show search/replace windows        | 検索置換窓の表示
-;; | s-F | C-f F |   | toggle regexp or not               | 正規表現モードトグル
-;; | s-e | C-f e |   | set region to search               | 検索文字にセット
-;; | s-E | C-f E |   | set region to replace              | 置換文字にセット
-;; | s-g | C-f g | o | search next                        | 次を検索
-;; | s-G | C-f G | o | Search previous                    | 前を検索
-;; | s-l | C-f l | o | replace and search next            | 置換して次を検索
-;; | s-r | C-f r | o | replace current region             | 選択範囲を置換
-;; | s-R | C-f R | o | replace all                        | バッファ内全てを置換
-;; | s-M | C-f m |   | interactive rgrep by search string | 対話的にrgrep
-;; | s-h | C-f h |   | select target window               | 対象ウィンドウを選択
+;; | s-f | C-x f f |   | show search/replace windows        | 検索置換窓の表示
+;; | s-F | C-x f F |   | toggle regexp or not               | 正規表現モードトグル
+;; | s-e | C-x f e |   | set region to search               | 検索文字にセット
+;; | s-E | C-x f E |   | set region to replace              | 置換文字にセット
+;; | s-g | C-x f g | o | search next                        | 次を検索
+;; | s-G | C-x f G | o | Search previous                    | 前を検索
+;; | s-l | C-x f l | o | replace and search next            | 置換して次を検索
+;; | s-r | C-x f r | o | replace current region             | 選択範囲を置換
+;; | s-R | C-x f R | o | replace all                        | バッファ内全てを置換
+;; | s-M | C-x f m |   | interactive rgrep by search string | 対話的にrgrep
+;; | s-h | C-x f h |   | select target window               | 対象ウィンドウを選択
 ;;
 ;; sc/is-use-super nil
 ;; sc/is-use-default-key-binds t
@@ -241,9 +241,9 @@
 
 ;; set prefix-key to C-f
 (when sc/is-use-default-key-binds
-	(global-set-key (kbd "C-f") nil)
+	(global-set-key (kbd "C-x f") nil)
 	(defvar sc/keybind-map (make-sparse-keymap) "Set search-center keymap.")
-	(global-set-key (kbd "C-f") sc/keybind-map)
+	(global-set-key (kbd "C-x f") sc/keybind-map)
 
 	(define-key sc/keybind-map (kbd "f") 'sc/show-windows)
 	(define-key sc/keybind-map (kbd "F") 'sc/toggle-search-mode)
