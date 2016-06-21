@@ -356,7 +356,7 @@
 ;; あとは\tを挿入
 
 (defun my-tab-dwim ()
-	"Insert tab or jump to link."
+	"Insert tab, indent, jump to link etc."
 	(interactive)
 	(cond
 	 ;; ewwバッファだったら次のリンク
