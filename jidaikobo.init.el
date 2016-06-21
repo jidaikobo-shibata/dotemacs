@@ -368,18 +368,20 @@
 	 ;; Anythingのときにはアクション選択
 	 (anything-alive-p
 		(anything-select-action))
-	 ;; grepバッファだったら次のリンク
-	 ;; ((string= (buffer-name) "*grep*")
-	 ;; 	(next-error-no-select))
 	 ;; ミニバッファだったらミニバッファ補完
 	 ((minibufferp (current-buffer))
 		(minibuffer-complete))
-	 ;; 選択範囲があるか、直前がエンターだったらインデント
+	 ;; 選択範囲に改行を含んでいるか、直前がエンターだったらインデント
 	 ((or (memq last-command '(newline))
-				mark-active)
+				(and mark-active
+						 (string-match
+							"\n$"
+							(buffer-substring-no-properties (region-beginning)
+																							(region-end)))))
 		(indent-for-tab-command))
 	 ;; タブを挿入
 	 (t
+		(when mark-active (delete-region (region-beginning) (region-end)))
 		(insert "\t"))))
 
 (global-set-key (kbd "<tab>") 'my-tab-dwim)
