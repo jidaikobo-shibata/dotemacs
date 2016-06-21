@@ -32,7 +32,6 @@
 ;; cd ~/.emacs.d
 ;; mkdir elisp
 ;; wget https://www.emacswiki.org/emacs/download/ac-anything.el ac-anything.el
-;; wget http://www.emacswiki.org/cgi-bin/wiki/download/anything-match-plugin.el anything-match-plugin.el
 
 ;;; Code:
 
@@ -237,8 +236,7 @@
 			popwin
 			yagist
 			web-beautify
-			elscreen
-			smex))
+			elscreen))
 
 	;; my-packagesからインストールしていないパッケージをインストール
 	(dolist (package my-packages)
@@ -271,7 +269,6 @@
 ;;; localize
 
 (add-to-list 'Info-directory-list "~/info")
-
 
 ;;; ------------------------------------------------------------
 ;;; キーボード操作
@@ -352,13 +349,6 @@
 (global-set-key (kbd "M-¥") "\\")
 
 ;;; ------------------------------------------------------------
-;;; M-xをidoのflex-match対応に
-;; thx http://rubikitch.com/2014/12/16/smex/
-(smex-initialize)
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
-
-;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い
 ;; ewww/read-onlyバッファではリンクの移動
 ;; ミニバッファだったらミニバッファ補完
@@ -375,6 +365,9 @@
 	 ;; read onlyバッファだったら次のリンク
 	 (buffer-read-only
 		(forward-button 1 t))
+	 ;; Anythingのときにはアクション選択
+	 (anything-alive-p
+		(anything-select-action))
 	 ;; grepバッファだったら次のリンク
 	 ;; ((string= (buffer-name) "*grep*")
 	 ;; 	(next-error-no-select))
@@ -609,11 +602,16 @@
 (setq alist-anything-for-files
 			'((anything-c-source-emacs-commands
 				 anything-c-source-gtags-select)
+				;; anything-c-source-emacs-commands
 				;; anything-c-source-files-in-current-dir+
 				;; anything-c-source-buffers-list ;; *のバッファでAnythingを止めることがある
 				anything-c-source-find-by-gtags
 				anything-c-source-bookmarks
 				anything-c-source-recentf))
+
+;; M-xによる補完をAnythingで行なう
+(require 'anything-complete)
+(anything-read-string-mode 1)
 
 ;;; ------------------------------------------------------------
 ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
@@ -1612,8 +1610,8 @@ It defaults to a comma."
 (setq ac-auto-start nil)
 (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
 
-(require 'ac-anything)
-(define-key ac-complete-mode-map (kbd "C--") 'ac-complete-with-anything)
+(when (require 'ac-anything nil t)
+	(define-key ac-complete-mode-map (kbd "C--") 'ac-complete-with-anything))
 
 ;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
