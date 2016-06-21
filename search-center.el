@@ -261,7 +261,7 @@
 	(when (package-installed-p 'smartrep)
 		(require 'smartrep)
 		(declare-function smartrep-define-key "smartrep")
-		(smartrep-define-key global-map "C-f"
+		(smartrep-define-key global-map "C-x f"
 			'(("g" . 'sc/alias-search-next)
 				("G" . 'sc/alias-search-prev)
 				("l" . 'sc/alias-replace-next)
