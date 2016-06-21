@@ -613,6 +613,9 @@
 (require 'anything-complete)
 (anything-read-string-mode 1)
 
+;; Anythingでファイルを開く方法をFind file as rootにしたときにsudoで開くように
+(setq anything-su-or-sudo "sudo")
+
 ;;; ------------------------------------------------------------
 ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
 
