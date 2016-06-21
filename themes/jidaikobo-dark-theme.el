@@ -270,6 +270,10 @@
 		((t (:foreground "grey50"
 				 :background "black"
 				 :box nil))))
+	`(tabbar-selected-modified
+		((t (:foreground "black"
+				 :background "grey90"
+				 :box nil))))
 
 	 ;; TODO
 	 ;; ido-mode
