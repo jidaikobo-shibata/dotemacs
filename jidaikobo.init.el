@@ -236,6 +236,7 @@
 			popwin
 			yagist
 			web-beautify
+;;			key-chord
 			elscreen))
 
 	;; my-packagesからインストールしていないパッケージをインストール
@@ -1543,7 +1544,7 @@ It defaults to a comma."
 						 (define-key php-mode-map "}" 'self-insert-command)
 						 (define-key php-mode-map "/" 'self-insert-command)
 						 (define-key php-mode-map "#" 'self-insert-command)
-						 (define-key php-mode-map (kbd "M-TAB") 'auto-complete)
+						 (setq php-manual-url "http://jp2.php.net/manual/ja/")
 						 (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
 
 ;;; ------------------------------------------------------------
@@ -1610,13 +1611,29 @@ It defaults to a comma."
 (require 'auto-complete)
 (require 'auto-complete-config)
 (global-auto-complete-mode t)
-(setq ac-dwim t)
+(setq ac-dwim nil)
+(setq ac-ignore-case t)
 (setq ac-disable-faces nil)
 (setq ac-auto-start nil)
 (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+(define-key ac-mode-map (kbd "M-/") 'auto-complete)
 
+;; ac-anything
 (when (require 'ac-anything nil t)
-	(define-key ac-complete-mode-map (kbd "C--") 'ac-complete-with-anything))
+	(define-key ac-complete-mode-map (kbd "M-TAB") 'ac-complete-with-anything)
+	(define-key ac-complete-mode-map (kbd "M-/") 'ac-complete-with-anything))
+
+;; hooks
+(add-hook 'html-mode-hook
+					'(lambda()
+						 (auto-complete-mode t)
+						 (define-key html-mode-map (kbd "<M-tab>") 'auto-complete)
+						 (define-key html-mode-map (kbd "M-/") 'auto-complete)))
+
+(add-hook 'php-mode-hook
+					'(lambda()
+						 (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)
+						 (define-key html-mode-map (kbd "M-/") 'auto-complete)))
 
 ;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
