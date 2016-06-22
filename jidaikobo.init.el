@@ -942,7 +942,7 @@
 	(global-set-key (kbd "M-s-<right>") 'tabbar-forward-tab)
 	(global-set-key (kbd "M-s-<left>") 'tabbar-backward-tab)
 	(global-set-key (kbd "s-t") 'my-new-tab)
-	(global-set-key (kbd "M-s-t") 'move-current-tab-to-top)
+	(global-set-key (kbd "C-s-t") 'move-current-tab-to-top)
 
 	;; 幾つかのウィンドウでは、タブ移動しない
 	(defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
