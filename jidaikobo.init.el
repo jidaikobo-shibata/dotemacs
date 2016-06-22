@@ -1158,7 +1158,7 @@
 				 "*anything-dired*")
 				(kill-buffer curbuf))))
 
-(define-key dired-mode-map (kbd "p") 'my/anything-dired)
+(define-key dired-mode-map (kbd "C-;") 'my/anything-dired)
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
