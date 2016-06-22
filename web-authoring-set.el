@@ -91,9 +91,14 @@
 ;; php without ip
 (global-set-key (kbd "s-M-z") (lambda () (interactive)
 																(dump-values "php" ""))) ; cmd+opt+z
+(global-set-key (kbd "s-M-@") (lambda () (interactive)
+																(dump-values "php" "")))
 ;; php with ip
 (global-set-key (kbd "s-M-Z") (lambda (ip) (interactive "sIP:")
 																(dump-values "php" ip))) ; cmd+opt+shift+z
+(global-set-key (kbd "s-M-`") (lambda (ip) (interactive "sIP:")
+																(dump-values "php" ip))) ; cmd+opt+shift+z
+
 ;; JavaScript
 ;;(global-set-key (kbd "s-M-z") (lambda () (interactive)
 ;;																(dump-values "javascript" ""))) ; cmd+opt+z
