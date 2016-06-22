@@ -1,5 +1,5 @@
 ;;; web-authoring-set.el --- jidaikobo web authoring
-;; Copyright (C) 2015 by jidaikobo-shibata
+;; Copyright (C) 2016 by jidaikobo-shibata
 ;; Author: jidaikobo
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
@@ -9,38 +9,37 @@
 ;; 基本的にはcmd+opt+(M-s-)となにか一文字で操作する
 
 ;; cmd+opt+v: 任意のタグ
-;; -cmd+opt+a: anchor
-;; -cmd+opt+shift+5: anchor self
 ;; -cmd+opt+1: h1
 ;; -cmd+opt+2: h2
 ;; -cmd+opt+3: h3
 ;; -cmd+opt+4: h4
 ;; -cmd+opt+5: h5
 ;; -cmd+opt+6: h6
-;; -cmd+opt+t: table intaractive
-;; -cmd+opt+s: span
-;; -cmd+opt+g: strong
-;; -cmd+opt+u: ul
-;; -cmd+opt+o: ol
 ;; -cmd+opt+d: dl
+;; -cmd+opt+a: anchor
+;; -cmd+opt+shift+5: anchor self
+;; -cmd+opt+c: comment out
+;; -cmd+opt+d: dl
+;; -cmd+opt+e: em
+;; -cmd+opt+g: strong
+;; -cmd+opt+l: li each
+;; -cmd+opt+p: p each lines (semi-auto)
+;; -cmd+opt+shift+p: p
 ;; -cmd+opt+q: blockquote
-;; -cmd+opt+p: p
-;; -cmd+opt+shift+p: p each lines
+;; -cmd+opt+o: ol
+;; -cmd+opt+s: span
+;; -cmd+opt+t: table intaractive
+;; -cmd+opt+u: ul
+;; -cmd+opt+y: ruby intaractive
 ;;
 ;; cmd+shift+a: タグを選択
 ;; cmd+RET: <br />を入力
-;; cmd+opt+r: タグを削除
+;; cmd+opt+r: タグを削除 intaractive
 ;; cmd+opt+shift+r: タグを実体参照（or タグ）に
 ;;
 ;; cmd+opt+z: var_dump()
 ;; cmd+opt+shift+z: var_dump()でipを指定
 ;; cmd+opt+k: 編集中のファイルのカレントパス
-;;
-;; cmd+/: 選択範囲を一行に
-;; cmd+u: 選択範囲の全角数字を半角に
-;; cmd+shift+u: 選択範囲をuppper case
-;; cmd+shift+l: 選択範囲をlower case
-;; cmd+shift+c: 選択範囲をcapitalize
 
 ;;; Code:
 
@@ -141,6 +140,7 @@
 				 (cursor+ 0)
 				 cursor
 				 url
+				 ruby
 				 type
 				 html
 				 lines
@@ -149,14 +149,21 @@
 
 		;; use with completing
 		(unless tag
-			(setq tag (completing-read "Tag (default \"div\"): " '(("table", "table")
-																						("select", "select")
-																						("script", "script")
-																						("style", "style")
-																						("input", "input")
-																						("form", "form")
-																						("label", "label")
-																						("textarea", "textarea")))))
+			(setq tag (completing-read "Tag (default \"div\"): "
+																 '(("table", "table")
+																	 ("section", "section")
+																	 ("header", "header")
+																	 ("footer", "footer")
+																	 ("aside", "aside")
+																	 ("article", "article")
+																	 ("select", "select")
+																	 ("script", "script")
+																	 ("style", "style")
+																	 ("input", "input")
+																	 ("form", "form")
+																	 ("label", "label")
+																	 ("ruby", "ruby")
+																	 ("textarea", "textarea")))))
 
 		(cond
 		 ;; anchor
@@ -164,6 +171,7 @@
 			(setq url (read-string "url: " nil 'my-history)
 						tag (concat "<a href=\"" url "\">" word "</a>")
 						cursor- -4))
+
 		 ;; anchor-url
 		 ((string-equal tag "a-url")
 			(if (string-match "@" word)
@@ -171,6 +179,7 @@
 								cursor- -4)
 				(setq tag (concat "<a href=\"" word "\">" word "</a>")
 							cursor- -4)))
+
 		 ;; input
 		 ((string-equal tag "input")
 			(setq type (read-number "type (1:text, 2:hidden, 3:radio, 4:checkbox, 5:submit, 6:password, 7:image, 8:file): " nil)
@@ -228,11 +237,29 @@
 
 		 ;; p-each
 		 ((string-equal tag "p-each")
+			;; <br>が含まれていたらeachしない
+			(if (string-match
+					 "<br>\\|<br />\\|<br/>"
+					 (buffer-substring-no-properties (region-beginning)
+																					 (region-end)))
+					(setq tag (concat "<p>" word "</p>")
+								cursor+ 2)
+				;; <br>が含まれていないのでeach
+				(setq html ""
+							lines (split-string word "\n"))
+				(while lines
+					(if (string-equal (car lines) "") nil
+						(progn (setq html (concat html "<p>" (car lines) "</p>\n"))))
+					(setq lines (cdr lines)))
+				(setq tag html)))
+
+		 ;; li-each
+		 ((string-equal tag "li-each")
 			(setq html ""
 						lines (split-string word "\n"))
 			(while lines
 				(if (string-equal (car lines) "") nil
-					(progn (setq html (concat html "<p>" (car lines) "</p>\n"))))
+					(progn (setq html (concat html "<li>" (car lines) "</li>\n"))))
 				(setq lines (cdr lines)))
 			(setq tag html))
 
@@ -279,6 +306,12 @@
 		 ((string-equal tag "comment-out")
 			(setq tag (concat "<!-- " word " -->")
 						cursor+ 5))
+
+		 ;; ruby
+		 ((string-equal tag "ruby")
+			(setq ruby (read-string "ruby: " nil 'my-history)
+						tag (concat "<ruby><rb>" word "</rb><rt>" ruby "</rt></ruby>")
+						cursor+ 10))
 
 		 ;; script
 		 ((string-equal tag "script")
@@ -368,50 +401,68 @@
 (global-set-key (kbd "s-M-A") '(lambda ()
 																 (interactive)
 																 (any-html-tag "a-url"))) ; opt+cmd+shif+a
+;;; comment-out
+(global-set-key (kbd "s-M-c") '(lambda ()
+																 (interactive)
+																 (any-html-tag "comment-out"))) ; opt+cmd+c
+;;; dl-dt-dd
+(global-set-key (kbd "s-M-d") '(lambda ()
+																 (interactive)
+																 (any-html-tag "dl-dt-dd"))) ; opt+cmd+d
+
+;;; em
+(global-set-key (kbd "s-M-e") '(lambda ()
+																 (interactive)
+																 (any-html-tag "em"))) ; opt+cmd+e
+
 ;;; strong
 (global-set-key (kbd "s-M-g") '(lambda ()
 																 (interactive)
 																 (any-html-tag "strong"))) ; opt+cmd+g
 
-;;; span
-(global-set-key (kbd "s-M-s") '(lambda ()
+;;; li-each
+(global-set-key (kbd "s-M-l") '(lambda ()
 																 (interactive)
-																 (any-html-tag "span"))) ; opt+cmd+s
-
-;;; comment-out
-(global-set-key (kbd "s-M-c") '(lambda ()
-																 (interactive)
-																 (any-html-tag "comment-out"))) ; opt+cmd+c
-
-;;; blockquote
-(global-set-key (kbd "s-M-q") '(lambda ()
-																 (interactive)
-																 (any-html-tag "blockquote"))) ; opt+cmd+q
-
-;;; p
-(global-set-key (kbd "s-M-p") '(lambda ()
-																 (interactive)
-																 (any-html-tag "p-each"))) ; opt+cmd+p
-
-;;; ul-li
-(global-set-key (kbd "s-M-u") '(lambda ()
-																 (interactive)
-																 (any-html-tag "ul-li"))) ; opt+cmd+u
+																 (any-html-tag "li-each"))) ; opt+cmd+l
 
 ;;; ol-li
 (global-set-key (kbd "s-M-o") '(lambda ()
 																 (interactive)
 																 (any-html-tag "ol-li"))) ; opt+cmd+o
 
-;;; dl-dt-dd
-(global-set-key (kbd "s-M-d") '(lambda ()
+;;; p-each
+(global-set-key (kbd "s-M-p") '(lambda ()
 																 (interactive)
-																 (any-html-tag "dl-dt-dd"))) ; opt+cmd+d
+																 (any-html-tag "p-each"))) ; opt+cmd+p
 
+;;; p
+(global-set-key (kbd "s-M-P") '(lambda ()
+																 (interactive)
+																 (any-html-tag "p"))) ; opt+cmd+P
+
+;;; blockquote
+(global-set-key (kbd "s-M-q") '(lambda ()
+																 (interactive)
+																 (any-html-tag "blockquote"))) ; opt+cmd+q
+
+;;; span
+(global-set-key (kbd "s-M-s") '(lambda ()
+																 (interactive)
+																 (any-html-tag "span"))) ; opt+cmd+s
 ;;; table
 (global-set-key (kbd "s-M-t") '(lambda ()
 																 (interactive)
 																 (any-html-tag "table"))) ; opt+cmd+t
+
+;;; ul-li
+(global-set-key (kbd "s-M-u") '(lambda ()
+																 (interactive)
+																 (any-html-tag "ul-li"))) ; opt+cmd+u
+
+;;; ruby
+(global-set-key (kbd "s-M-y") '(lambda ()
+																 (interactive)
+																 (any-html-tag "ruby"))) ; opt+cmd+y
 
 ;;; remove-html-tags
 (defun remove-html-tags (tag)
