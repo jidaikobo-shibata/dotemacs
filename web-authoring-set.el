@@ -541,6 +541,61 @@
 (global-set-key (kbd "s-A") 'region-angle-brackets) ; cmd+shift+a
 
 ;;; ------------------------------------------------------------
+;;; smartyのコメントアウトを実装
+;; multiline fontlock
+;; https://www.emacswiki.org/emacs/MultilineFontLock
+;; MultilineRegexp
+;; https://www.emacswiki.org/emacs/MultilineRegexp
+;; http://d.hatena.ne.jp/osaboh/20070716/p3
+;; http://emacs.stackexchange.com/questions/14887/matching-multiline-comments-in-regex
+
+;; (defun font-lock-user-keywords (mode &optional keywords)
+;;   "Add user highlighting to KEYWORDS to MODE.
+;; See `font-lock-add-keywords' and `font-lock-defaults'."
+;;   (unless mode
+;;     (error "mode should be non-nil "))
+;;   (font-lock-remove-keywords mode (get mode 'font-lock-user-keywords))
+;;   (font-lock-add-keywords mode keywords)
+;;   (put mode 'font-lock-user-keywords keywords))
+
+;; (font-lock-user-keywords
+;;  'html-mode
+;;  '(("!" . font-lock-warning-face)
+;;    ;; ("<{\\*\\(.\\|\\)*?\\*}>" . font-lock-comment-face)
+;;    ("<{\\*[[:ascii:][:nonascii:]\"]*?\\*}>" . font-lock-comment-face)
+;; ))
+;; (font-lock-user-keywords 'html-mode)
+
+;; (add-hook 'html-mode-hook
+;; 					'(lambda()
+;; 						(font-lock-add-keywords nil '(("[:ascii:]" . font-lock-comment-face)))))
+
+;; (defun xoops-smarty-comment-setting ()
+;; 	(make-local-variable 'comment-start)
+;; 	(setq comment-start "<{\*")
+;; 	(make-local-variable 'comment-end)
+;; 	(setq comment-end "\*}>")
+;; 	(make-local-variable 'comment-multi-line)
+;; 	(setq comment-multi-line t))
+;; (add-hook 'html-mode-hook 'xoops-smarty-comment-setting)
+
+;; (add-hook 'html-mode-hook 'html-comment-syntax)
+
+;; (defun html-comment-syntax ()
+;;   (setq-local syntax-propertize-function 'html-comment-propertize-function))
+
+;; (defun html-comment-propertize-function (begin end)
+;; 	(funcall
+;; 	 (syntax-propertize-rules
+;; 		("\\(<\\){\\*" (1 "< b"))
+;; 		("\*}[ \t\n]*\\(>\\)" (1 "> b"))
+;; 		("\"" (0 (if (prog1 (zerop (car (syntax-ppss (match-beginning 0))))
+;; 									 (goto-char (match-end 0)))
+;; 								 (string-to-syntax ".")))))
+;; 	 begin
+;; 	 end))
+
+;;; ------------------------------------------------------------
 ;;; Provide
 
 (provide 'web-authoring-set)
