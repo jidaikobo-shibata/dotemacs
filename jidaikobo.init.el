@@ -1281,6 +1281,7 @@ It defaults to a comma."
 										(read-string " Expression: " "")))
 				 (is_num_format (string-match "," (buffer-substring-no-properties beg end)))
 				 result)
+		;; 余計なものを取り払って計算の準備
 		(when mark-active
 			(with-temp-buffer
 				(insert strings)
@@ -1295,7 +1296,10 @@ It defaults to a comma."
 			(end-of-line)
 			(newline))
 		(setq result (calc-eval strings))
-		(if is_num_format (setq result (add-number-grouping (string-to-number result) ",")))
+		;; カンマ整形されている計算式だったらカンマ区切りで返す
+		(when is_num_format (setq result (add-number-grouping (string-to-number result) ",")))
+		;; (calc-eval)は、小数点を含んだ式の場合、整数でも末尾にピリオドをつけるので抑止
+		(when (string-match "\.$" result) (setq result (substring result 0 (match-beginning 0))))
 		(insert result)))
 (global-set-key (kbd "M-c") 'calculate-region-and-insert)
 
