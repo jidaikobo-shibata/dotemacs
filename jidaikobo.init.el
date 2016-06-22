@@ -420,6 +420,15 @@
 		(back-to-indentation)))
 
 ;;; ------------------------------------------------------------
+;;; align-regexpが、スペースを詰めるように
+
+(defadvice align-regexp (around advise-align-regexp activate)
+  "Let align-regexp indent by spaces."
+  (setq indent-tabs-mode nil)
+  ad-do-it
+  (setq indent-tabs-mode t))
+
+;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
 
 (defvar next-block-previous-direction nil)
@@ -1550,6 +1559,24 @@ It defaults to a comma."
 						 (define-key php-mode-map "#" 'self-insert-command)
 						 (setq php-manual-url "http://jp2.php.net/manual/ja/")
 						 (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
+
+;; thx http://d.hatena.ne.jp/Tetsujin/20070614/1181757931
+(require 'align)
+(add-to-list 'align-rules-list
+             '(php-assignment
+               (regexp . "[^-=!^&*+<>/.| \t\n]\\(\\s-*[.-=!^&*+<>/|]*\\)=>?\\(\\s-*\\)\\([^= \t\n]\\|$\\)")
+               (justify .t)
+               (tab-stop . nil)
+               (modes . '(php-mode))))
+(add-to-list 'align-dq-string-modes 'php-mode)
+(add-to-list 'align-sq-string-modes 'php-mode)
+(add-to-list 'align-open-comment-modes 'php-mode)
+(setq align-region-separate (concat "\\(^\\s-*$\\)\\|"
+                                    "\\([({}\\(/\*\\)]$\\)\\|"
+                                    "\\(^\\s-*[)}\\(\*/\\)][,;]?$\\)\\|"
+                                    "\\(^\\s-*\\(}\\|for\\|while\\|if\\|else\\|"
+                                    "switch\\|case\\|break\\|continue\\|do\\)[ ;]\\)"
+                                    ))
 
 ;;; ------------------------------------------------------------
 ;;; text-mode
