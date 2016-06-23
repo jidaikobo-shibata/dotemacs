@@ -344,6 +344,74 @@
 ;; opt+¥でバックスラッシュを入力
 (global-set-key (kbd "M-¥") "\\")
 
+
+;;; ------------------------------------------------------------
+;;; auto-complete
+
+(require 'auto-complete)
+(require 'auto-complete-config)
+(global-auto-complete-mode t)
+(setq ac-dwim nil)
+(setq ac-ignore-case t)
+(setq ac-disable-faces nil)
+(setq ac-auto-start nil)
+(define-key ac-mode-map (kbd "<M-tab>") 'auto-complete)
+(define-key ac-mode-map (kbd "M-/") 'auto-complete)
+
+;; ac-anything
+(when (require 'ac-anything nil t)
+  (define-key ac-complete-mode-map (kbd "<M-tab>") 'ac-complete-with-anything)
+  (define-key ac-complete-mode-map (kbd "M-/") 'ac-complete-with-anything))
+
+;; hooks
+(add-hook 'html-mode-hook
+          '(lambda()
+             (auto-complete-mode t)
+             (define-key html-mode-map (kbd "<M-tab>") 'auto-complete)
+             (define-key html-mode-map (kbd "M-/") 'auto-complete)))
+
+(add-hook 'php-mode-hook
+          '(lambda()
+             (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)
+             (define-key php-mode-map (kbd "M-/") 'auto-complete)))
+
+(add-hook 'kontiki-mode-hook
+          '(lambda()
+             (define-key kontiki-mode-map (kbd "<M-tab>") 'auto-complete)
+             (define-key kontiki-mode-map (kbd "M-/") 'auto-complete)))
+
+;; ユーザ辞書ディレクトリ
+(defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
+
+;; 英語
+;; thx http://tech.basicinc.jp/Mac/2013/08/04/linux_command/
+(defvar ac-english-cache
+	(ac-file-dictionary "/usr/share/dict/words"))
+(defvar ac-english-dict
+	'((candidates . ac-english-cache)))
+
+;; 技術語
+(defvar ac-technical-term-cache
+	(ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
+(defvar ac-technical-term-dict
+	'((candidates . ac-technical-term-cache)))
+
+;; 条件の追加
+(add-to-list 'ac-modes 'text-mode)
+(add-to-list 'ac-modes 'fundamental-mode)
+(setq-default ac-sources '(ac-source-words-in-same-mode-buffers
+                           ;; ac-source-filename
+                           ac-source-symbols
+                           ac-technical-term-dict
+                           ac-english-dict))
+
+;; auto-complete の候補に日本語を含む単語が含まれないようにする
+;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
+(defadvice ac-word-candidates (after remove-word-contain-japanese activate)
+  (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
+    (setq ad-return-value
+          (remove-if contain-japanese ad-return-value))))
+
 ;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い
 ;; ewww/read-onlyバッファではリンクの移動
@@ -381,6 +449,12 @@
     (insert "\t"))))
 
 (global-set-key (kbd "<tab>") 'my-tab-dwim)
+
+;; hooks
+(add-hook 'php-mode-hook
+          '(lambda()
+             (define-key php-mode-map (kbd "TAB") 'my-tab-dwim)
+             (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
 
 ;; defadvice-indent-for-tab-command
 ;; gist-description: Emacs(Elisp): To integrate indent style, delete existing whitespaces before indent-for-tab-command. indent-for-tab-commandの前に存在する行頭ホワイトスペースを削除することでインデントスタイルを統一する
@@ -427,10 +501,10 @@
     (or (nth 3 state) (nth 4 state))))
 
 (defun-if-undefined re-search-forward-without-string-and-comments (&rest args)
-  (let ((value (apply #'re-search-forward args)))
-    (if (and value (inside-string-or-comment-p))
-        (apply #'re-search-forward-without-string-and-comments args)
-      value)))
+	(let ((value (apply #'re-search-forward args)))
+		(if (and value (inside-string-or-comment-p))
+				(apply #'re-search-forward-without-string-and-comments args)
+			value)))
 
 (defun my-buffer-indent-tabs-code-p (&optional buffer)
   "Check first indent char."
@@ -447,19 +521,9 @@
 (defun my-set-indent-tabs-mode ()
   (setq indent-tabs-mode (my-buffer-indent-tabs-code-p)))
 
+;; hooks
 (add-hook 'emacs-lisp-mode-hook #'my-set-indent-tabs-mode)
-(add-hook 'java-mode-hook #'my-set-indent-tabs-mode)
-(add-hook 'html-mode-hook #'my-set-indent-tabs-mode)
-(add-hook 'perl-mode-hook #'my-set-indent-tabs-mode)
-(add-hook 'python-mode-hook #'my-set-indent-tabs-mode)
-(add-hook 'ruby-mode-hook #'my-set-indent-tabs-mode)
-(add-hook 'sh-mode-hook #'my-set-indent-tabs-mode)
-
-(add-hook 'php-mode-hook
-          '(lambda()
-             (setq tab-width 2)
-             (setq c-basic-offset 2)
-             (my-set-indent-tabs-mode)))
+(add-hook 'php-mode-hook #'my-set-indent-tabs-mode)
 
 ;;; ------------------------------------------------------------
 ;;; align-regexpが、indent-tabs-modeがtでも、スペースを詰めるように
@@ -848,7 +912,6 @@
 (require 'gtags)
 (setq gtags-path-style 'relative)
 
-;; キーバインド
 (setq-default gtags-mode-hook
               '(lambda ()
                  (local-set-key "\M-t" 'gtags-find-tag)
@@ -860,10 +923,9 @@
               '(lambda ()
                  (local-set-key (kbd "RET") 'gtags-select-tag)))
 
-;; gtags-mode を使いたい mode の hook に追加する
+;; hooks
 (add-hook 'php-mode-hook
           '(lambda()
-             ;; (gtags-make-complete-list)
              (gtags-mode 1)))
 
 ;; update GTAGS
@@ -1114,6 +1176,7 @@
   (global-linum-mode t)
   (setq-default linum-format "%5d: "))
 
+;; hooks
 (add-hook 'emacs-lisp-mode-hook 'show-line-number)
 (add-hook 'lisp-mode-hook 'show-line-number)
 (add-hook 'js-mode-hook 'show-line-number)
@@ -1512,7 +1575,8 @@ It defaults to a comma."
 (setq-default flycheck-emacs-lisp-load-path 'inherit)
 (global-set-key (kbd "<M-up>") 'flycheck-previous-error) ; previous error (M+up)
 (global-set-key (kbd "<M-down>") 'flycheck-next-error) ; next error (M+down)
-;; (add-hook 'after-init-hook #'global-flycheck-mode) ; HTMLでは抑止
+
+;; hooks
 (add-hook 'php-mode-hook 'flycheck-mode)
 
 ;;; ------------------------------------------------------------
@@ -1520,6 +1584,8 @@ It defaults to a comma."
 ;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
 
 (require 'rainbow-mode)
+
+;; hooks
 (add-hook 'fundamental-mode-hook 'rainbow-mode)
 (add-hook 'text-mode-hook 'rainbow-mode)
 (add-hook 'lisp-mode-hook 'rainbow-mode)
@@ -1539,7 +1605,7 @@ It defaults to a comma."
 ;  (setq comment-multi-line t))
 ;(add-hook 'html-mode-hook 'xoops-smarty-comment-setting)
 
-;; html-mode-hook
+;; hooks
 (add-hook 'html-mode-hook
           '(lambda()
              ;; (font-lock-add-keywords nil '(("<{\\*\\([^^J]\\|^J\\)+?\\*}>" . font-lock-comment-face)))
@@ -1550,15 +1616,17 @@ It defaults to a comma."
 
 (add-hook 'grep-mode-hook
           '(lambda()
-             (define-key grep-mode-map (kbd "C-o") (lambda () (interactive) (other-window 1)))
-             (define-key grep-mode-map (kbd "C-S-o") (lambda () (interactive) (other-window -1)))))
+             (define-key grep-mode-map (kbd "C-o")
+               (lambda () (interactive) (other-window 1)))
+             (define-key grep-mode-map (kbd "C-S-o")
+               (lambda () (interactive) (other-window -1)))))
 
 ;;; ------------------------------------------------------------
 ;;; web-mode
 
 (require 'web-mode)
 
-;; web-mode-hook
+;; hooks
 (add-hook 'web-mode-hook
           '(lambda()
              (setq web-mode-markup-indent-offset 2)
@@ -1570,6 +1638,8 @@ It defaults to a comma."
 (autoload 'css-mode "css-mode")
 (setq auto-mode-alist
       (cons '("\\.css$" . css-mode) auto-mode-alist))
+
+;; hooks
 (add-hook 'css-mode-hook
           (lambda ()
             (setq css-indent-offset 2)
@@ -1578,27 +1648,30 @@ It defaults to a comma."
 ;;; ------------------------------------------------------------
 ;;; js-mode
 
-(add-hook 'js-mode-hook '(lambda ()
-                           (flycheck-mode t)
-                           (setq js-indent-level 2)
-                           (setq indent-tabs-mode t)))
+(add-hook 'js-mode-hook
+          '(lambda ()
+             (flycheck-mode t)
+             (setq js-indent-level 2)
+             (setq indent-tabs-mode t)))
 
 ;;; ------------------------------------------------------------
 ;;; php-mode
 
 (require 'php-mode)
 
-;; php-mode-hook
+;; hooks
 (add-hook 'php-mode-hook
           '(lambda()
+             (setq tab-width 2)
+             (setq c-basic-offset 2)
+             (setq indent-tabs-mode t)
+             (setq php-manual-url "http://jp2.php.net/manual/ja/")
              (define-key php-mode-map ")" 'self-insert-command)
              (define-key php-mode-map "(" 'self-insert-command)
              (define-key php-mode-map "{" 'self-insert-command)
              (define-key php-mode-map "}" 'self-insert-command)
              (define-key php-mode-map "/" 'self-insert-command)
-             (define-key php-mode-map "#" 'self-insert-command)
-             (setq php-manual-url "http://jp2.php.net/manual/ja/")
-             (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
+             (define-key php-mode-map "#" 'self-insert-command)))
 
 ;; php-modeにalign-rulesを
 ;; thx http://d.hatena.ne.jp/Tetsujin/20070614/1181757931
@@ -1675,73 +1748,6 @@ It defaults to a comma."
 ;; 	(set-frame-size (selected-frame) 200 55)))
 
 (global-set-key (kbd "s-W") 'resize-selected-frame)
-
-;;; ------------------------------------------------------------
-;;; auto-complete
-
-(require 'auto-complete)
-(require 'auto-complete-config)
-(global-auto-complete-mode t)
-(setq ac-dwim nil)
-(setq ac-ignore-case t)
-(setq ac-disable-faces nil)
-(setq ac-auto-start nil)
-(define-key ac-mode-map (kbd "<M-tab>") 'auto-complete)
-(define-key ac-mode-map (kbd "M-/") 'auto-complete)
-
-;; ac-anything
-(when (require 'ac-anything nil t)
-  (define-key ac-complete-mode-map (kbd "<M-tab>") 'ac-complete-with-anything)
-  (define-key ac-complete-mode-map (kbd "M-/") 'ac-complete-with-anything))
-
-;; hooks
-(add-hook 'html-mode-hook
-          '(lambda()
-             (auto-complete-mode t)
-             (define-key html-mode-map (kbd "<M-tab>") 'auto-complete)
-             (define-key html-mode-map (kbd "M-/") 'auto-complete)))
-
-(add-hook 'php-mode-hook
-          '(lambda()
-             (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)
-             (define-key html-mode-map (kbd "M-/") 'auto-complete)))
-
-(add-hook 'kontiki-mode-hook
-          '(lambda()
-             (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)
-             (define-key html-mode-map (kbd "M-/") 'auto-complete)))
-
-;; ユーザ辞書ディレクトリ
-(defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
-
-;; 英語
-;; thx http://tech.basicinc.jp/Mac/2013/08/04/linux_command/
-(defvar ac-english-cache
-	(ac-file-dictionary "/usr/share/dict/words"))
-(defvar ac-english-dict
-	'((candidates . ac-english-cache)))
-
-;; 技術語
-(defvar ac-technical-term-cache
-	(ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
-(defvar ac-technical-term-dict
-	'((candidates . ac-technical-term-cache)))
-
-;; 条件の追加
-(add-to-list 'ac-modes 'text-mode)
-(add-to-list 'ac-modes 'fundamental-mode)
-(setq-default ac-sources '(ac-source-words-in-same-mode-buffers
-                           ;; ac-source-filename
-                           ac-source-symbols
-                           ac-technical-term-dict
-                           ac-english-dict))
-
-;; auto-complete の候補に日本語を含む単語が含まれないようにする
-;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
-(defadvice ac-word-candidates (after remove-word-contain-japanese activate)
-  (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
-    (setq ad-return-value
-          (remove-if contain-japanese ad-return-value))))
 
 ;;; ------------------------------------------------------------
 ;;; gist
