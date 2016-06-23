@@ -1646,12 +1646,12 @@ It defaults to a comma."
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
 (setq ac-auto-start nil)
-(define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+(define-key ac-mode-map (kbd "<M-tab>") 'auto-complete)
 (define-key ac-mode-map (kbd "M-/") 'auto-complete)
 
 ;; ac-anything
 (when (require 'ac-anything nil t)
-	(define-key ac-complete-mode-map (kbd "M-TAB") 'ac-complete-with-anything)
+	(define-key ac-complete-mode-map (kbd "<M-tab>") 'ac-complete-with-anything)
 	(define-key ac-complete-mode-map (kbd "M-/") 'ac-complete-with-anything))
 
 ;; hooks
@@ -1662,6 +1662,11 @@ It defaults to a comma."
 						 (define-key html-mode-map (kbd "M-/") 'auto-complete)))
 
 (add-hook 'php-mode-hook
+					'(lambda()
+						 (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)
+						 (define-key html-mode-map (kbd "M-/") 'auto-complete)))
+
+(add-hook 'kontiki-mode-hook
 					'(lambda()
 						 (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)
 						 (define-key html-mode-map (kbd "M-/") 'auto-complete)))
