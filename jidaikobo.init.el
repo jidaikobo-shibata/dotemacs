@@ -415,7 +415,22 @@
     (back-to-indentation)))
 
 ;;; Auto Setting `indent-tabs-mode' Variable
-;; thx http://www.greenwood.co.jp/~k-aki/article/emacs_autotab.html
+;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
+
+(if (not (fboundp 'defun-if-undefined))
+    (defmacro defun-if-undefined (name &rest rest)
+      `(unless (fboundp (quote ,name))
+         (defun ,name ,@rest))))
+
+(defun-if-undefined inside-string-or-comment-p ()
+  (let ((state (parse-partial-sexp (point-min) (point))))
+    (or (nth 3 state) (nth 4 state))))
+
+(defun-if-undefined re-search-forward-without-string-and-comments (&rest args)
+  (let ((value (apply #'re-search-forward args)))
+    (if (and value (inside-string-or-comment-p))
+        (apply #'re-search-forward-without-string-and-comments args)
+      value)))
 
 (defun my-buffer-indent-tabs-code-p (&optional buffer)
   "Check first indent char."
@@ -434,12 +449,17 @@
 
 (add-hook 'emacs-lisp-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'java-mode-hook #'my-set-indent-tabs-mode)
-(add-hook 'php-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'html-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'perl-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'python-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'ruby-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'sh-mode-hook #'my-set-indent-tabs-mode)
+
+(add-hook 'php-mode-hook
+          '(lambda()
+             (setq tab-width 2)
+             (setq c-basic-offset 2)
+             (my-set-indent-tabs-mode)))
 
 ;;; ------------------------------------------------------------
 ;;; align-regexpが、indent-tabs-modeがtでも、スペースを詰めるように
@@ -1571,9 +1591,6 @@ It defaults to a comma."
 ;; php-mode-hook
 (add-hook 'php-mode-hook
           '(lambda()
-             (setq tab-width 2)
-             (setq indent-tabs-mode t)
-             (setq c-basic-offset 2)
              (define-key php-mode-map ")" 'self-insert-command)
              (define-key php-mode-map "(" 'self-insert-command)
              (define-key php-mode-map "{" 'self-insert-command)
