@@ -18,278 +18,278 @@
 ;;; whitespace関連設定
 ;; thx http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
 (require 'whitespace)
-(setq whitespace-style '(face      ; faceで可視化
-												trailing   ; 行末
-												tabs       ; タブ
-												spaces     ; スペース
-												empty      ; 先頭/末尾の空行
-												space-mark ; 表示のマッピング
-												tab-mark
-												))
+(setq whitespace-style '(face       ; faceで可視化
+                         trailing   ; 行末
+                         tabs       ; タブ
+                         spaces     ; スペース
+                         empty      ; 先頭/末尾の空行
+                         space-mark ; 表示のマッピング
+                         tab-mark
+                         ))
 (setq whitespace-display-mappings
-			'((tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t])
-				;;(space-mark ?\u3000 [?\u25a1])
-				))
+      '((tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t])
+        ;;(space-mark ?\u3000 [?\u25a1])
+        ))
 
 ;;; ------------------------------------------------------------
 ;;; color palette
 (let ((class '((class color) (min-colors 89) (background dark)))
-			(jidaikobo-fg                "#ffffff")
-			(jidaikobo-bg                "#201f1f")
-			(jidaikobo-red-1             "#f87373")
-			(jidaikobo-red               "#ff0000")
-			(jidaikobo-pink              "#f92672")
-			(jidaikobo-orange-1          "#fd971f")
-			(jidaikobo-orange            "#e96529")
-			(jidaikobo-yellow            "#ffff00")
-			(jidaikobo-darkgoldenrod     "#e6db74")
-			(jidaikobo-wheat             "#c4be89")
-			(jidaikobo-olive             "#808000")
-			(jidaikobo-chartreuse        "#a6e22e")
-			(jidaikobo-lime              "#00ff00")
-			(jidaikobo-yellowgreen       "#83a300")
-			(jidaikobo-green             "#008000")
-			(jidaikobo-darkwine          "#1e0010")
-			(jidaikobo-maroon            "#800000")
-			(jidaikobo-wine              "#960050")
-			(jidaikobo-teal              "#008080")
-			(jidaikobo-aqua              "#00ffff")
-			(jidaikobo-blue-3            "#88ddff")
-			(jidaikobo-blue-2            "#77e9ef")
-			(jidaikobo-blue-1            "#66d9ef")
-			(jidaikobo-blue              "#0064ff")
-			(jidaikobo-dodgerblue        "#13354a")
-			(jidaikobo-slateblue         "#7070f0")
-			(jidaikobo-purple-2          "#be91fa")
-			(jidaikobo-purple-1          "#7f58c6")
-			(jidaikobo-purple            "#7b4eff")
-			(jidaikobo-palevioletred     "#d33682"))
+      (jidaikobo-fg            "#ffffff")
+      (jidaikobo-bg            "#201f1f")
+      (jidaikobo-red-1         "#f87373")
+      (jidaikobo-red           "#ff0000")
+      (jidaikobo-pink          "#f92672")
+      (jidaikobo-orange-1      "#fd971f")
+      (jidaikobo-orange        "#e96529")
+      (jidaikobo-yellow        "#ffff00")
+      (jidaikobo-darkgoldenrod "#e6db74")
+      (jidaikobo-wheat         "#c4be89")
+      (jidaikobo-olive         "#808000")
+      (jidaikobo-chartreuse    "#a6e22e")
+      (jidaikobo-lime          "#00ff00")
+      (jidaikobo-yellowgreen   "#83a300")
+      (jidaikobo-green         "#008000")
+      (jidaikobo-darkwine      "#1e0010")
+      (jidaikobo-maroon        "#800000")
+      (jidaikobo-wine          "#960050")
+      (jidaikobo-teal          "#008080")
+      (jidaikobo-aqua          "#00ffff")
+      (jidaikobo-blue-3        "#88ddff")
+      (jidaikobo-blue-2        "#77e9ef")
+      (jidaikobo-blue-1        "#66d9ef")
+      (jidaikobo-blue          "#0064ff")
+      (jidaikobo-dodgerblue    "#13354a")
+      (jidaikobo-slateblue     "#7070f0")
+      (jidaikobo-purple-2      "#be91fa")
+      (jidaikobo-purple-1      "#7f58c6")
+      (jidaikobo-purple        "#7b4eff")
+      (jidaikobo-palevioletred "#d33682"))
 
 ;;; ------------------------------------------------------------
 ;;; cursor
-;; thx http://keisanbutsuriya.hateblo.jp/entry/2016/04/10/115945
+  ;; thx http://keisanbutsuriya.hateblo.jp/entry/2016/04/10/115945
 
-	(if (fboundp 'mac-input-source)
-			(progn
-				(defun my-mac-selected-keyboard-input-source-chage-function ()
-					(let ((mac-input-source (mac-input-source)))
-						(set-cursor-color
-						 (if (string-match "com.apple.inputmethod.Kotoeri.Roman" mac-input-source)
-								 "white" "Red"))))
-				;; hook for cursor
-				(add-hook 'mac-selected-keyboard-input-source-change-hook
-									'my-mac-selected-keyboard-input-source-chage-function)
-				;; timer for cursor
-				(setq-default global-cursor-color-timer
-											(run-with-idle-timer
-											 0.03
-											 t
-											 'my-mac-selected-keyboard-input-source-chage-function)))
-		;; if not mac
-		(set-cursor-color "white"))
+  (if (fboundp 'mac-input-source)
+      (progn
+        (defun my-mac-selected-keyboard-input-source-chage-function ()
+          (let ((mac-input-source (mac-input-source)))
+            (set-cursor-color
+             (if (string-match "com.apple.inputmethod.Kotoeri.Roman" mac-input-source)
+                 "white" "Red"))))
+        ;; hook for cursor
+        (add-hook 'mac-selected-keyboard-input-source-change-hook
+                  'my-mac-selected-keyboard-input-source-chage-function)
+        ;; timer for cursor
+        (setq-default global-cursor-color-timer
+                      (run-with-idle-timer
+                       0.03
+                       t
+                       'my-mac-selected-keyboard-input-source-chage-function)))
+    ;; if not mac
+    (set-cursor-color "white"))
 
 ;;; ------------------------------------------------------------
 ;;; custom-theme-set-faces
-	(custom-theme-set-faces
-	 'jidaikobo-dark
+  (custom-theme-set-faces
+   'jidaikobo-dark
 
 ;;; ------------------------------------------------------------
 ;;; base
-	 `(default
-			((t (:foreground ,jidaikobo-fg
-					 :background ,jidaikobo-bg))))
-	 ;; `(cursor
-	 ;; 	 ((t (:foreground ,jidaikobo-bg
-	 ;; 				:background ,jidaikobo-fg))))
-	 `(fringe
-		 ((t (:foreground ,jidaikobo-bg
-					:background ,jidaikobo-bg)))) ;; フレームの余白
-	 `(highlight
-		 ((t (:background "grey"))))
-	 `(region
-		 ((t (:background ,jidaikobo-blue))
-			(t :inverse-video t)))
-	 `(warning
-		 ((t (:foreground ,jidaikobo-palevioletred
-					:weight bold))))
+   `(default
+      ((t (:foreground ,jidaikobo-fg
+                       :background ,jidaikobo-bg))))
+   ;; `(cursor
+   ;; 	 ((t (:foreground ,jidaikobo-bg
+   ;; 				:background ,jidaikobo-fg))))
+   `(fringe
+     ((t (:foreground ,jidaikobo-bg
+                      :background ,jidaikobo-bg)))) ;; フレームの余白
+   `(highlight
+     ((t (:background "grey"))))
+   `(region
+     ((t (:background ,jidaikobo-blue))
+      (t :inverse-video t)))
+   `(warning
+     ((t (:foreground ,jidaikobo-palevioletred
+                      :weight bold))))
 
 ;;; ------------------------------------------------------------
 ;;; font lock
 
-	 ;; コメント
-	 `(font-lock-comment-face
-		 ((t (:foreground ,jidaikobo-orange-1
-					:background ,jidaikobo-bg))))
-	 `(font-lock-comment-delimiter-face
-		 ((t (:foreground ,jidaikobo-orange-1
-					:background ,jidaikobo-bg))))
+   ;; コメント
+   `(font-lock-comment-face
+     ((t (:foreground ,jidaikobo-orange-1
+                      :background ,jidaikobo-bg))))
+   `(font-lock-comment-delimiter-face
+     ((t (:foreground ,jidaikobo-orange-1
+                      :background ,jidaikobo-bg))))
 
-	 ;; ビルトイン関数
-	 `(font-lock-builtin-face
-		 ((t (:foreground ,jidaikobo-aqua))))
+   ;; ビルトイン関数
+   `(font-lock-builtin-face
+     ((t (:foreground ,jidaikobo-aqua))))
 
-	 ;; 関数名
-	 `(font-lock-function-name-face
-		 ((t (:foreground ,jidaikobo-chartreuse))))
+   ;; 関数名
+   `(font-lock-function-name-face
+     ((t (:foreground ,jidaikobo-chartreuse))))
 
-	 ;; 変数名
-	 `(font-lock-variable-name-face
-		 ((t (:foreground ,jidaikobo-darkgoldenrod))))
-	 `(font-lock-warning-face
-		 ((t (:foreground ,jidaikobo-palevioletred
-					:weight bold))))
+   ;; 変数名
+   `(font-lock-variable-name-face
+     ((t (:foreground ,jidaikobo-darkgoldenrod))))
+   `(font-lock-warning-face
+     ((t (:foreground ,jidaikobo-palevioletred
+                      :weight bold))))
 
-	 ;; 定数
-	 `(font-lock-constant-face
-		 ((t (:foreground ,jidaikobo-wheat))))
-	 `(font-lock-doc-string-face
-		 ((t (:foreground ,jidaikobo-darkgoldenrod))))
+   ;; 定数
+   `(font-lock-constant-face
+     ((t (:foreground ,jidaikobo-wheat))))
+   `(font-lock-doc-string-face
+     ((t (:foreground ,jidaikobo-darkgoldenrod))))
 
-	 ;; キーワード
-	 `(font-lock-keyword-face
-		 ((t (:foreground ,jidaikobo-blue-1))))
+   ;; キーワード
+   `(font-lock-keyword-face
+     ((t (:foreground ,jidaikobo-blue-1))))
 
-	 ;; for easily-overlooked negation characters.
-	 `(font-lock-negation-char-face
-		 ((t (:foreground ,jidaikobo-orange
-					:weight bold))))
+   ;; for easily-overlooked negation characters.
+   `(font-lock-negation-char-face
+     ((t (:foreground ,jidaikobo-orange
+                      :weight bold))))
 
-	 ;; 数値
-	 `(font-lock-number-face
-		 ((t (:foreground ,jidaikobo-pink))))
-	 `(font-lock-preprocessor-face
-		 ((t (:inherit (font-lock-builtin-face)))))
-	 `(font-lock-regexp-grouping-backslash
-		 ((t (:inherit (bold)))))
-	 `(font-lock-regexp-grouping-construct
-		 ((t (:inherit (bold)))))
+   ;; 数値
+   `(font-lock-number-face
+     ((t (:foreground ,jidaikobo-pink))))
+   `(font-lock-preprocessor-face
+     ((t (:inherit (font-lock-builtin-face)))))
+   `(font-lock-regexp-grouping-backslash
+     ((t (:inherit (bold)))))
+   `(font-lock-regexp-grouping-construct
+     ((t (:inherit (bold)))))
 
-	 ;; 文字列
-	 `(font-lock-string-face
-		 ((t (:foreground ,jidaikobo-red-1))))
+   ;; 文字列
+   `(font-lock-string-face
+     ((t (:foreground ,jidaikobo-red-1))))
 
-	 ;; データ型名
-	 `(font-lock-type-face
-		 ((t (:foreground ,jidaikobo-pink))))
+   ;; データ型名
+   `(font-lock-type-face
+     ((t (:foreground ,jidaikobo-pink))))
 
 ;;; ------------------------------------------------------------
 ;;; mode line
-	 `(mode-line
-		 ((t (:foreground "black"
-					:background ,jidaikobo-wheat
-					:box nil))))
-	 `(mode-line-buffer-id
-		 ((t (:weight bold))))
-	 `(mode-line-inactive
-		 ((t (:foreground "grey30"
-	 		  :background ,jidaikobo-bg
-					:box nil))))
-	 `(mode-line-read-only-face
-		 ((t (:foreground "black"
-				  :background ,jidaikobo-red
-					:box nil))))
+   `(mode-line
+     ((t (:foreground "black"
+                      :background ,jidaikobo-wheat
+                      :box nil))))
+   `(mode-line-buffer-id
+     ((t (:weight bold))))
+   `(mode-line-inactive
+     ((t (:foreground "grey30"
+                      :background ,jidaikobo-bg
+                      :box nil))))
+   `(mode-line-read-only-face
+     ((t (:foreground "black"
+                      :background ,jidaikobo-red
+                      :box nil))))
 
 ;;; ------------------------------------------------------------
 ;;; header-line
-	 `(header-line
-		 ((t (:foreground ,jidaikobo-bg
-					:background ,jidaikobo-wheat
-					:weight bold))))
+   `(header-line
+     ((t (:foreground ,jidaikobo-bg
+                      :background ,jidaikobo-wheat
+                      :weight bold))))
 
 ;;; ------------------------------------------------------------
 ;;; isearch
-	 `(isearch
-		 ((t (:foreground "black"
-					:background ,jidaikobo-wheat
-					:weight bold))))
-	 `(isearch-fail
-		 ((t (:foreground ,jidaikobo-wine
-					:background ,jidaikobo-darkwine))))
+   `(isearch
+     ((t (:foreground "black"
+                      :background ,jidaikobo-wheat
+                      :weight bold))))
+   `(isearch-fail
+     ((t (:foreground ,jidaikobo-wine
+                      :background ,jidaikobo-darkwine))))
 
 ;;; ------------------------------------------------------------
 ;;; linum
-	 `(linum
-		 ((t (:foreground "grey30"
-					:background ,jidaikobo-bg))))
+   `(linum
+     ((t (:foreground "grey30"
+                      :background ,jidaikobo-bg))))
 
 ;;; ------------------------------------------------------------
 ;;; hl-line-mode
-	 `(hl-line-face
-		 ((,class (:background "grey60"))
-			(t :weight bold)))
-	 `(hl-line
-		 ((,class (:foreground nil
-							 :background "grey30"))
-			(t :weight bold
-				 :underline nil)))
+   `(hl-line-face
+     ((,class (:background "grey60"))
+      (t :weight bold)))
+   `(hl-line
+     ((,class (:foreground nil
+                           :background "grey30"))
+      (t :weight bold
+         :underline nil)))
 
 ;;; ------------------------------------------------------------
 ;;; whitespace
-	 `(whitespace-trailing
-		 ((t (:background ,jidaikobo-bg
-					:underline t))))
-	 `(whitespace-space
-		 ((t (:background ,jidaikobo-bg
-					:underline nil))))
-	 `(whitespace-empty
-		 ((t (:background ,jidaikobo-bg
-					:underline nil))))
-	 `(whitespace-tab
-		 ((t (:foreground "grey20"
-					:background ,jidaikobo-bg
-					:underline nil))))
+   `(whitespace-trailing
+     ((t (:background ,jidaikobo-bg
+                      :underline t))))
+   `(whitespace-space
+     ((t (:background ,jidaikobo-bg
+                      :underline nil))))
+   `(whitespace-empty
+     ((t (:background ,jidaikobo-bg
+                      :underline nil))))
+   `(whitespace-tab
+     ((t (:foreground "grey20"
+                      :background ,jidaikobo-bg
+                      :underline nil))))
 
 ;;; ------------------------------------------------------------
 ;;; auto-complete and popup
-	 `(ac-completion-face
-		 ((t (:foreground "purple"
-					:background "grey10"))))
-	 `(ac-candidate-face
-		 ((t (:foreground "grey50"))))
-	 `(ac-selection-face
-		 ((t (:background "grey40"))))
-	 `(popup-face
-		 ((t (:foreground "grey40"
-					:background "grey20"))))
+   `(ac-completion-face
+     ((t (:foreground "purple"
+                      :background "grey10"))))
+   `(ac-candidate-face
+     ((t (:foreground "grey50"))))
+   `(ac-selection-face
+     ((t (:background "grey40"))))
+   `(popup-face
+     ((t (:foreground "grey40"
+                      :background "grey20"))))
 
 ;;; ------------------------------------------------------------
 ;;; tabbar
-	`(tabbar-default
-		((t (:family (face-attribute 'default :family)
-				 :background "black"
-				 :height 0.9))))
-	`(tabbar-unselected
-		((t (:foreground "grey50"
-				 :background "black"
-				 :box nil))))
-	`(tabbar-selected
-		((t (:foreground "black"
-				 :background "grey90"
-				 :box nil))))
-	`(tabbar-modified
-		((t (:foreground "grey50"
-				 :background "black"
-				 :box nil))))
-	`(tabbar-selected-modified
-		((t (:foreground "black"
-				 :background "grey90"
-				 :box nil))))
+   `(tabbar-default
+     ((t (:family (face-attribute 'default :family)
+                  :background "black"
+                  :height 0.9))))
+   `(tabbar-unselected
+     ((t (:foreground "grey50"
+                      :background "black"
+                      :box nil))))
+   `(tabbar-selected
+     ((t (:foreground "black"
+                      :background "grey90"
+                      :box nil))))
+   `(tabbar-modified
+     ((t (:foreground "grey50"
+                      :background "black"
+                      :box nil))))
+   `(tabbar-selected-modified
+     ((t (:foreground "black"
+                      :background "grey90"
+                      :box nil))))
 
-	 ;; TODO
-	 ;; ido-mode
-	 ;; flycheck
-	 ;; show-paren
-	 ;; rainbow-delimiters
-	 ;; highlight-symbols
-	 ))
+   ;; TODO
+   ;; ido-mode
+   ;; flycheck
+   ;; show-paren
+   ;; rainbow-delimiters
+   ;; highlight-symbols
+   ))
 
 ;;; ------------------------------------------------------------
 ;;; Provide
 
 ;;;###autoload
 (when load-file-name
-	(add-to-list 'custom-theme-load-path
-							 (file-name-as-directory (file-name-directory load-file-name))))
+  (add-to-list 'custom-theme-load-path
+               (file-name-as-directory (file-name-directory load-file-name))))
 
 (provide-theme 'jidaikobo-dark)
 
