@@ -178,7 +178,7 @@
     (cond
      ;; anchor
      ((string-equal tag "a")
-      (setq url (read-string "url: " nil 'my-history)
+      (setq url (read-string "url: " nil)
             tag (concat "<a href=\"" url "\">" word "</a>")
             cursor- -4))
 
@@ -275,7 +275,7 @@
 
      ;; table
      ((string-equal tag "table")
-      (setq type (read-string "type (1:th, 2:thead, 3:th and thead, 4:no headers): " nil 'my-history))
+      (setq type (read-string "type (1:th, 2:thead, 3:th and thead, 4:no headers): " nil))
       (setq html ""
             cnt 1
             lines (split-string word "\n")
@@ -319,7 +319,7 @@
 
      ;; ruby
      ((string-equal tag "ruby")
-      (setq ruby (read-string "ruby: " nil 'my-history)
+      (setq ruby (read-string "ruby: " nil)
             tag (concat "<ruby><rb>" word "</rb><rt>" ruby "</rt></ruby>")
             cursor+ 10))
 
