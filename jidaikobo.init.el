@@ -523,6 +523,7 @@
 ;; hooks
 (add-hook 'emacs-lisp-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'php-mode-hook #'my-set-indent-tabs-mode)
+(add-hook 'sh-script-mode-hook #'my-set-indent-tabs-mode)
 
 ;;; ------------------------------------------------------------
 ;;; align-regexpが、indent-tabs-modeがtでも、スペースを詰めるように
@@ -1668,9 +1669,26 @@ It defaults to a comma."
              (setq indent-tabs-mode t)))
 
 ;;; ------------------------------------------------------------
+;;; sh-script-mode
+
+(setq auto-mode-alist
+       (append '(("^\\." . sh-script-mode))
+           auto-mode-alist))
+
+(add-hook 'sh-script-mode-hook
+          '(lambda ()
+             (setq sh-basic-offset 2)
+             (setq indent-tabs-mode nil)
+             (setq sh-indentation 2)))
+
+;;; ------------------------------------------------------------
 ;;; php-mode
 
 (require 'php-mode)
+
+(setq auto-mode-alist
+       (append '(("\\.php$" . php-mode))
+           auto-mode-alist))
 
 ;; hooks
 (add-hook 'php-mode-hook
@@ -1685,6 +1703,17 @@ It defaults to a comma."
              (define-key php-mode-map "}" 'self-insert-command)
              (define-key php-mode-map "/" 'self-insert-command)
              (define-key php-mode-map "#" 'self-insert-command)))
+
+
+;;; ------------------------------------------------------------
+;;; PHPのimenuの一覧から'All Methods'を取り除く
+;; thx http://qiita.com/osamu2001/items/511b558e5280dbf2b218
+
+;; (add-hook
+;;   'php-mode-hook
+;;     (assq-delete-all
+;;       (car (assoc "All Methods" php-imenu-generic-expression))
+;;       php-imenu-generic-expression))
 
 ;; php-modeにalign-rulesを
 ;; thx http://d.hatena.ne.jp/Tetsujin/20070614/1181757931
