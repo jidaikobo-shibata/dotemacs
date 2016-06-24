@@ -119,7 +119,7 @@
           'executable-make-buffer-file-executable-if-script-p)
 
 ;;; 関数名の表示
-(which-func-mode 1)
+(which-function-mode 1)
 
 ;; emacsclient（使いたいのだけど、今のところうまくいかない）
 (if (eq window-system 'ns) (server-start))
@@ -131,7 +131,7 @@
 (setq backward-delete-char-untabify-method nil)
 
 ;; 原則画面分割しない
-(setq display-buffer-function nil)
+(setq display-buffer-alist nil)
 
 ;; Helpバッファを常に選択する
 (setq help-window-select t)
@@ -344,7 +344,6 @@
 ;; opt+¥でバックスラッシュを入力
 (global-set-key (kbd "M-¥") "\\")
 
-
 ;;; ------------------------------------------------------------
 ;;; auto-complete
 
@@ -386,15 +385,15 @@
 ;; 英語
 ;; thx http://tech.basicinc.jp/Mac/2013/08/04/linux_command/
 (defvar ac-english-cache
-	(ac-file-dictionary "/usr/share/dict/words"))
+  (ac-file-dictionary "/usr/share/dict/words"))
 (defvar ac-english-dict
-	'((candidates . ac-english-cache)))
+  '((candidates . ac-english-cache)))
 
 ;; 技術語
 (defvar ac-technical-term-cache
-	(ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
+  (ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
 (defvar ac-technical-term-dict
-	'((candidates . ac-technical-term-cache)))
+  '((candidates . ac-technical-term-cache)))
 
 ;; 条件の追加
 (add-to-list 'ac-modes 'text-mode)
@@ -501,10 +500,10 @@
     (or (nth 3 state) (nth 4 state))))
 
 (defun-if-undefined re-search-forward-without-string-and-comments (&rest args)
-	(let ((value (apply #'re-search-forward args)))
-		(if (and value (inside-string-or-comment-p))
-				(apply #'re-search-forward-without-string-and-comments args)
-			value)))
+  (let ((value (apply #'re-search-forward args)))
+    (if (and value (inside-string-or-comment-p))
+        (apply #'re-search-forward-without-string-and-comments args)
+      value)))
 
 (defun my-buffer-indent-tabs-code-p (&optional buffer)
   "Check first indent char."
@@ -1228,6 +1227,18 @@
                   (message "eval done.")))
 
 ;;; ------------------------------------------------------------
+;;; root権限でファイルを開き直す
+;; thx http://qiita.com/k_ui/items/d9e03ea9523036970519
+
+(defun reopen-with-sudo ()
+  "Reopen current buffer-file with sudo using tramp."
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+    (if file-name
+        (find-alternate-file (concat "/sudo::" file-name))
+      (error "Cannot get a file name"))))
+
+;;; ------------------------------------------------------------
 ;;; ファイラ (dired)
 
 ;; diredでファイル編集（rで編集モードに）
@@ -1578,6 +1589,8 @@ It defaults to a comma."
 
 ;; hooks
 (add-hook 'php-mode-hook 'flycheck-mode)
+(add-hook 'lisp-mode-hook 'flycheck-mode)
+(add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
 
 ;;; ------------------------------------------------------------
 ;;; rainbow-mode
@@ -1596,14 +1609,14 @@ It defaults to a comma."
 ;;; ------------------------------------------------------------
 ;;; html-mode
 
-;(defun xoops-smarty-comment-setting ()
-;  (make-local-variable 'comment-start)
-;  (setq comment-start "<{*")
-;  (make-local-variable 'comment-end)
-;  (setq comment-end "*}>")
-;  (make-local-variable 'comment-multi-line)
-;  (setq comment-multi-line t))
-;(add-hook 'html-mode-hook 'xoops-smarty-comment-setting)
+;;(defun xoops-smarty-comment-setting ()
+;;  (make-local-variable 'comment-start)
+;;  (setq comment-start "<{*")
+;;  (make-local-variable 'comment-end)
+;;  (setq comment-end "*}>")
+;;  (make-local-variable 'comment-multi-line)
+;;  (setq comment-multi-line t))
+;;(add-hook 'html-mode-hook 'xoops-smarty-comment-setting)
 
 ;; hooks
 (add-hook 'html-mode-hook
@@ -1833,7 +1846,7 @@ If gist-id exists update gist."
         ((looking-at "\\s\)\\|\\s\]") (forward-char 1) (backward-list 1))
         (t (back-to-indentation))))
 
-(global-set-key (kbd "C-b") 'jump-match-paren)
+(global-set-key (kbd "s-b") 'jump-match-paren)
 
 ;;; ------------------------------------------------------------
 ;; 印刷設定
@@ -1890,11 +1903,11 @@ If gist-id exists update gist."
 
 ;; ewwを複数開く
 (when (fboundp 'eww)
-	(progn
-		(defun xah-rename-eww-hook ()
-			"Rename eww browser's buffer so sites open in new page."
-			(rename-buffer "eww" t))
-		(add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
+  (progn
+    (defun xah-rename-eww-hook ()
+      "Rename eww browser's buffer so sites open in new page."
+      (rename-buffer "eww" t))
+    (add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
 
 ;;; ------------------------------------------------------------
 ;;; Todo:
