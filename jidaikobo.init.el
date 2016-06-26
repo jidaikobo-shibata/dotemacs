@@ -133,8 +133,9 @@
 ;; 原則画面分割しない
 (setq display-buffer-alist nil)
 
-;; Helpバッファを常に選択する
+;; Helpバッファは、ウィンドウを分割せず、常に選択する
 (setq help-window-select t)
+(add-to-list 'same-window-buffer-names "*Help*")
 
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
@@ -630,10 +631,14 @@
 
 (require 'popwin)
 (popwin-mode 1)
-(setq display-buffer-function 'popwin:display-buffer)
+(setq-default display-buffer-function 'popwin:display-buffer)
+
+;; *Help*バッファはpopwinで管理しない。僕は別ウィンドウでじっくり読みたいので。
+(setq popwin:special-display-config
+      (delete 'help-mode popwin:special-display-config))
 
 ;; anything
-(setq anything-samewindow nil)
+(setq-default anything-samewindow nil)
 (push '("*anything*" :height 20) popwin:special-display-config)
 
 ;; Messages buffer
@@ -1704,7 +1709,6 @@ It defaults to a comma."
              (define-key php-mode-map "/" 'self-insert-command)
              (define-key php-mode-map "#" 'self-insert-command)))
 
-
 ;;; ------------------------------------------------------------
 ;;; PHPのimenuの一覧から'All Methods'を取り除く
 ;; thx http://qiita.com/osamu2001/items/511b558e5280dbf2b218
@@ -1944,10 +1948,6 @@ If gist-id exists update gist."
 ;; 単語境界をもうちょっと細かくしたい（シンタックステーブルか？）
 ;; 複数の検索置換セット
 ;; portのEmacsを試してみる？
-;; ac-anythigをいきなり起動できないか
-;; ac-anythingのC--を変更。C--は、僕が開発に使うので。
-;; curchg-input-method-cursor-colorの挙動を確認
-;; デフォルトのinput methodを確認して、keyboard masetroとの合わせ技でIMをいじる？
 ;; リージョン解除関数がおかしい。C-@でマークしたら、たしかに解除するが、C-S-downのあとS-downしたりするとリージョンが解除される。ここは微調整したいところなので、なんとかしたい。S-downにadviceして、markを維持するような措置が必要？？
 ;; 「幾つかのウィンドウでは、タブ移動しない」popwinを判定すると良い？
 ;; 印刷設定を http://d.hatena.ne.jp/r_takaishi/20110304/1299203553 を参考に改良してみる
