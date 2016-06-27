@@ -302,18 +302,6 @@
 ;; (global-set-key (kbd "M-right") 'forward-symbol)
 ;; (global-set-key (kbd "M-left") (lambda () (interactive) (forward-symbol -1)))
 
-;; 日本語入力のときだけM-/で、"／"を入力したい
-(global-set-key (kbd "M-/")
-                (lambda () (interactive)
-                  (if (fboundp 'mac-input-source)
-                      (let ((mac-input-source (mac-input-source)))
-                        (if (string-match
-                             "com.apple.inputmethod.Kotoeri.japanese"
-                             mac-input-source)
-                            (insert "／")
-                          'dabbrev-expand))
-                    'dabbrev-expand)))
-
 ;; ミニバッファでは英数字入力に
 (when (functionp 'mac-auto-ascii-mode)
   (mac-auto-ascii-mode 1))
@@ -427,6 +415,9 @@
    ;; ewwバッファだったら次のリンク
    ((eq major-mode 'eww-mode)
     (shr-next-link))
+   ;; ;; terminalだったら補完
+   ;; ((eq major-mode 'terminal-mode)
+   ;;  (shr-next-link))
    ;; read onlyバッファだったら次のリンク
    (buffer-read-only
     (forward-button 1 t))
@@ -942,7 +933,7 @@
 
 ;; update gtags
 ;; thx http://qiita.com/hayamiz/items/8e8c7fca64b4810d8e78
-(defun my-c-mode-update-gtags ()
+(defun my-update-gtags ()
   "Update gtags."
   (let* ((file (buffer-file-name (current-buffer)))
      (dir (directory-file-name (file-name-directory file))))
@@ -950,7 +941,7 @@
       (start-process "gtags-update" nil
              "global" "-uv"))))
 
-(add-hook 'after-save-hook 'my-c-mode-update-gtags)
+(add-hook 'after-save-hook 'my-update-gtags)
 
 ;;; ------------------------------------------------------------
 ;;; タブ関連 - elscreen or tabbar
