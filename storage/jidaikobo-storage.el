@@ -1,3 +1,36 @@
+;; update GTAGS
+;; thx http://qiita.com/yewton/items/d9e686d2f2a092321e34
+;; (defun update-gtags1 (&optional prefix)
+;;   "Update gtags.  PREFIX."
+;;   (interactive "P")
+;;   (let ((rootdir (gtags-get-rootpath))
+;;         (args (if prefix "-v" "-iv")))
+;;     (when rootdir
+;;       (let* ((default-directory rootdir)
+;;              (buffer (get-buffer-create "*update GTAGS*")))
+;;         (save-excursion
+;;           (set-buffer buffer)
+;;           (erase-buffer)
+;;           (let ((result (process-file "gtags" nil buffer nil args)))
+;;             (if (= 0 result)
+;;                 (message "GTAGS successfully updated.")
+;;               (message "update GTAGS error with exit status %d" result))))))))
+;; (add-hook 'after-save-hook 'update-gtags)
+
+;; ;; eww で色を反映しない
+;; (defvar eww-disable-colorize t)
+;; (defun shr-colorize-region--disable (orig start end fg &optional bg &rest _)
+;;   "Shr colorize region disable.  ORIG START END FG BG (as _)."
+;;   (unless eww-disable-colorize
+;;     (funcall orig start end fg)))
+;; (advice-add 'shr-colorize-region :around 'shr-colorize-region--disable)
+;; (advice-add 'eww-colorize-region :around 'shr-colorize-region--disable)
+;; (defun eww-disable-color ()
+;;   "Dsiable color at eww."
+;;   (interactive)
+;;   (setq-local eww-disable-colorize t)
+;;   (eww-reload))
+
 ;; ;;; ------------------------------------------------------------
 ;; (require 'js2-mode)
 ;; (add-hook 'js2-mode-hook '(lambda ()

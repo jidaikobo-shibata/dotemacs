@@ -27,7 +27,7 @@
 ;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
 ;; @ terminal
 ;; sudo port install global
-;; emacs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
+;; [e|E]macs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
 
 ;; cd ~/.emacs.d
 ;; mkdir elisp
@@ -39,9 +39,9 @@
 ;;; 最小限設定 - 以降でエラーがあっても、最小限保証される設定
 
 ;; 設定ファイルのパス
-(setq jidaikobo-dir (file-name-directory
+(defvar jidaikobo-dir (file-name-directory
                      (or (buffer-file-name) load-file-name)))
-(setq dotfiles-dir (expand-file-name (concat jidaikobo-dir "../")))
+(defvar dotfiles-dir (expand-file-name (concat jidaikobo-dir "../")))
 
 ;; ディレクトリ類
 (defvar my-work-dir (expand-file-name "~/"))
@@ -193,7 +193,7 @@
 (add-to-list 'load-path (concat dotfiles-dir "elisp"))
 
 ;; package.override.el
-(setq override-el (concat dotfiles-dir "package.override.el"))
+(defvar override-el (concat dotfiles-dir "package.override.el"))
 
 ;; 1日一回 load packages
 (if (file-exists-p override-el)
@@ -408,6 +408,7 @@
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
 (defadvice ac-word-candidates (after remove-word-contain-japanese activate)
+  "Do not contain multi byte character in auto-complete candidates."
   (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
     (setq ad-return-value
           (remove-if contain-japanese ad-return-value))))
@@ -443,7 +444,7 @@
               (buffer-substring-no-properties (region-beginning)
                                               (region-end)))))
     (indent-for-tab-command))
-   ;; タブを挿入
+   ;; タブ／インデントを挿入
    (t
     (when mark-active (delete-region (region-beginning) (region-end)))
     (insert "\t"))))
@@ -491,6 +492,9 @@
 ;;; Auto Setting `indent-tabs-mode' Variable
 ;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
 
+(defvar inside-string-or-comment-p)
+(defvar re-search-forward-without-string-and-comments)
+
 (if (not (fboundp 'defun-if-undefined))
     (defmacro defun-if-undefined (name &rest rest)
       `(unless (fboundp (quote ,name))
@@ -507,7 +511,7 @@
       value)))
 
 (defun my-buffer-indent-tabs-code-p (&optional buffer)
-  "Check first indent char."
+  "Check first indent char.  BUFFER."
   (let ((buffer (or buffer (current-buffer))))
     (with-current-buffer buffer
       (save-excursion
@@ -519,6 +523,7 @@
                (string= (match-string 0) "\t")))))))
 
 (defun my-set-indent-tabs-mode ()
+  "Set indent tab mode."
   (setq indent-tabs-mode (my-buffer-indent-tabs-code-p)))
 
 ;; hooks
@@ -530,7 +535,7 @@
 ;;; align-regexpが、indent-tabs-modeがtでも、スペースを詰めるように
 
 (defadvice align-regexp (around advise-align-regexp activate)
-  "Let align-regexp indent by spaces."
+  "Let ALIGN-REGEXP indent by spaces."
   (when indent-tabs-mode (setq indent-tabs-mode nil))
   ad-do-it
   (my-set-indent-tabs-mode))
@@ -722,7 +727,7 @@
 (require 'anything)
 (require 'anything-config)
 
-(setq alist-anything-for-files
+(defvar alist-anything-for-files
       '((anything-c-source-emacs-commands
          anything-c-source-gtags-select)
         ;; anything-c-source-emacs-commands
@@ -769,6 +774,7 @@
 ;;; FTP by Fetch
 
 (defun func-anything-c-source-my-fetch ()
+  "Anything source."
   (let (ret)
     (with-temp-buffer
       (insert
@@ -796,6 +802,7 @@
 ;;; よく使うプロジェクトに対する操作
 
 (defun func-anything-c-source-cd-to-projects ()
+  "Anything source."
   (let (ret)
     (with-temp-buffer
       (insert
@@ -933,25 +940,17 @@
           '(lambda()
              (gtags-mode 1)))
 
-;; update GTAGS
-;; thx http://qiita.com/yewton/items/d9e686d2f2a092321e34
-(defun update-gtags (&optional prefix)
-  "Update gtags.  PREFIX."
-  (interactive "P")
-  (let ((rootdir (gtags-get-rootpath))
-        (args (if prefix "-v" "-iv")))
-    (when rootdir
-      (let* ((default-directory rootdir)
-             (buffer (get-buffer-create "*update GTAGS*")))
-        (save-excursion
-          (set-buffer buffer)
-          (erase-buffer)
-          (let ((result (process-file "gtags" nil buffer nil args)))
-            (if (= 0 result)
-                (message "GTAGS successfully updated.")
-              (message "update GTAGS error with exit status %d" result))))))))
+;; update gtags
+;; thx http://qiita.com/hayamiz/items/8e8c7fca64b4810d8e78
+(defun my-c-mode-update-gtags ()
+  "Update gtags."
+  (let* ((file (buffer-file-name (current-buffer)))
+     (dir (directory-file-name (file-name-directory file))))
+    (when (executable-find "global")
+      (start-process "gtags-update" nil
+             "global" "-uv"))))
 
-(add-hook 'after-save-hook 'update-gtags)
+(add-hook 'after-save-hook 'my-c-mode-update-gtags)
 
 ;;; ------------------------------------------------------------
 ;;; タブ関連 - elscreen or tabbar
@@ -1328,14 +1327,17 @@
 ;; gist-private: nil
 
 (defun blank-line? ()
+  "Check is current line blank."
   (string-match "^\n$" (substring-no-properties (thing-at-point 'line))))
 
 (defun move-to-next-blank-line ()
+  "Move to next blank line."
   (interactive)
   (progn (forward-line 1)
          (unless (blank-line?) (move-to-next-blank-line))))
 
 (defun region-to-next-blank-line ()
+  "Make region to next blank line."
   (interactive)
   (when (and (not (memq last-command '(region-to-next-blank-line)))
              (not mark-active))
@@ -1343,11 +1345,13 @@
   (move-to-next-blank-line))
 
 (defun move-to-previous-blank-line ()
+  "Move to previous blank line."
   (interactive)
   (progn (forward-line -1)
          (unless (blank-line?) (move-to-previous-blank-line))))
 
 (defun region-to-previous-blank-line ()
+  "Make region to previous blank line."
   (interactive)
   (when (and (not (memq last-command '(region-to-previous-blank-line)))
              (not mark-active))
@@ -1406,7 +1410,7 @@ It defaults to a comma."
     num))
 
 (defun calculate-region-and-insert (beg end)
-  "Calculate natural text of region and insert to current buffer."
+  "Calculate natural text of region and insert to current buffer.  BEG, END."
   (interactive "r")
   (let* ((strings (if mark-active
                       (buffer-substring-no-properties beg end)
@@ -1654,7 +1658,7 @@ It defaults to a comma."
 ;;; ------------------------------------------------------------
 ;;; css-mode
 
-(autoload 'css-mode "css-mode")
+(require 'css-mode)
 (setq auto-mode-alist
       (cons '("\\.css$" . css-mode) auto-mode-alist))
 
@@ -1818,9 +1822,9 @@ It defaults to a comma."
 ;; gist-private: nil
 
 (defun yagist-region-create-or-update (beg end)
-  "Post the current region as a create or update at gist.github.com
+  "Post the current region as a create or update at gist.github.com.
 After create copies the URL into the kill ring.
-If gist-id exists update gist."
+If gist-id exists update gist.  BEG END."
   (interactive "r")
   (let* ((raw (buffer-substring-no-properties beg end))
          (lines (split-string raw "\n"))
@@ -1864,7 +1868,7 @@ If gist-id exists update gist."
                 `(("description" . ,description)
                   ("public" . ,(if private :json-false 't))
                   ("files" . ((,name . (("content" . ,raw))))))))
-      (error "lack of parameters"))))
+      (error "Lack of parameters"))))
 
 (global-set-key (kbd "C-M-g") 'yagist-region-create-or-update)
 
@@ -1873,7 +1877,7 @@ If gist-id exists update gist."
 ;; thx https://gist.github.com/donghee/3937661
 
 (defun jump-match-paren (arg)
-  "Go to the matching parenthesis."
+  "Go to the matching parenthesis.  ARG."
   (interactive "p")
   (cond ((looking-at "\\s\(\\|\\s\[") (forward-list 1) (backward-char 1))
         ((looking-at "\\s\)\\|\\s\]") (forward-char 1) (backward-list 1))
@@ -1890,13 +1894,13 @@ If gist-id exists update gist."
 (global-set-key (kbd "s-p") 'print-buffer)
 
 ;; 文字化け対応
-(setq ps-multibyte-buffer 'non-latin-printer)
+(defvar ps-multibyte-buffer 'non-latin-printer)
 (require 'ps-mule)
 (defalias 'ps-mule-header-string-charsets 'ignore)
 
 ;; 印刷プレビュー
 (when (require 'pdf-preview)
-  (setq pdf-preview-preview-command "open -a Preview.app")
+  (defvar pdf-preview-preview-command "open -a Preview.app")
   (global-set-key (kbd "s-P")
                   (lambda ()
                     (interactive)
@@ -1920,19 +1924,6 @@ If gist-id exists update gist."
 (define-key eww-mode-map "n" 'scroll-up)
 (setq eww-search-prefix "http://www.google.co.jp/search?q=")
 (setq eww-download-directory "~/Desktop")
-
-;; eww で色を反映しない
-(defvar eww-disable-colorize t)
-(defun shr-colorize-region--disable (orig start end fg &optional bg &rest _)
-  (unless eww-disable-colorize
-    (funcall orig start end fg)))
-(advice-add 'shr-colorize-region :around 'shr-colorize-region--disable)
-(advice-add 'eww-colorize-region :around 'shr-colorize-region--disable)
-(defun eww-disable-color ()
-  "eww で文字色を反映させない"
-  (interactive)
-  (setq-local eww-disable-colorize t)
-  (eww-reload))
 
 ;; ewwを複数開く
 (when (fboundp 'eww)
