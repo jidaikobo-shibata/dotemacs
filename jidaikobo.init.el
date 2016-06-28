@@ -195,7 +195,7 @@
 ;; package.override.el
 (defvar override-el (concat dotfiles-dir "package.override.el"))
 
-;; 1日一回 load packages
+;; load packages
 (if (file-exists-p override-el)
     (load override-el)
 
@@ -205,6 +205,8 @@
   ;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
   (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
   (package-initialize)
+
+  ;; once-in-a-day
   (when (or noninteractive (is-once-in-a-day)) (package-refresh-contents))
 
   ;; my-packages
@@ -233,6 +235,7 @@
       yagist
       web-beautify
       zlc
+      fuzzy
       elscreen))
 
   ;; my-packagesからインストールしていないパッケージをインストール
@@ -321,11 +324,11 @@
 ;; escでM-g
 ;; http://emacswiki.org/emacs/CancelingInEmacs
 (setq-default normal-escape-enabled t)
+(define-key minibuffer-inactive-mode-map [escape] 'keyboard-quit) ; minibuffer
 (define-key isearch-mode-map [escape] 'isearch-abort) ; isearch
 (define-key isearch-mode-map "\e" 'isearch-abort) ; \e seems to work better for terminals
 (global-set-key (kbd "<escape>") 'keyboard-quit) ; everywhere else
 (global-set-key (kbd "M-ESC ESC") 'keyboard-quit)
-(define-key minibuffer-inactive-mode-map [escape] 'keyboard-quit) ; minibuffer
 
 ;; M-g or cmd+opt+j で指定行へジャンプ
 (global-set-key (kbd "M-g") 'goto-line)
@@ -351,13 +354,20 @@
 ;;; ------------------------------------------------------------
 ;;; auto-complete
 
+(require 'fuzzy)
 (require 'auto-complete)
 (require 'auto-complete-config)
 (global-auto-complete-mode t)
-(setq ac-dwim nil)
+(setq ac-dwim t)
+(setq ac-auto-start t)
+(setq ac-auto-show-menu 0.1)
+(setq ac-auto-start 2)
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
-(setq ac-auto-start nil)
+(setq ac-use-fuzzy t)
+(setq ac-fuzzy-cursor-color "orange")
+(setq ac-use-comphist t)
+(setq ac-quick-help-delay 0.5)
 (define-key ac-mode-map (kbd "<M-tab>") 'auto-complete)
 
 ;; ac-anything
@@ -399,9 +409,11 @@
 (add-to-list 'ac-modes 'fundamental-mode)
 (setq-default ac-sources '(ac-source-words-in-same-mode-buffers
                            ;; ac-source-filename
-                           ac-source-symbols
                            ac-technical-term-dict
                            ac-english-dict))
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (add-to-list 'ac-sources 'ac-source-symbols t)))
 
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
@@ -746,6 +758,9 @@
         anything-c-source-bookmarks
         anything-c-source-recentf))
 
+;; ESCで抜ける
+(define-key anything-map [escape] 'anything-keyboard-quit)
+
 ;; M-xによる補完をAnythingで行なう
 (require 'anything-complete)
 (anything-read-string-mode 1)
@@ -863,7 +878,7 @@
 (global-set-key (kbd "C-;") 'my-anything-for-files)
 
 ;;; ------------------------------------------------------------
-;;; Encode and Line folding
+;;; Anything - Encode and Line folding
 
 (defvar anything-c-source-coding-system
   '((name . "Encode and Line Folding")
@@ -906,18 +921,41 @@
 (global-set-key (kbd "C-^") 'my-anything-for-coding-system)
 
 ;;; ------------------------------------------------------------
-;;; my-anything-for-functions
+;;; Anything my-anything-for-functions
 
 (defun my-anything-for-functions ()
   "Anything command for program."
   (interactive)
   (anything-other-buffer
-   '(anything-c-source-imenu
-     anything-c-source-emacs-commands
-     anything-c-source-emacs-functions)
+   '(anything-c-source-imenu)
    "*my-anything-for-functions*"))
 
 (global-set-key (kbd "C-,") 'my-anything-for-functions)
+
+;;; ------------------------------------------------------------
+;;; Anything my-coding-helper
+
+;; (defvar anything-c-source-my-coding-helper
+;;   '((name . "coding helper")
+;;     (candidates-file . (concat jidaikobo-dir "ac-dict/technical-term"))
+;;     (action . (("Insert" . (lambda (v) (insert v)))))))
+
+;; (defvar anything-c-source-my-coding-helper2
+;;   '((name . "coding helper")
+;;     (candidates-file "~/.emacs/jidaikobo/ac-dict/technical-term" updating)
+;;     (type . line)))
+
+;; (defun my-anything-for-coding-helper ()
+;;   "Anything command for program."
+;;   (interactive)
+;;   (anything-other-buffer
+;;    '(anything-c-source-my-coding-helper2)
+;;    "*my-anything-for-functions*"))
+
+;;      ;; anything-c-source-emacs-commands
+;;      ;; anything-c-source-emacs-functions
+
+;; (global-set-key (kbd "C-z") 'my-anything-for-coding-helper)
 
 ;;; ------------------------------------------------------------
 ;;; descbinds-anythingの乗っ取り

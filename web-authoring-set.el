@@ -139,6 +139,7 @@
 ;;; タグに応じて、いくらか振る舞いが変わる
 (declare-function convert-to-th "convert-to-th" (arg))
 (declare-function convert-to-td "convert-to-td" (arg))
+(declare-function anything-read-string-mode "anything-read-string-mode" (arg))
 (defun any-html-tag (tag)
   "Insert html intaractive.  TAG."
   (interactive "i")
@@ -155,6 +156,10 @@
          lines
          line
          cnt)
+
+    ;; (require 'anything-complete)
+    ;; (anything-read-string-mode nil)
+;;    (anything-read-string-mode 1)
 
     ;; use with completing
     (unless tag
@@ -174,6 +179,7 @@
                    ("label", "label")
                    ("ruby", "ruby")
                    ("textarea", "textarea")))))
+    ;; (anything-read-string-mode 1)
 
     (cond
      ;; anchor
@@ -363,6 +369,13 @@
       (setq cursor (+ (point) cursor-)))
     (goto-char cursor)))
 (global-set-key (kbd "s-M-v") 'any-html-tag) ; cmd+shift+v
+
+(defun foo ()
+  "Foo."
+  (interactive)
+       (let (v)
+         (setq v (read-string "foo:"))
+         (message "%s" v)))
 
 ;;; headings
 (defun h1-tag ()
