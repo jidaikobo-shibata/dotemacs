@@ -78,6 +78,7 @@
 (defvar sc/re-modeline-foreground "black")
 (defvar sc/is-foregin-regexp nil)
 (defvar sc/is-use-timer-for-modeline t)
+(defvar sc/is-use-timer-for-buffers t)
 (defvar sc/split-direction "horizontal")
 (defvar search-center-mode-map (make-keymap))
 (defvar search-center-re-mode-map (make-keymap))
@@ -159,6 +160,22 @@
 (if sc/is-use-timer-for-modeline
     (setq-default global-re-toggle-timer
                   (run-with-idle-timer 0.03 t 'sc/toggle-mode-line)))
+
+;; timer for search/replace buffer
+;; 検索置換窓はサクッと消す
+(if sc/is-use-timer-for-buffers
+    (setq-default
+     global-re-toggle-timer
+     (run-with-idle-timer
+      0.03
+      t
+      (lambda () (interactive)
+        (when (and (not (equal (selected-window) (get-buffer-window sc/search-str-buffer)))
+                   (not (equal (selected-window) (get-buffer-window sc/replace-str-buffer)))
+                   (or (windowp (get-buffer-window sc/search-str-buffer))
+                       (windowp (get-buffer-window sc/replace-str-buffer))))
+          (delete-window (get-buffer-window sc/search-str-buffer))
+          (delete-window (get-buffer-window sc/replace-str-buffer)))))))
 
 ;;; ------------------------------------------------------------
 ;;; hook
@@ -255,7 +272,8 @@
   (define-key sc/keybind-map (kbd "r") 'sc/alias-replace-here)
   (define-key sc/keybind-map (kbd "R") 'sc/alias-replace-region)
   (define-key sc/keybind-map (kbd "m") 'sc/grep)
-  (define-key sc/keybind-map (kbd "h") (lambda () (interactive) (select-window sc/target-window)))
+  (define-key sc/keybind-map (kbd "h") (lambda () (interactive)
+                                         (select-window sc/target-window)))
 
   ;; smartrep
   (when (package-installed-p 'smartrep)
