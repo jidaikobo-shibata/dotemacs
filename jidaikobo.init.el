@@ -268,20 +268,6 @@
 (add-to-list 'Info-directory-list "~/info")
 
 ;;; ------------------------------------------------------------
-;;; find-fileをzshライクに
-;; thx http://d.hatena.ne.jp/mooz/20101003/p1
-
-(require 'zlc)
-(zlc-mode 1)
-(let ((map minibuffer-local-map))
-  (define-key map (kbd "<down>")  'zlc-select-next-vertical)
-  (define-key map (kbd "<up>")    'zlc-select-previous-vertical)
-  (define-key map (kbd "<right>") 'zlc-select-next)
-  (define-key map (kbd "<left>")  'zlc-select-previous)
-  (define-key map (kbd "M-<tab>") 'zlc-select-previous)
-  (define-key map (kbd "M-TAB") 'zlc-select-previous))
-
-;;; ------------------------------------------------------------
 ;;; キーボード操作
 
 ;; mac-likeなcmd関係
@@ -349,6 +335,20 @@
 (global-set-key (kbd "M-¥") "\\")
 
 ;;; ------------------------------------------------------------
+;;; find-fileをzshライクに
+;; thx http://d.hatena.ne.jp/mooz/20101003/p1
+
+(require 'zlc)
+(zlc-mode 1)
+(let ((map minibuffer-local-map))
+  (define-key map (kbd "<down>")  'zlc-select-next-vertical)
+  (define-key map (kbd "<up>")    'zlc-select-previous-vertical)
+  (define-key map (kbd "<right>") 'zlc-select-next)
+  (define-key map (kbd "<left>")  'zlc-select-previous)
+  (define-key map (kbd "M-<tab>") 'zlc-select-previous)
+  (define-key map (kbd "M-TAB") 'zlc-select-previous))
+
+;;; ------------------------------------------------------------
 ;;; auto-complete
 
 (require 'auto-complete)
@@ -359,29 +359,24 @@
 (setq ac-disable-faces nil)
 (setq ac-auto-start nil)
 (define-key ac-mode-map (kbd "<M-tab>") 'auto-complete)
-(define-key ac-mode-map (kbd "M-/") 'auto-complete)
 
 ;; ac-anything
 (when (require 'ac-anything nil t)
-  (define-key ac-complete-mode-map (kbd "<M-tab>") 'ac-complete-with-anything)
-  (define-key ac-complete-mode-map (kbd "M-/") 'ac-complete-with-anything))
+  (define-key ac-complete-mode-map (kbd "<M-tab>") 'ac-complete-with-anything))
 
 ;; hooks
 (add-hook 'html-mode-hook
           '(lambda()
              (auto-complete-mode t)
-             (define-key html-mode-map (kbd "<M-tab>") 'auto-complete)
-             (define-key html-mode-map (kbd "M-/") 'auto-complete)))
+             (define-key html-mode-map (kbd "<M-tab>") 'auto-complete)))
 
 (add-hook 'php-mode-hook
           '(lambda()
-             (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)
-             (define-key php-mode-map (kbd "M-/") 'auto-complete)))
+             (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)))
 
 (add-hook 'kontiki-mode-hook
           '(lambda()
-             (define-key kontiki-mode-map (kbd "<M-tab>") 'auto-complete)
-             (define-key kontiki-mode-map (kbd "M-/") 'auto-complete)))
+             (define-key kontiki-mode-map (kbd "<M-tab>") 'auto-complete)))
 
 ;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
@@ -650,19 +645,24 @@
 
 ;; anything
 (setq-default anything-samewindow nil)
-(push '("*anything*" :height 20) popwin:special-display-config)
+(push '("*anything*" :height 20)
+      popwin:special-display-config)
 
 ;; Messages buffer
-(push '("*Messages*" :height 10 :stick t :position bottom :tail t :noselect t) popwin:special-display-config)
+(push '("*Messages*" :height 10 :stick t :position bottom :tail t :noselect t)
+      popwin:special-display-config)
 
 ;; Backtrace buffer
-(push '("*Backtrace*" :height 10) popwin:special-display-config)
+(push '("*Backtrace*" :height 10)
+      popwin:special-display-config)
 
 ;; auto-async-byte-compile buffer
-(push '("*auto-async-byte-compile*" :height 10) popwin:special-display-config)
+(push '(" *auto-async-byte-compile*" :height 10 :noselect t)
+      popwin:special-display-config)
 
 ;; grep/rgrep buffer
-(push '("*grep*" :height 10 :stick t :position bottom :noselect nil) popwin:special-display-config)
+(push '("*grep*" :height 10 :stick t :position bottom :noselect nil)
+      popwin:special-display-config)
 
 ;; key-binds
 (global-set-key (kbd "M-p p") 'popwin:display-last-buffer)
