@@ -30,7 +30,7 @@
 ;; [e|E]macs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
 
 ;; cd ~/.emacs.d
-;; mkdir elisp
+;; mkdir elisp && elisp
 ;; wget https://www.emacswiki.org/emacs/download/ac-anything.el ac-anything.el
 
 ;;; Code:
@@ -232,6 +232,7 @@
       popwin
       yagist
       web-beautify
+      zlc
       elscreen))
 
   ;; my-packagesからインストールしていないパッケージをインストール
@@ -265,6 +266,20 @@
 ;;; localize
 
 (add-to-list 'Info-directory-list "~/info")
+
+;;; ------------------------------------------------------------
+;;; find-fileをzshライクに
+;; thx http://d.hatena.ne.jp/mooz/20101003/p1
+
+(require 'zlc)
+(zlc-mode 1)
+(let ((map minibuffer-local-map))
+  (define-key map (kbd "<down>")  'zlc-select-next-vertical)
+  (define-key map (kbd "<up>")    'zlc-select-previous-vertical)
+  (define-key map (kbd "<right>") 'zlc-select-next)
+  (define-key map (kbd "<left>")  'zlc-select-previous)
+  (define-key map (kbd "M-<tab>") 'zlc-select-previous)
+  (define-key map (kbd "M-TAB") 'zlc-select-previous))
 
 ;;; ------------------------------------------------------------
 ;;; キーボード操作
@@ -642,6 +657,9 @@
 
 ;; Backtrace buffer
 (push '("*Backtrace*" :height 10) popwin:special-display-config)
+
+;; auto-async-byte-compile buffer
+(push '("*auto-async-byte-compile*" :height 10) popwin:special-display-config)
 
 ;; grep/rgrep buffer
 (push '("*grep*" :height 10 :stick t :position bottom :noselect nil) popwin:special-display-config)
