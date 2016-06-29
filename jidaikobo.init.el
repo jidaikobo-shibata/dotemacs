@@ -124,8 +124,8 @@
 ;;; 関数名の表示
 (which-function-mode 1)
 
-;; emacsclient（使いたいのだけど、今のところうまくいかない）
-(if (eq window-system 'ns) (server-start))
+;; emacsclient
+(server-start)
 
 ;; キーストロークのミニバッファへの表示を早く
 (setq echo-keystrokes 0.1)
