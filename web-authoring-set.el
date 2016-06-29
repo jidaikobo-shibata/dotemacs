@@ -157,29 +157,24 @@
          line
          cnt)
 
-    ;; (require 'anything-complete)
-    ;; (anything-read-string-mode nil)
-;;    (anything-read-string-mode 1)
-
     ;; use with completing
     (unless tag
-      (setq tag (completing-read
-                 "Tag (default \"div\"): "
-                 '(("table", "table")
-                   ("section", "section")
-                   ("header", "header")
-                   ("footer", "footer")
-                   ("aside", "aside")
-                   ("article", "article")
-                   ("select", "select")
-                   ("script", "script")
-                   ("style", "style")
-                   ("input", "input")
-                   ("form", "form")
-                   ("label", "label")
-                   ("ruby", "ruby")
-                   ("textarea", "textarea")))))
-    ;; (anything-read-string-mode 1)
+      (setq tag (let ((completing-read-function 'completing-read-default))
+                  (completing-read "Tag (default \"div\"): "
+                                   '(("table", "table")
+                                     ("section", "section")
+                                     ("header", "header")
+                                     ("footer", "footer")
+                                     ("aside", "aside")
+                                     ("article", "article")
+                                     ("select", "select")
+                                     ("script", "script")
+                                     ("style", "style")
+                                     ("input", "input")
+                                     ("form", "form")
+                                     ("label", "label")
+                                     ("ruby", "ruby")
+                                     ("textarea", "textarea"))))))
 
     (cond
      ;; anchor

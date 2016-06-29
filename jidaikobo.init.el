@@ -1170,6 +1170,21 @@
 ;; 何文字目にいるか表示
 (column-number-mode 1)
 
+;;; ------------------------------------------------------------
+;;; 選択範囲の文字数をモードラインに表示
+;;; thx http://d.hatena.ne.jp/sonota88/20110224/1298557375
+
+(defun count-lines-and-chars ()
+  "Count chars to show modeline."
+  (if mark-active
+      (format "%d lines,%d chars "
+              (count-lines (region-beginning) (region-end))
+              (- (region-end) (region-beginning)))
+    ""))
+
+(add-to-list 'default-mode-line-format
+             '(:eval (count-lines-and-chars)))
+
 ;; 改行の種類表示の変更
 ;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
 (setq-default eol-mnemonic-unix "(LF)")
