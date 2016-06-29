@@ -1,3 +1,10 @@
+;; ;; 英語
+;; ;; Thx Http://Tech.Basicinc.Jp/Mac/2013/08/04/Linux_Command/
+;; (Defvar Ac-English-Cache
+;;   (Ac-File-Dictionary "/Usr/Share/Dict/Words"))
+;; (Defvar Ac-English-Dict
+;;   '((Candidates . Ac-English-Cache)))
+
 ;; ;;; ------------------------------------------------------------
 ;; ;;; 次/前の空行
 ;; ;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。選択範囲をものぐさして作りたいので、ちょっとfork。thx https://gist.github.com/jewel12/2873112

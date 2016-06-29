@@ -375,21 +375,14 @@
 ;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
 
-;; 英語
-;; thx http://tech.basicinc.jp/Mac/2013/08/04/linux_command/
-(defvar ac-english-cache
-  (ac-file-dictionary "/usr/share/dict/words"))
-(defvar ac-english-dict
-  '((candidates . ac-english-cache)))
-
 ;; 技術語
-(defvar ac-technical-term-cache
-  (ac-file-dictionary (concat ac-user-dict-dir "technical-term")))
-(defvar ac-technical-term-dict
-  '((candidates . ac-technical-term-cache)))
+(defvar ac-my-dictionary-cache
+  (ac-file-dictionary (concat ac-user-dict-dir "my-dictionary")))
+(defvar ac-my-dictionary-dict
+  '((candidates . ac-my-dictionary-cache)))
 
 ;; 候補
-(setq-default ac-sources '(ac-technical-term-dict
+(setq-default ac-sources '(ac-my-dictionary-dict
                            ;; ac-source-filename
                            ;; ac-source-words-in-same-mode-buffers
                            ;; ac-english-dict

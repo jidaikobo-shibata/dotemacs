@@ -1,29 +1,63 @@
+China
+Chinese
+English
+French
+Japan
+Japanese
+abilympic
+accessibility
+anything
+apologize
+aside
+attribute
+barrier Free
+class
+client
+comment
+complete
+decrement
+description
+development
+dictionary
+directory
+fetch
+increment
+keyword
+language
+light
+lighthouse
+local
+memo
+memory
+public
+secret
+technique
+understand
+vulnerability
+vulnerable
+wrapper
+
 ASC
 ASCII
-ActionScript
 ActiveX
 Adobe
-Ajax
+Android
 Apache
-Applescript
+Atom
 Bluetooth
 CSS
 CSV
 CUI
 CVS
-Cascading Style Sheets
-Creative Suite
-Cross Site Scripting
+Chrome
 Curl
-Cyberduck
 DESC
-Dreamweaver
+Edge
+Emacs
 FALSE
-FCKeditor
 FTP
 Facebook
-Fedora Core
-Fetch
+Firefox
 FocusTalk
 FreeBSD
 Frickr
@@ -33,11 +67,11 @@ Gmail
 Google
 Google Analytics
 Google Apps
+Google Chrome
 Google Earth
 Google Map
 Google Sitemap
 GyazMail
-HTML
 HTTP
 Historical Event Markup and Linking
 HyperText Markup Language
@@ -45,20 +79,19 @@ IBM
 IBM Homepage Reader
 IBM Homepage builder
 INTEGER
-IPA
 IPv4
 IPv6
-ISO
 ISO 14001
 ISO 27001
 ISO 9001
 Illustrator
 InDesign
+Internet Explorer
 JAWS
 JIS
-JIS Q 15001（個人情報保護マネジメントシステム-要求事項）
+JIS Q 15001
 JIS X 8341-3
-JIS X 8341-3:2010「高齢者・障害者等配慮設計指針 - 情報通信における機器、ソフトウェア及びサービス−第三部: ウェブコンテンツ」
+JIS X 8341-3:2016
 Java
 JavaScript
 Jedit X
@@ -74,7 +107,7 @@ MacBook
 MacBook Air
 Macintosh
 Microsoft
-Mixi
+Microsoft Edge
 Movable Type
 Mozilla
 MySQL
@@ -131,6 +164,7 @@ Skype
 SourceForge
 SpamAssassin
 StuffIt Expander
+Sublime Text
 TRUE
 TWAIN
 TeX
@@ -144,6 +178,8 @@ UTF-8
 Unicode
 User Agent
 VALUE DOMAIN
+Vi
+Vim
 Visual Basic
 VoIP
 Vodafone
@@ -158,7 +194,6 @@ Web Accessibility Initiative
 Web Content Accessibility Guidelines
 Wikipedia
 Windows
-WordPress
 World Wide Web Consortium
 XHTML
 XML
@@ -169,6 +204,16 @@ Yahoo!
 Yahoo! Japan
 Yahoo! Site Explorer
 YouTube
+application
+buffer
+elisp
+emacsclient
+footer
+gist
+lisp
+viewport
+
+HTML
 accesskey
 acronym
 address
@@ -387,8 +432,8 @@ xor
 z-index
 zoom
 
-Exception
 PHP
+Exception
 abs
 acos
 addcslashes
@@ -569,10 +614,10 @@ gettype
 glob
 hash
 header
+if (){}
 if (): else: endif;
 if (): elseif (): endif;
 if (): endif;
-if (){}
 implode
 in_array
 in_array($needle, $haystack)
@@ -641,6 +686,7 @@ min
 mkdir
 mktime
 move_uploaded_file
+namespace
 natcasesort
 natsort
 next
@@ -778,6 +824,8 @@ var_export
 virtual
 while (): endwhile;
 wordwrap
+
+WordPress
 wpdb
 wpdb->escape();
 wpdb->get_results();
@@ -785,6 +833,8 @@ wpdb->get_var();
 wpdb->prepare('%d, %s', $d, $s);
 wpdb->prepare();
 wpdb->query();
+get_stylesheet_directory_uri
+esc_html()
 
 FuelPHP
 Arr::assoc_to_keyval()
