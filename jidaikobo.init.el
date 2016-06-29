@@ -59,6 +59,9 @@
 ;; スクロールを一行ずつにする
 (setq scroll-step 1)
 
+;; スクロールバーを消す（高速化にずいぶん寄与するらしい）
+(scroll-bar-mode -1)
+
 ;; クリップボードを他のアプリケーションと共用にする
 (setq x-select-enable-clipboard t)
 
@@ -234,9 +237,7 @@
       popwin
       yagist
       web-beautify
-      zlc
-      fuzzy
-      elscreen))
+      zlc))
 
   ;; my-packagesからインストールしていないパッケージをインストール
   (dolist (package my-packages)
@@ -301,8 +302,8 @@
 (global-set-key (kbd "<backspace>") 'delete-backward-char) ; delete
 (global-set-key (kbd "<backtab>") 'align-regexp)
 (global-set-key (kbd "<C-tab>") 'align-regexp)
-;; (global-set-key (kbd "<C-up>") 'backward-paragraph) ; Control-down
-;; (global-set-key (kbd "<C-down>") 'forward-paragraph) ; Control-down
+(global-set-key (kbd "<C-up>") 'backward-paragraph) ; Control-down
+(global-set-key (kbd "<C-down>") 'forward-paragraph) ; Control-down
 ;; (global-set-key (kbd "M-right") 'forward-symbol)
 ;; (global-set-key (kbd "M-left") (lambda () (interactive) (forward-symbol -1)))
 
@@ -354,7 +355,6 @@
 ;;; ------------------------------------------------------------
 ;;; auto-complete
 
-(require 'fuzzy)
 (require 'auto-complete)
 (require 'auto-complete-config)
 (global-auto-complete-mode t)
@@ -364,8 +364,6 @@
 (setq ac-auto-start 2)
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
-(setq ac-use-fuzzy t)
-(setq ac-fuzzy-cursor-color "orange")
 (setq ac-use-comphist t)
 (setq ac-quick-help-delay 0.5)
 (define-key ac-mode-map (kbd "<M-tab>") 'auto-complete)
@@ -373,20 +371,6 @@
 ;; ac-anything
 (when (require 'ac-anything nil t)
   (define-key ac-complete-mode-map (kbd "<M-tab>") 'ac-complete-with-anything))
-
-;; hooks
-(add-hook 'html-mode-hook
-          '(lambda()
-             (auto-complete-mode t)
-             (define-key html-mode-map (kbd "<M-tab>") 'auto-complete)))
-
-(add-hook 'php-mode-hook
-          '(lambda()
-             (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)))
-
-(add-hook 'kontiki-mode-hook
-          '(lambda()
-             (define-key kontiki-mode-map (kbd "<M-tab>") 'auto-complete)))
 
 ;; ユーザ辞書ディレクトリ
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
@@ -404,13 +388,31 @@
 (defvar ac-technical-term-dict
   '((candidates . ac-technical-term-cache)))
 
+;; 候補
+(setq-default ac-sources '(ac-technical-term-dict
+                           ;; ac-source-filename
+                           ;; ac-source-words-in-same-mode-buffers
+                           ;; ac-english-dict
+                           ))
+
 ;; 条件の追加
 (add-to-list 'ac-modes 'text-mode)
 (add-to-list 'ac-modes 'fundamental-mode)
-(setq-default ac-sources '(ac-source-words-in-same-mode-buffers
-                           ;; ac-source-filename
-                           ac-technical-term-dict
-                           ac-english-dict))
+
+;; hooks
+(add-hook 'html-mode-hook
+          '(lambda()
+             (auto-complete-mode t)
+             (define-key html-mode-map (kbd "<M-tab>") 'auto-complete)))
+
+(add-hook 'php-mode-hook
+          '(lambda()
+             (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)))
+
+(add-hook 'kontiki-mode-hook
+          '(lambda()
+             (define-key kontiki-mode-map (kbd "<M-tab>") 'auto-complete)))
+
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (add-to-list 'ac-sources 'ac-source-symbols t)))
@@ -420,8 +422,7 @@
 (defadvice ac-word-candidates (after remove-word-contain-japanese activate)
   "Do not contain multi byte character in auto-complete candidates."
   (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
-    (setq ad-return-value
-          (remove-if contain-japanese ad-return-value))))
+    (setq ad-return-value (remove-if contain-japanese ad-return-value))))
 
 ;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い
@@ -437,9 +438,6 @@
    ;; ewwバッファだったら次のリンク
    ((eq major-mode 'eww-mode)
     (shr-next-link))
-   ;; ;; terminalだったら補完
-   ;; ((eq major-mode 'terminal-mode)
-   ;;  (shr-next-link))
    ;; read onlyバッファだったら次のリンク
    (buffer-read-only
     (forward-button 1 t))
@@ -552,6 +550,7 @@
   (when indent-tabs-mode (setq indent-tabs-mode nil))
   ad-do-it
   (my-set-indent-tabs-mode))
+
 
 ;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
@@ -933,31 +932,6 @@
 (global-set-key (kbd "C-,") 'my-anything-for-functions)
 
 ;;; ------------------------------------------------------------
-;;; Anything my-coding-helper
-
-;; (defvar anything-c-source-my-coding-helper
-;;   '((name . "coding helper")
-;;     (candidates-file . (concat jidaikobo-dir "ac-dict/technical-term"))
-;;     (action . (("Insert" . (lambda (v) (insert v)))))))
-
-;; (defvar anything-c-source-my-coding-helper2
-;;   '((name . "coding helper")
-;;     (candidates-file "~/.emacs/jidaikobo/ac-dict/technical-term" updating)
-;;     (type . line)))
-
-;; (defun my-anything-for-coding-helper ()
-;;   "Anything command for program."
-;;   (interactive)
-;;   (anything-other-buffer
-;;    '(anything-c-source-my-coding-helper2)
-;;    "*my-anything-for-functions*"))
-
-;;      ;; anything-c-source-emacs-commands
-;;      ;; anything-c-source-emacs-functions
-
-;; (global-set-key (kbd "C-z") 'my-anything-for-coding-helper)
-
-;;; ------------------------------------------------------------
 ;;; descbinds-anythingの乗っ取り
 ;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
 
@@ -1000,14 +974,10 @@
 (add-hook 'after-save-hook 'my-update-gtags)
 
 ;;; ------------------------------------------------------------
-;;; タブ関連 - elscreen or tabbar
-
-;; elscreen or tabbar
-(defvar is-use-tabbar nil)
-(defvar is-use-elscreen nil)
-
-;;; ------------------------------------------------------------
+;;; タブ関連
 ;;; tabbar
+
+(defvar is-use-tabbar nil)
 
 (when is-use-tabbar
   (require 'tabbar)
@@ -1121,29 +1091,6 @@
       ad-do-it)))
 
 ;;; ------------------------------------------------------------
-;;; elscreen
-
-(when is-use-elscreen
-  (require 'elscreen)
-  (elscreen-start)
-
-  ;; タブの先頭に[X]を表示しない
-  (setq-default elscreen-tab-display-kill-screen nil)
-
-  ;; header-lineの先頭に[<->]を表示しない
-  (setq-default elscreen-tab-display-control nil)
-
-  ;; キーバインド
-  (global-set-key (kbd "<M-s-right>") 'elscreen-next)
-  (global-set-key (kbd "<M-s-left>") 'elscreen-previous)
-
-  ;; 新しいスクリーン
-  (global-set-key (kbd "s-t") (lambda () (interactive)
-                                (elscreen-create)
-                                (switch-to-buffer "*scratch*")
-                                (text-mode))))
-
-;;; ------------------------------------------------------------
 ;;; ウィンドウ/スクリーンを閉じる
 
 (defun my-delete-windows ()
@@ -1165,10 +1112,6 @@
     (unless (yes-or-no-p "Buffer is modified. Close anyway?")
       (call-interactively (save-buffer)))
     (kill-buffer))
-   ;; screenが複数だったらelscreen-kill
-   ((and is-use-elscreen (not (elscreen-one-screen-p))) (elscreen-kill))
-   ;; screenがひとつだったらkill-buffer
-   ((and is-use-elscreen (elscreen-one-screen-p)) (kill-buffer))
    ;; kill-buffer for is-use-tabbar and other situation
    (t (kill-buffer))))
 
@@ -1185,18 +1128,6 @@
 (setq curchg-default-cursor-color "White")
 (setq curchg-input-method-cursor-color "firebrick")
 (setq curchg-change-cursor-on-input-method-flag t)
-
-;; C-aで、開始場所と先頭をトグル
-;; thx http://qiita.com/ShingoFukuyama/items/62269c4904ca085f9149
-(defun my-goto-line-beginning-or-indent (&optional position)
-  "Goto line beginning or indent.  POSITION is optical."
-  (interactive)
-  (or position (setq position (point)))
-  (let (($starting-position (progn (back-to-indentation) (point))))
-    (if (eq $starting-position position)
-        (move-beginning-of-line 1))))
-
-(global-set-key (kbd "C-a") 'my-goto-line-beginning-or-indent)
 
 ;;; ------------------------------------------------------------
 ;;; 行設定
@@ -1226,17 +1157,12 @@
     (run-with-idle-timer 0.2 nil #'linum-update-current))
   (global-linum-mode t)
   (setq-default linum-format "%5d: "))
+(show-line-number)
 
 ;; hooks
-(add-hook 'emacs-lisp-mode-hook 'show-line-number)
-(add-hook 'lisp-mode-hook 'show-line-number)
-(add-hook 'js-mode-hook 'show-line-number)
-(add-hook 'text-mode-hook 'show-line-number)
-(add-hook 'fundamental-mode-hook 'show-line-number)
-(add-hook 'php-mode-hook 'show-line-number)
-(add-hook 'css-mode-hook 'show-line-number)
-(add-hook 'web-mode-hook 'show-line-number)
-(add-hook 'html-mode-hook 'show-line-number)
+(add-hook 'text-mode-hook (lambda () (linum-mode -1)))
+(add-hook 'fundamental-mode-hook (lambda () (linum-mode -1)))
+(add-hook 'kontiki-mode-hook (lambda () (linum-mode -1)))
 
 ;;; ------------------------------------------------------------
 ;;; モードライン設定
@@ -1367,50 +1293,6 @@
 (global-whitespace-mode 1)
 
 ;;; ------------------------------------------------------------
-;;; 次/前の空行
-;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。選択範囲をものぐさして作りたいので、ちょっとfork。thx https://gist.github.com/jewel12/2873112
-;; gist-id: ad27b19dd3779ccc1ff2
-;; gist-name: move(region)-to-next(previous)-blank-line.el
-;; gist-private: nil
-
-(defun blank-line? ()
-  "Check is current line blank."
-  (string-match "^\n$" (substring-no-properties (thing-at-point 'line))))
-
-(defun move-to-next-blank-line ()
-  "Move to next blank line."
-  (interactive)
-  (progn (forward-line 1)
-         (unless (blank-line?) (move-to-next-blank-line))))
-
-(defun region-to-next-blank-line ()
-  "Make region to next blank line."
-  (interactive)
-  (when (and (not (memq last-command '(region-to-next-blank-line)))
-             (not mark-active))
-    (set-mark-command nil))
-  (move-to-next-blank-line))
-
-(defun move-to-previous-blank-line ()
-  "Move to previous blank line."
-  (interactive)
-  (progn (forward-line -1)
-         (unless (blank-line?) (move-to-previous-blank-line))))
-
-(defun region-to-previous-blank-line ()
-  "Make region to previous blank line."
-  (interactive)
-  (when (and (not (memq last-command '(region-to-previous-blank-line)))
-             (not mark-active))
-    (set-mark-command nil))
-  (move-to-previous-blank-line))
-
-(global-set-key (kbd "<C-up>") 'move-to-previous-blank-line)
-(global-set-key (kbd "<C-down>") 'move-to-next-blank-line)
-(global-set-key (kbd "<C-S-up>") 'region-to-previous-blank-line)
-(global-set-key (kbd "<C-S-down>") 'region-to-next-blank-line)
-
-;;; ------------------------------------------------------------
 ;;; 行／選択範囲の複製 (cmd+d)
 ;; gist-description: Emacs(Elisp): duplicate region or line. 選択範囲がある場合は選択範囲を、選択範囲がない場合は、行を複製します。
 ;; gist-id: 297fe973cde66b384fa1
@@ -1482,7 +1364,8 @@ It defaults to a comma."
     ;; カンマ整形されている計算式だったらカンマ区切りで返す
     (when is_num_format (setq result (add-number-grouping (string-to-number result) ",")))
     ;; (calc-eval)は、小数点を含んだ式の場合、整数でも末尾にピリオドをつけるので抑止
-    (when (string-match "\.$" result) (setq result (substring result 0 (match-beginning 0))))
+    (when (string-match "\\.$" result)
+      (setq result (substring result 0 (match-beginning 0))))
     (insert result)))
 (global-set-key (kbd "M-c") 'calculate-region-and-insert)
 
@@ -1987,8 +1870,10 @@ If gist-id exists update gist.  BEG END."
 ;; 複数の検索置換セット
 ;; portのEmacsを試してみる？
 ;; リージョン解除関数がおかしい。C-@でマークしたら、たしかに解除するが、C-S-downのあとS-downしたりするとリージョンが解除される。ここは微調整したいところなので、なんとかしたい。S-downにadviceして、markを維持するような措置が必要？？
-;; 「幾つかのウィンドウでは、タブ移動しない」popwinを判定すると良い？
+;; 「幾つかのウィンドウでは、タブ移動しない」popwin or ウィンドウ分割を判定すると良い？
 ;; 印刷設定を http://d.hatena.ne.jp/r_takaishi/20110304/1299203553 を参考に改良してみる
+;; s-qがやばい
+;; modelineに選択範囲の文字数？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area

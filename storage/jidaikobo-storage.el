@@ -1,3 +1,60 @@
+;; ;;; ------------------------------------------------------------
+;; ;;; 次/前の空行
+;; ;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。選択範囲をものぐさして作りたいので、ちょっとfork。thx https://gist.github.com/jewel12/2873112
+;; ;; gist-id: ad27b19dd3779ccc1ff2
+;; ;; gist-name: move(region)-to-next(previous)-blank-line.el
+;; ;; gist-private: nil
+
+;; (defun blank-line? ()
+;;   "Check is current line blank."
+;;   ;; (message "%s" (substring-no-properties (thing-at-point 'line)))
+;;   (string-match "^\n$" (substring-no-properties (thing-at-point 'line))))
+
+;; (defun move-to-next-blank-line ()
+;;   "Move to next blank line."
+;;   (interactive)
+;;   (progn (forward-line 1)
+;;          (unless (blank-line?) (move-to-next-blank-line))))
+
+;; (defun region-to-next-blank-line ()
+;;   "Make region to next blank line."
+;;   (interactive)
+;;   (when (and (not (memq last-command '(region-to-next-blank-line)))
+;;              (not mark-active))
+;;     (set-mark-command nil))
+;;   (move-to-next-blank-line))
+
+;; (defun move-to-previous-blank-line ()
+;;   "Move to previous blank line."
+;;   (interactive)
+;;   (progn (forward-line -1)
+;;          (unless (blank-line?) (move-to-previous-blank-line))))
+
+;; (defun region-to-previous-blank-line ()
+;;   "Make region to previous blank line."
+;;   (interactive)
+;;   (when (and (not (memq last-command '(region-to-previous-blank-line)))
+;;              (not mark-active))
+;;     (set-mark-command nil))
+;;   (move-to-previous-blank-line))
+
+;; ;; (global-set-key (kbd "<C-up>") 'move-to-previous-blank-line)
+;; ;; (global-set-key (kbd "<C-down>") 'move-to-next-blank-line)
+;; ;; (global-set-key (kbd "<C-S-up>") 'region-to-previous-blank-line)
+;; ;; (global-set-key (kbd "<C-S-down>") 'region-to-next-blank-line)
+
+;; ;; C-aで、開始場所と先頭をトグル
+;; ;; thx http://qiita.com/ShingoFukuyama/items/62269c4904ca085f9149
+;; (defun my-goto-line-beginning-or-indent (&optional position)
+;;   "Goto line beginning or indent.  POSITION is optical."
+;;   (interactive)
+;;   (or position (setq position (point)))
+;;   (let (($starting-position (progn (back-to-indentation) (point))))
+;;     (if (eq $starting-position position)
+;;         (move-beginning-of-line 1))))
+
+;; (global-set-key (kbd "C-a") 'my-goto-line-beginning-or-indent)
+
 ;; update GTAGS
 ;; thx http://qiita.com/yewton/items/d9e686d2f2a092321e34
 ;; (defun update-gtags1 (&optional prefix)
