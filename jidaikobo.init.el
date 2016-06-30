@@ -140,6 +140,9 @@
 (setq help-window-select t)
 (add-to-list 'same-window-buffer-names "*Help*")
 
+;; tabbar使いなので、ほとんどの場合、window分割はしない
+(add-to-list 'same-window-regexps "^[a-zA-Z0-9_-]+")
+
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
@@ -215,28 +218,29 @@
   ;; my-packages
   (defvar my-packages
     '(anything
-      descbinds-anything
-      auto-complete
-      undohist
-      undo-tree
-      recentf-ext
-      cursor-chg
-      smart-tab
-      google-translate
       auto-async-byte-compile
-      multiple-cursors
-      smartrep
+      auto-complete
+      cursor-chg
+      descbinds-anything
       flycheck
-      php-mode
-      web-mode
-      mic-paren
-      gtags
-      tabbar
       foreign-regexp
-      rainbow-mode
+      google-translate
+      gtags
+      mic-paren
+      multiple-cursors
+      open-junk-file
+      php-mode
       popwin
-      yagist
+      rainbow-mode
+      recentf-ext
+      smart-tab
+      smartrep
+      tabbar
+      undo-tree
+      undohist
       web-beautify
+      web-mode
+      yagist
       zlc))
 
   ;; my-packagesからインストールしていないパッケージをインストール
@@ -351,6 +355,12 @@
   (define-key map (kbd "<left>")  'zlc-select-previous)
   (define-key map (kbd "M-<tab>") 'zlc-select-previous)
   (define-key map (kbd "M-TAB") 'zlc-select-previous))
+
+;;; ------------------------------------------------------------
+;;; open-junk-file
+
+(require 'open-junk-file)
+(setq-default open-junk-file-format "~/Desktop/tmp/%Y%m%d-%H%M%S.txt")
 
 ;;; ------------------------------------------------------------
 ;;; auto-complete
@@ -543,7 +553,6 @@
   (when indent-tabs-mode (setq indent-tabs-mode nil))
   ad-do-it
   (my-set-indent-tabs-mode))
-
 
 ;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
@@ -1032,15 +1041,6 @@
     (set btn (cons (cons "" nil)
                    (cons "" nil))))
 
-  ;; new tab
-  (defun my-new-tab ()
-    "My new tab"
-    (interactive)
-    (let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
-      (get-buffer-create bufname)
-      (switch-to-buffer bufname)
-      (text-mode)))
-
   ;; move-current-tab-to-top
   ;; gist-description: Emacs(Elisp): move current tab (buffer) to top at tabbar-mode. tabbarで選択中のタブ（バッファ）を左端に移動します。
   ;; gist-id: 54dab2fc5f2e278833f5
@@ -1068,7 +1068,7 @@
   ;; キーバインド
   (global-set-key (kbd "M-s-<right>") 'tabbar-forward-tab)
   (global-set-key (kbd "M-s-<left>") 'tabbar-backward-tab)
-  (global-set-key (kbd "s-t") 'my-new-tab)
+  (global-set-key (kbd "s-t") 'open-junk-file)
   (global-set-key (kbd "C-s-t") 'move-current-tab-to-top)
 
   ;; 幾つかのウィンドウでは、タブ移動しない
