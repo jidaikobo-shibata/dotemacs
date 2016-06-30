@@ -762,7 +762,7 @@
 (defadvice rgrep (before my-rgrep activate)
   "Confirm delete grep buffer."
   (when (get-buffer "*grep*")
-    (when (y-or-n-p "Delete existing *grep* buffer?")
+    (when (y-or-n-p "Delete existing *grep* buffer? ")
       (kill-buffer (get-buffer "*grep*")))))
 
 ;;; ------------------------------------------------------------

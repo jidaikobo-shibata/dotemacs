@@ -208,7 +208,6 @@
   ;; Packages
   (require 'package)
   (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/") t)
-  ;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
   (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
   (package-initialize)
 
@@ -426,6 +425,37 @@
   "Do not contain multi byte character in auto-complete candidates."
   (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
     (setq ad-return-value (remove-if contain-japanese ad-return-value))))
+
+
+;; 日本語に続く文字列でもauto-completeする
+;; thx https://github.com/lugecy/dot-emacs/blob/master/conf.d/050-auto-complete.el
+(defalias 'ac-prefix-default 'ac-prefix-for-ja)
+(defun ac-prefix-for-ja ()
+  "Alias fo ac-prefix-default."
+  (save-match-data
+    (let ((prefix-regexp "\\(?:\\sw\\|\\s_\\)+")
+          (category-regexp (concat (lugecy-char-category-to-regexp (or (char-before) 0)) "+"))
+          prefix-limit)
+      (and
+       (looking-back prefix-regexp (line-beginning-position) t)
+       (setq prefix-limit (match-beginning 0))
+       (looking-back category-regexp prefix-limit t)
+       (max (match-beginning 0) prefix-limit)))))
+
+(defun lugecy-char-category-to-regexp (char)
+  "Multibyte CHAR."
+  (let ((c (char-category-set char)))
+    (cond
+     ((aref c ?j)                       ; Japanese
+      (cond
+       ((aref c ?K) "\\cK")             ; katakana
+       ((aref c ?A) "\\cA")             ; 2byte alphanumeric
+       ((aref c ?H) "\\cH")             ; hiragana
+       ((aref c ?C) "\\cC")             ; kanji
+       (t "\\cj")))
+     ((aref c ?k) "\\ck")               ; hankaku-kana
+     ((aref c ?a) "\\ca")               ; ASCII
+     (t "\\(?:\\sw\\|\\s_\\)"))))
 
 ;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い
@@ -1880,10 +1910,7 @@ If gist-id exists update gist.  BEG END."
 ;; 複数の検索置換セット
 ;; portのEmacsを試してみる？
 ;; リージョン解除関数がおかしい。C-@でマークしたら、たしかに解除するが、C-S-downのあとS-downしたりするとリージョンが解除される。ここは微調整したいところなので、なんとかしたい。S-downにadviceして、markを維持するような措置が必要？？
-;; 「幾つかのウィンドウでは、タブ移動しない」popwin or ウィンドウ分割を判定すると良い？
 ;; 印刷設定を http://d.hatena.ne.jp/r_takaishi/20110304/1299203553 を参考に改良してみる
-;; s-qがやばい
-;; modelineに選択範囲の文字数？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area

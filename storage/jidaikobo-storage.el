@@ -1,11 +1,13 @@
-  ;; ;; new tab
-  ;; (defun my-new-tab ()
-  ;;   "My new tab"
-  ;;   (interactive)
-  ;;   (let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
-  ;;     (get-buffer-create bufname)
-  ;;     (switch-to-buffer bufname)
-  ;;     (text-mode)))
+;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+
+;; ;; new tab
+;; (defun my-new-tab ()
+;;   "My new tab"
+;;   (interactive)
+;;   (let ((bufname (format-time-string "%y%m%d%H%M%S" (current-time))))
+;;     (get-buffer-create bufname)
+;;     (switch-to-buffer bufname)
+;;     (text-mode)))
 
 ;; ;; 英語
 ;; ;; Thx Http://Tech.Basicinc.Jp/Mac/2013/08/04/Linux_Command/
