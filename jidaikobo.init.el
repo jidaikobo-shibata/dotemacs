@@ -968,10 +968,12 @@
 (defun my-update-gtags ()
   "Update gtags."
   (let* ((file (buffer-file-name (current-buffer)))
-     (dir (directory-file-name (file-name-directory file))))
-    (when (executable-find "global")
+         (dir (directory-file-name (file-name-directory file))))
+    (when (and (gtags-get-rootpath)
+               (executable-find "global"))
       (start-process "gtags-update" nil
-             "global" "-uv"))))
+                     "global" "-uv")
+      (message "gtags updated successfully."))))
 
 (add-hook 'after-save-hook 'my-update-gtags)
 
