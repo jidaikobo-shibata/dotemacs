@@ -373,7 +373,6 @@
 (setq ac-auto-start 2)
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
-(setq ac-use-comphist t)
 (setq ac-quick-help-delay 0.5)
 (define-key ac-mode-map (kbd "<M-tab>") 'auto-complete)
 
@@ -426,6 +425,12 @@
   (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
     (setq ad-return-value (remove-if contain-japanese ad-return-value))))
 
+;; 候補と入力文字が完全に一致している時にRETでac-completeするとnewlineしてしまうので抑止
+(defadvice ac-complete (after advice-ac-complete activate)
+  "Inhibit newline when full string was matched with candidate."
+  (when (memq this-command '(newline))
+    (delete-backward-char 1)
+    (message "full string was matched with candidate.")))
 
 ;; 日本語に続く文字列でもauto-completeする
 ;; thx https://github.com/lugecy/dot-emacs/blob/master/conf.d/050-auto-complete.el
