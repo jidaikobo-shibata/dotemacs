@@ -1,8 +1,6 @@
-
 ALTER TABLE TABLE_NAME ADD `is_bool` INTEGER NOT NULL DEFAULT 0 AFTER `foo`
 ALTER TABLE TABLE_NAME CHANGE `COLUMN` `COLUMN` INTEGER NOT NULL DEFAULT 0
 ALTER TABLE TABLE_NAME auto_increment=1;
-ASC
 ASCII
 AUTO_INCREMENT
 Accessibility
@@ -376,7 +374,6 @@ acronym
 acronym // NATO
 action
 add
-add-strings-to-ac-my-dictionary
 addcslashes
 address
 addslashes
