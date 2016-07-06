@@ -59,9 +59,6 @@
 ;; スクロールを一行ずつにする
 (setq scroll-step 1)
 
-;; スクロールバーを消す（高速化にずいぶん寄与するらしい）
-(scroll-bar-mode -1)
-
 ;; クリップボードを他のアプリケーションと共用にする
 (setq x-select-enable-clipboard t)
 
@@ -1562,8 +1559,8 @@ It defaults to a comma."
 ;; gist-name: my-indext-region.el
 ;; gist-private: nil
 
-(global-set-key (kbd "s-}") 'indent-rigidly-right)
-(global-set-key (kbd "s-]") 'indent-rigidly-right)
+(global-set-key (kbd "s-}") 'indent-rigidly-right-to-tab-stop)
+(global-set-key (kbd "s-]") 'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "s-{") 'indent-rigidly-left-to-tab-stop)
 (global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
 
@@ -1586,6 +1583,36 @@ It defaults to a comma."
   (shell-command (concat "open " (expand-file-name default-directory))))
 
 (global-set-key (kbd "M-s-K") 'point-current-buffer-by-finder)
+
+;;; ------------------------------------------------------------
+;;; 現在バッファパスにterminal/iTermでcdする
+
+;; thx http://stackoverflow.com/questions/29404870/change-directory-in-osx-terminal-app-from-emacs-nw
+(defun my-open-terminal-in-current-dir ()
+  "Change directory to current buffer path by Terminal.app."
+  (interactive)
+  (shell-command (concat "open -b com.apple.terminal " (expand-file-name "."))))
+
+;; thx http://qiita.com/ganmacs/items/cfc5f9c2213a6a9e6579
+(defun cd-on-iterm ()
+  "Change directory to current buffer path by iTerm.app."
+  (interactive)
+  (util/execute-on-iterm
+   (format "cd %s" default-directory)))
+
+(defun util/execute-on-iterm (command)
+  "Change directory to current buffer path by iTerm.app."
+  (interactive "MCommand: ")
+  (do-applescript
+   (format "tell application \"iTerm2\"
+              activate
+              tell current session of current window
+                write text \"%s\"
+              end tell
+            end tell"
+           command)))
+
+(global-set-key (kbd "C-c d") 'cd-on-iterm)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲の言語を確認して翻訳 (C-c t)
