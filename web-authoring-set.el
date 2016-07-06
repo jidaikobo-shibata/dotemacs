@@ -75,12 +75,12 @@
     (cond
      ;; php
      ((string-equal type "php")
-      (setq ret (concat "echo '<textarea style=\"width:100%;height:200px;background-color:#fff;color:#111;font-size:90%;font-family:monospace;position:relative;z-index:9999\">';\nvar_dump(" word ");\necho '</textarea>';\ndie();\n")
+      (setq ret (concat "echo '<textarea style=\"width:100%;height:200px;background-color:#fff;color:#111;font-size:90%;font-family:monospace;position:relative;z-index:9999\">';\nvar_dump(" word ");\necho '</textarea>';\ndie();")
             cursor 35)))
 
     ;; ip
     (if (string-equal ip "") nil
-      (setq ret (concat "if( $_SERVER['REMOTE_ADDR'] == '" ip "' ){\n" ret "\n}\n")
+      (setq ret (concat "if( $_SERVER['REMOTE_ADDR'] == '" ip "' ){\n" ret "\n}")
             cursor 37))
 
     ;; put val
@@ -233,8 +233,8 @@
           (progn (setq html (concat html "\t<li>" (car lines) "</li>\n"))))
         (setq lines (cdr lines)))
       (if (string-equal tag "ul-li")
-          (setq tag (concat "<ul>\n" html "</ul>\n"))
-        (setq tag (concat "<ol>\n" html "</ol>\n"))))
+          (setq tag (concat "<ul>\n" html "</ul>"))
+        (setq tag (concat "<ol>\n" html "</ol>"))))
 
      ;; select
      ((string-equal tag "select")
@@ -243,9 +243,9 @@
             cursor+ 7)
       (while lines
         (if (string-equal (car lines) "") nil
-          (progn (setq html (concat html "\t<option>" (car lines) "</select>\n"))))
+          (progn (setq html (concat html "\t<option>" (car lines) "</option>\n"))))
         (setq lines (cdr lines)))
-      (setq tag (concat "<select name=\"nameStr\" id=\"idStr\">\n" html "</select>\n")))
+      (setq tag (concat "<select name=\"nameStr\" id=\"idStr\">\n" html "</select>")))
 
      ;; p-each
      ((string-equal tag "p-each")
@@ -263,6 +263,7 @@
           (if (string-equal (car lines) "") nil
             (progn (setq html (concat html "<p>" (car lines) "</p>\n"))))
           (setq lines (cdr lines)))
+        (replace-regexp-in-string "\n+$" "" html)
         (setq tag html)))
 
      ;; li-each
@@ -296,7 +297,7 @@
             (setq html (concat html line))))
         (setq cnt 2)
         (setq lines (cdr lines)))
-      (setq tag (concat "<table>\n" html "</table>\n"))
+      (setq tag (concat "<table>\n" html "</table>"))
       (if (find type '("1" "3") :test #'string=)
           (setq tag (replace-regexp-in-string "<tr>\n\t<td>\\(.+?\\)</td>" "<tr>\n\t<th>\\1</th>" tag))))
 
@@ -312,7 +313,7 @@
               (setq line (concat "<dt>" (car lines) "</dd>\n")))))
         (setq html (concat html line))
         (setq lines (cdr lines)))
-      (setq tag (concat "<dl>\n" html "</dl>\n")))
+      (setq tag (concat "<dl>\n" html "</dl>")))
 
      ;; comment out
      ((string-equal tag "comment-out")
@@ -327,27 +328,27 @@
 
      ;; script
      ((string-equal tag "script")
-      (setq tag (concat "<script type=\"text/javascript\">\n<!--\n" word "\n// -->\n</script>\n")
+      (setq tag (concat "<script type=\"text/javascript\">\n<!--\n" word "\n// -->\n</script>")
             cursor- -18))
 
      ;; style
      ((string-equal tag "style")
-      (setq tag (concat "<style type=\"text/css\">\n" word "\n</style>\n")
+      (setq tag (concat "<style type=\"text/css\">\n" word "\n</style>")
             cursor- -10))
 
      ;; form
      ((string-equal tag "form")
-      (setq tag (concat "<form action=\"str\" method=\"POST\" enctype=\"multipart/form-data\">\n" word "\n</form>\n")
+      (setq tag (concat "<form action=\"str\" method=\"POST\" enctype=\"multipart/form-data\">\n" word "\n</form>")
             cursor+ 5))
 
      ;; textarea
      ((string-equal tag "textarea")
-      (setq tag (concat "<textarea name=\"str\" id=\"str\" cols=\"35\" rows=\"7\">\n" word "\n</textarea>\n")
+      (setq tag (concat "<textarea name=\"str\" id=\"str\" cols=\"35\" rows=\"7\">\n" word "\n</textarea>")
             cursor+ 9))
 
      ;; label
      ((string-equal tag "label")
-      (setq tag (concat "<label for=\"str\">\n" word "\n</label>\n")
+      (setq tag (concat "<label for=\"str\">" word "</label>")
             cursor+ 13))
 
      ;; specify tag
