@@ -139,7 +139,7 @@
 ;;; タグに応じて、いくらか振る舞いが変わる
 (declare-function convert-to-th "convert-to-th" (arg))
 (declare-function convert-to-td "convert-to-td" (arg))
-(declare-function anything-read-string-mode "anything-read-string-mode" (arg))
+(declare-function anything-old-completing-read "anything-old-completing-read" (arg1 arg2))
 (defun any-html-tag (tag)
   "Insert html intaractive.  TAG."
   (interactive "i")
@@ -160,21 +160,22 @@
     ;; use with completing
     (unless tag
       (setq tag (let ((completing-read-function 'completing-read-default))
-                  (completing-read "Tag (default \"div\"): "
-                                   '(("table", "table")
-                                     ("section", "section")
-                                     ("header", "header")
-                                     ("footer", "footer")
-                                     ("aside", "aside")
-                                     ("article", "article")
-                                     ("select", "select")
-                                     ("script", "script")
-                                     ("style", "style")
-                                     ("input", "input")
-                                     ("form", "form")
-                                     ("label", "label")
-                                     ("ruby", "ruby")
-                                     ("textarea", "textarea"))))))
+                  (anything-old-completing-read
+                   "Tag (default \"div\"): "
+                   '(("table", "table")
+                     ("section", "section")
+                     ("header", "header")
+                     ("footer", "footer")
+                     ("aside", "aside")
+                     ("article", "article")
+                     ("select", "select")
+                     ("script", "script")
+                     ("style", "style")
+                     ("input", "input")
+                     ("form", "form")
+                     ("label", "label")
+                     ("ruby", "ruby")
+                     ("textarea", "textarea"))))))
 
     (cond
      ;; anchor
