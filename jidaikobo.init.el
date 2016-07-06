@@ -307,13 +307,17 @@
 (global-set-key (kbd "<s-kp-0>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "<s-0>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "s-q") 'save-buffers-kill-emacs)
-(global-set-key (kbd "<s-up>") (lambda () (interactive) (goto-char (point-min))))
-(global-set-key (kbd "<s-down>") (lambda () (interactive) (goto-char (point-max))))
+(global-set-key (kbd "<s-up>") 'beginning-of-buffer)
+(global-set-key (kbd "<s-down>") 'end-of-buffer)
+;; 以下方式だと、S-s-upなどでregionをつくってくれない
+;; (global-set-key (kbd "<s-up>") (lambda () (interactive) (goto-char (point-min))))
+;; (global-set-key (kbd "<s-down>") (lambda () (interactive) (goto-char (point-max))))
 (global-set-key (kbd "<s-left>") 'beginning-of-line)
 (global-set-key (kbd "<s-right>") 'end-of-line)
 (global-set-key (kbd "<backspace>") 'delete-backward-char)
 (global-set-key (kbd "<backtab>") 'align-regexp)
 (global-set-key (kbd "<C-tab>") 'align-regexp)
+;; [backword|forward]-paragraphだと、syntax table依存で、htmlなどでまどろっこしい
 ;; (global-set-key (kbd "<C-up>") 'backward-paragraph)
 ;; (global-set-key (kbd "<C-down>") 'forward-paragraph)
 ;; (global-set-key (kbd "M-right") 'forward-symbol)
@@ -727,7 +731,7 @@
     ;; (message "s:%s e:%s" (region-beginning) (region-end))
 
     (when (and (use-region-p)
-               (not (memq last-input-event '(S-left S-right S-down S-up))))
+               (not (memq last-input-event '(S-left S-right S-down S-up C-S-left C-S-right C-S-down C-S-up))))
       ;; (message "r: %s" (memq last-input-event '(S-left S-right S-down S-up)))
       (cond
        ((memq last-input-event '(right down))
