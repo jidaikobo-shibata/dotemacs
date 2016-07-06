@@ -441,8 +441,9 @@
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
 
 ;; 技術語
+(defvar ac-my-dictionary (concat ac-user-dict-dir "my-dictionary"))
 (defvar ac-my-dictionary-cache
-  (ac-file-dictionary (concat ac-user-dict-dir "my-dictionary")))
+  (ac-file-dictionary ac-my-dictionary))
 (defvar ac-my-dictionary-dict
   '((candidates . ac-my-dictionary-cache)))
 
@@ -452,6 +453,60 @@
                            ;; ac-source-words-in-same-mode-buffers
                            ;; ac-english-dict
                            ))
+
+;; 辞書に文字列を足して、git commit
+(defun add-strings-to-ac-my-dictionary (dictionary-path)
+  "Add strings to ac my dictionary.  DICTIONARY-PATH."
+  (interactive)
+  (let* ((beg (if mark-active (region-beginning) nil))
+         (end (if mark-active (region-end) nil))
+         (strings (if mark-active
+                      (buffer-substring-no-properties beg end)
+                    (read-string " String: " ""))))
+    (with-temp-buffer
+      (insert-file-contents dictionary-path)
+      (goto-char (point-min))
+      (if (re-search-forward (concat "^" strings "$") nil t)
+          (message (concat "strings was already exists: " strings))
+        (goto-char (point-max))
+        (insert (concat "\n" strings))
+        (sort-lines nil (point-min) (point-max))
+        (delete-duplicate-lines (point-min) (point-max))
+        (write-file dictionary-path)
+        (shell-command (concat "git commit " dictionary-path " -m \"dictionary update.\""))
+        (ac-clear-dictionary-cache)     ;即時反映うまくいかない
+        (message (concat "Add \"" strings "\"and git commit."))))))
+
+;; 辞書から文字列を削除して、git commit
+(defun remove-strings-from-ac-my-dictionary (dictionary-path)
+  "Remove strings from ac my dictionary.  DICTIONARY-PATH."
+  (interactive)
+  (let* ((beg (if mark-active (region-beginning) nil))
+         (end (if mark-active (region-end) nil))
+         (strings (if mark-active
+                      (buffer-substring-no-properties beg end)
+                    (read-string " String: " ""))))
+    (with-temp-buffer
+      (insert-file-contents dictionary-path)
+      (goto-char (point-min))
+      (if (re-search-forward (concat "^" strings "$") nil t)
+          (if (yes-or-no-p (concat "Remove?:" strings))
+              (progn
+                (beginning-of-line)
+                (kill-whole-line)
+                (sort-lines nil (point-min) (point-max))
+                (delete-duplicate-lines (point-min) (point-max))
+                (write-file dictionary-path)
+                (shell-command (concat "git commit " dictionary-path " -m \"dictionary update.\""))
+                (ac-clear-dictionary-cache)     ;即時反映うまくいかない
+                (message (concat "Remove \"" strings "\"and git commit.")))
+            (message (concat "Did nothing with: " strings)))
+        (message (concat "Not found: " strings))))))
+
+(global-set-key (kbd "C-c a") (lambda () (interactive)
+                                (add-strings-to-ac-my-dictionary ac-my-dictionary)))
+(global-set-key (kbd "C-c d") (lambda () (interactive)
+                                (remove-strings-from-ac-my-dictionary ac-my-dictionary)))
 
 ;; 条件の追加
 (add-to-list 'ac-modes 'text-mode)
@@ -1563,6 +1618,34 @@ It defaults to a comma."
 (global-set-key (kbd "s-]") 'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "s-{") 'indent-rigidly-left-to-tab-stop)
 (global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
+
+;;; ------------------------------------------------------------
+;;; 定型句挿入
+
+(defun insert-function-header (type author copyright link)
+  "TYPE, AUTHOR, COPYRIGHT, LINK."
+  (interactive)
+  (let* (ret
+         cursor)
+    (cond
+     ;; file-head
+     ((eq type 1)
+      (setq ret (concat "/**\n * Classname or Filename.\n *\n * @package    ex: FuelPHP, WordPress\n * @version    0.0\n * @author     " author "\n * @license    ex: FuelPHP: MIT License, Wordpress: GPL\n * @copyright  " copyright "\n * @link       " link "\n */\n\n")
+            cursor 35))
+     ;; function-head
+     ((eq type 2)
+      (setq ret (concat "/**\n * Explanation.  After dot needs double space.\n *\n * @param   string     $str\n * @param   int|string $int\n * @param   array      $arr\n * @return  void|bool\n */\n")
+            cursor 35)))
+    ;; put val
+    (insert ret)
+    (goto-char (- (point) cursor))))
+
+;; php without ip
+(global-set-key (kbd "s-M-C")
+                (lambda (type author copyright link)
+                  (interactive
+                   "nType 1:file header, 2:function header:\nsAuthor:\nsCopyright:\nsLink:")
+                  (insert-function-header type author copyright link)))
 
 ;;; ------------------------------------------------------------
 ;;; 現在バッファのファイルのフルパスを取得
