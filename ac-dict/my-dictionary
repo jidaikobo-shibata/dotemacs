@@ -1,871 +1,16 @@
-paragraph
-interactive
-criteria
-return
-suggestion
-install
-back
-word
-sequence
-China
-Chinese
-English
-French
-Japan
-Japanese
-abilympic
-accessibility
-ambiguous
-anything
-apologize
-aside
-attribute
-barrier Free
-calendar
-cheat
-class
-client
-comment
-complete
-create
-decrement
-description
-development
-dictionary
-directory
-edit
-fetch
-history
-increment
-invalid
-invoke
-keyword
-language
-light
-lighthouse
-local
-memo
-memory
-navigation
-obsolete
-option
-proprietary
-public
-purpose
-secret
-sheet
-successfully
-technique
-tmp
-understand
-valid
-verbose
-vulnerability
-vulnerable
-wrapper
 
-auto-complete
+ALTER TABLE TABLE_NAME ADD `is_bool` INTEGER NOT NULL DEFAULT 0 AFTER `foo`
+ALTER TABLE TABLE_NAME CHANGE `COLUMN` `COLUMN` INTEGER NOT NULL DEFAULT 0
+ALTER TABLE TABLE_NAME auto_increment=1;
 ASC
 ASCII
+AUTO_INCREMENT
+Accessibility
 ActiveX
 Adobe
 Android
 Apache
-Atom
-Bluetooth
-CSS
-CSV
-CUI
-CVS
-Chrome
-Curl
-DESC
-Edge
-Emacs
-FALSE
-FTP
-Facebook
-Firefox
-FocusTalk
-FreeBSD
-Frickr
-GNU
-GNU Library Public License
-Gmail
-Google
-Google Analytics
-Google Apps
-Google Chrome
-Google Earth
-Google Map
-Google Sitemap
-GyazMail
-HTTP
-Historical Event Markup and Linking
-HyperText Markup Language
-IBM
-IBM Homepage Reader
-IBM Homepage builder
-INTEGER
-IPv4
-IPv6
-ISO 14001
-ISO 27001
-ISO 9001
-Illustrator
-InDesign
-Internet Explorer
-JAWS
-JIS
-JIS Q 15001
-JIS X 8341-3
-JIS X 8341-3:2016
-Java
-JavaScript
-Jedit X
-KNOPPIX
-Keyboard Maestro
-Konqueror
-LAN
-LibreOffice
-Linux
-MECE (Mutually Exclusive collectively Exhaustive)
-Mac OS X
-MacBook
-MacBook Air
-Macintosh
-Microsoft
-Microsoft Edge
-Movable Type
-Mozilla
-MySQL
-NS
-NULL
-Netscape
-Netscape Navigator
-Nucleus
-OpenOffice
-OpenType
-Opera
-PC Talker
-PDF
-POP before SMTP
-PageRank
-PayPal
-Perl
-Photoshop
-Photoshop Elements
-Picasa
-Podcast
-PostgreSQL
-PowerBook
-PowerPC
-QUERY_STRING
-QuickTime
-RAID
-RDF - Resource Description Framework
-RSS
-RSS - RDF Site Summary
-RSS - Really Simple Syndication
-RSS - Rich Site Summary
-RealPlayer
-Red Hat Linux
-Redirect permanent /test http://www.example.com/test.html
-Redirect temp /test http://www.example.com/test.html
-Rendezvous
-Ruby
-Ruby on Rails
-SERVER
-SESSION
-SORT_ASC
-SORT_DESC
-SQL
-SQL injection
-SSL
-SVN
-SaaS
-SaaS - Software as a Service
-Safari
-Samba
-SimpleText
-Skype
-SourceForge
-SpamAssassin
-StuffIt Expander
-Sublime Text
-TRUE
-TWAIN
-TeX
-Tiny MCE
-TrueType
-Twitter
-UML
-UML - Unified Modeling Language
-UNIX
-UTF-8
-Unicode
-User Agent
-VALUE DOMAIN
-Vi
-Vim
-Visual Basic
-VoIP
-Vodafone
-VoiceOver
-W3C
-W3C - World Wide Web Consortium
-WAI
-WAI-ARIA
-WCAG
-WYSIWYG - What You See Is What You Get
-Web Accessibility Initiative
-Web Content Accessibility Guidelines
-Wikipedia
-Windows
-World Wide Web Consortium
-XHTML
-XML
-XPReader
-XREA
-XSS
-Yahoo!
-Yahoo! Japan
-Yahoo! Site Explorer
-YouTube
-application
-buffer
-elisp
-emacsclient
-footer
-gist
-lisp
-viewport
-
-HTML
-accesskey
-acronym
-address
-addslashes
-aggregate
-align
-alt
-amazon
-analytics
-applet
-archive
-area
-asin
-assert
-assign var="key_yesnos" value=","|explode:"0,1"
-assign var="yesnos" value=","|explode:"いいえ,はい"
-bar
-baz
-bootstrap
-browser
-button
-capitalize
-caption
-categorize
-collector
-config
-coreserver
-created_at
-creator_id
-crypt
-css
-csv
-current
-cursor
-custom post type
-custom_fields
-custom_post_type
-cvs
-dashboard
-date_format:"%Y-%m-%d %H:%M:%S"
-deleted_at
-e-commerce
-e-learning
-e-mail
-editor_id
-example.com
-example@example.com
-exception
-expired_at
-facebook
-false
-favicon
-font
-ftp
-garbage collector
-git
-github
-gmail.com
-guid
-hoge
-html
-html_options options=$ZZZs name="ZZZ_id" selected=$ZZZ_ids
-html_options values=$ZZZ_ids output=$ZZZ_names selected=$ZZZ_ids
-http
-http-equiv
-http://
-httpd
-i-mode
-iMac
-iPad
-iPhone
-iPod
-iPod mini
-iPod nano
-iPod shuffle
-iPod touch
-iTunes
-iTunes Music Store
-id
-if
-index.html
-index.php
-ip
-is_available
-is_trash
-is_visible
-jQuery
-jQuery (function(){ });
-javascript
-journal
-key
-lhasa
-localhost
-mail
-mailto
-media
-menu
-meta
-method
-migrate
-migration
-mkdir
-modified_at
-modifier
-multiple
-nil
-object
-override
-parent
-pdf
-phishing
-php
-phpMyAdmin
-pi
-post_content
-post_date
-post_excerpt
-post_status
-post_title
-post_type
-prefix
-print
-privacy
-privacypolicy
-query_string
-radio button
-recruit
-rsync
-scroll
-scrollable
-session
-sin
-sitemap
-sitepolicy
-size
-smartphone
-smarty.capture
-smarty.capture.sql
-smarty.const
-smarty.cookies
-smarty.env
-smarty.foreach.FOREACHNAME.first
-smarty.foreach.FOREACHNAME.iteration
-smarty.foreach.FOREACHNAME.last
-smarty.foreach.FOREACHNAME.show
-smarty.foreach.FOREACHNAME.total
-smarty.get
-smarty.post
-smarty.server
-smarty.session
-smb://
-spacify
-sqlite
-ssh
-start
-static
-style
-stylesheet
-submit
-svn
-switch
-symlink
-table
-table-layout
-tar
-tar.gz
-target
-text
-text/css
-text/html
-text/javascript
-text/plain
-text/xml
-text/xsl
-textarea
-th
-thead
-thesis
-this
-time
-timtowtdi - There is more than one way to do it
-title
-toggle
-token
-top
-toppage
-true
-truncate
-try
-twitter
-type
-underline
-updated_at
-urldecode
-urlencode
-usage
-use
-val
-vals
-value
-var
-varchar
-variant
-version
-virtual
-virtualhost
-visibility
-visited
-volume
-while
-windows
-www.example.com
-xhtml
-xml
-xor
-z-index
-zoom
-
-PHP
-Exception
-abs
-acos
-addcslashes
-addslashes
-array_diff
-array_fill
-array_fill_keys
-array_filter
-array_flip
-array_intersect
-array_intersect_assoc
-array_intersect_key
-array_intersect_uassoc
-array_intersect_ukey
-array_key_exists
-array_key_exists(mixed $key, array $array)
-array_keys
-array_map
-array_merge
-array_merge_recursive
-array_multisort
-array_pad
-array_pop
-array_push
-array_rand
-array_reduce
-array_replace
-array_replace_recursive
-array_reverse
-array_search
-array_shift
-array_slice
-array_splice
-array_sum
-array_unique
-array_unshift
-array_values
-array_walk
-array_walk_recursive
-arsort
-asin
-asort
-assert
-assert_options
-base64_decode
-base64_encode
-base_convert
-basename
-bin2hex
-bindec
-call_user_func
-call_user_func_array
-call_user_method
-call_user_method_array
-ceil
-chdir
-checkdate
-checkdnsrr
-chgrp
-chmod
-chop
-chown
-chr
-chroot
-class_alias
-class_exists
-compact
-console.log()
-constant
-copy
-cos
-count
-count_chars
-create_function
-crypt
-current
-date
-date_add
-date_create
-date_create_from_format
-date_date_set
-date_default_timezone_get
-date_default_timezone_set
-date_diff
-date_format
-date_interval_format
-date_modify
-date_parse
-date_parse_from_format
-date_time_set
-date_timestamp_get
-date_timestamp_set
-date_timezone_get
-date_timezone_set
-decbin
-dechex
-decoct
-define
-defined
-delete
-die
-dir
-dirname
-dl
-dynamic_sidebar();
-each
-echo
-echo '0';
-echo '<br />';
-empty
-end
-error_log
-error_reporting
-error_reporting(E_ALL & ~E_STRICT);
-eval
-exec
-exit
-exp
-explode
-extract
-fclose
-fgetcsv
-fgets
-fgetss
-file
-file_exists
-file_get_contents
-file_put_contents
-fileatime
-filectime
-filegroup
-filemtime
-filesize
-filetype
-floor
-flush
-fopen
-for ($n = 1; $n < 10; $n++): endfor;
-for ($n = 1; $n < 10; $n++){}
-foreach (): endforeach;
-foreach (){}
-func_get_arg
-func_get_args
-func_num_args
-function_exists
-fwrite
-get_browser
-get_called_class
-get_class
-get_class_methods
-get_class_vars
-get_current_user
-get_declared_classes
-get_declared_interfaces
-get_declared_traits
-get_defined_constants
-get_defined_functions
-get_defined_vars
-get_extension_funcs
-get_headers
-get_include_path
-get_included_files
-get_loaded_extensions
-get_magic_quotes_gpc
-get_magic_quotes_runtime
-get_meta_tags
-get_object_vars
-get_parent_class
-get_post($post_id);
-get_post_meta
-get_post_meta($post_id, $key, TRUE);
-get_posts
-get_posts('post_type=POST_TYPE&orderby=menu_order&numberposts=-1&taxonomy=TAXONOMY_NAME&term=SLUG');
-getdate
-getenv
-gettext
-gettype
-glob
-hash
-header
-if (){}
-if (): else: endif;
-if (): elseif (): endif;
-if (): endif;
-implode
-in_array
-in_array($needle, $haystack)
-ini_get
-ini_get_all
-ini_set
-intval
-is_array
-is_bool
-is_callable
-is_dir
-is_double
-is_executable
-is_file
-is_float
-is_int
-is_integer
-is_nan
-is_null
-is_numeric
-is_object
-is_scalar
-is_string
-is_subclass_of
-is_uploaded_file
-is_user_logged_in();
-is_writable
-isset
-join
-json_decode
-json_encode
-key
-key_exists
-krsort
-ksort
-lcfirst
-link
-list
-log
-ltrim
-mail
-main
-max
-maybe_serialize();
-maybe_unserialize();
-mb_check_encoding
-mb_convert_case
-mb_convert_encoding
-mb_convert_encoding($str, "SJIS") //内部文字エンコーディングからSJISに変換
-mb_convert_encoding($str, "UTF-8", "EUC-JP") //EUC-JPからUTF-8に変換
-mb_convert_kana
-mb_convert_kana($str, "KV") //「半角カタカナ」を「全角カタカナ」＋濁点付きの文字を一文字に変換
-mb_convert_kana($str, "a") //「全角英数字」を「半角」
-mb_convert_kana($str, "s") //「全角スペース」を「半角スペース」
-mb_internal_encoding
-mb_language
-mb_list_encodings
-mb_send_mail
-mb_strwidth
-mb_substr
-md5
-memory_get_usage
-method_exists
-microtime
-min
-mkdir
-mktime
-move_uploaded_file
-namespace
-email
-natcasesort
-natsort
-next
-nl2br
-number_format
-ob_clean
-ob_end_clean
-ob_end_flush
-ob_flush
-ob_get_clean
-ob_get_contents
-ob_get_flush
-ob_get_length
-ob_get_level
-ob_get_status
-ob_start
-override_function
-pack
-parse_ini_file
-parse_ini_string
-parse_str
-parse_url
-pathinfo
-phpinfo
-phpversion
-pos
-pow
-preg_grep
-preg_match
-preg_match($pattern, $subject, &$matches)
-preg_match_all
-preg_replace
-preg_replace($pattern, $replacement, $subject)
-prev
-print
-print_r
-printf
-property_exists
-query_posts
-query_posts('post_type=POST_TYPE&orderby=menu_order&numberposts=-1');
-quotemeta
-rad2deg
-rand
-range
-rawurldecode
-rawurlencode
-read_exif_data
-readdir
-readfile
-readline
-readlink
-realpath
-rename
-rename_function
-reset
-restore_current_blog()
-rewind
-rewinddir
-rmdir
-round
-rsort
-rtrim
-scandir
-serialize
-session
-setcookie
-setlocale
-settype
-sha1
-shuffle
-sin
-sizeof
-sleep
-split
-sprintf
-sprintf("%02d", $num)
-srand
-sscanf
-stat
-str_getcsv
-str_ireplace
-str_pad
-str_repeat
-str_replace
-str_replace($search, $replace, $subject)
-str_rot13
-str_shuffle
-str_split
-str_word_count
-strcasecmp
-strchr
-strip_tags
-stripcslashes
-stripos
-stripslashes
-stristr
-strlen
-strpos
-strpos($haystack, $needle)
-strpos($val, 'hoge') !== false
-strripos
-strrpos
-strstr
-strtolower
-strtotime
-strtoupper
-strval
-substr
-switch_to_blog()
-system
-tan
-time
-tmpfile
-touch
-trait_exists
-trigger_error
-trim
-uasort
-ucfirst
-ucwords
-uksort
-umask
-unlink
-unpack
-unserialize
-unset
-untaint
-urldecode
-urlencode
-usort
-utf8_decode
-utf8_encode
-var_dump
-var_export
-virtual
-while (): endwhile;
-wordwrap
-
-WordPress
-wpdb
-wpdb->escape();
-wpdb->get_results();
-wpdb->get_var();
-wpdb->prepare('%d, %s', $d, $s);
-wpdb->prepare();
-wpdb->query();
-get_stylesheet_directory_uri
-esc_html()
-
-FuelPHP
+April
 Arr::assoc_to_keyval()
 Arr::average()
 Arr::delete()
@@ -894,13 +39,24 @@ Asset::img()
 Asset::js()
 Asset::remove_path()
 Asset::render()
+Atom
+August
 Auth::check()
 Auth::login()
+Bluetooth
+CREATE TABLE TABLE_NAME (id INTEGER PRIMARY KEY, body TEXT NOT NULL DEFAULT '');
+CSS
+CSV
+CUI
+CVS
 Cache::call()
 Cache::delete()
 Cache::delete_all()
 Cache::get()
 Cache::set()
+China
+Chinese
+Chrome
 Config::delete()
 Config::get()
 Config::load()
@@ -909,6 +65,7 @@ Config::set()
 Cookie::delete()
 Cookie::get()
 Cookie::set()
+Curl
 DB::commit_transaction()
 DB::count_last_query()
 DB::count_records()
@@ -952,13 +109,58 @@ DBUtil::rename_table()
 DBUtil::repair_table()
 DBUtil::table_exists()
 DBUtil::truncate_table()
-Date
+DELETE FROM TABLE_NAME WHERE
+DESC
 Debug
+December
+Edge
+Emacs
+English
+Excel
+Exception
+FALSE
+FTP
+Facebook
+February
 Fieldset
 File
 Finder
+Firefox
+FocusTalk
 Form
+FreeBSD
+French
+Frickr
+Friday
+FuelPHP
+GNU
+GNU Library Public License
+Gmail
+Google
+Google Analytics
+Google Apps
+Google Chrome
+Google Earth
+Google Map
+Google Sitemap
+GyazMail
+HTML
+HTTP
+Historical Event Markup and Linking
+HyperText Markup Language
+IBM
+IBM Homepage Reader
+IBM Homepage builder
+INSERT INTO TABLE_NAME (field_name1, field_name2) VALUES ('value1', 'value2');
+INTEGER
+IPv4
+IPv6
+ISO 14001
+ISO 27001
+ISO 9001
+Illustrator
 Image
+InDesign
 Inflector
 Input::all()
 Input::cookie()
@@ -982,32 +184,145 @@ Input::server()
 Input::uri()
 Input::user_agent()
 Input::xml()
+Internet
+Internet Explorer
+JAWS
+JIS
+JIS Q 15001
+JIS X 8341-3
+JIS X 8341-3:2016
+January
+Japan
+Japanese
+Java
+JavaScript
+Jedit X
+July
+June
+KNOPPIX
+Keyboard Maestro
+Konqueror
+LAN
 Lang
+LibreOffice
+Linux
 Log::debug()
 Log::error()
 Log::info()
 Log::warning()
 Log::write()
+MECE (Mutually Exclusive collectively Exhaustive)
+Mac
+Mac OS X
+MacBook
+MacBook Air
+Macintosh
+March
 Markdown
-Migrate
+May
+Microsoft
+Microsoft Edge
 Module::exists()
 Module::load()
 Module::loaded()
 Module::unload()
+Monday
+Movable Type
+Mozilla
+MySQL
+NS
+NULL
+Netscape
+Netscape Navigator
+November
+Nucleus
 Num
+October
+OpenOffice
+OpenType
+Opera
+PC
+PC Talker
+PDF
+PDO('mysql:host=localhost;dbname=database', 'user', 'password'); //  $pdo->query();
+PHP
+POP before SMTP
 Package::load()
 Package::loaded()
 Package::unload()
+PageRank
 Pagination
+PayPal
+Perl
+Photoshop
+Photoshop Elements
+Picasa
+Podcast
+PostgreSQL
+PowerBook
+PowerPC
+QUERY_STRING
+QuickTime
+RAID
+RDF - Resource Description Framework
+RSS
+RSS - RDF Site Summary
+RSS - Really Simple Syndication
+RSS - Rich Site Summary
+RealPlayer
+Red Hat Linux
+Redirect permanent /test http://www.example.com/test.html
+Redirect temp /test http://www.example.com/test.html
+Rendezvous
 Request::active()
 Request::main()
 Response::get_header()
 Response::redirect()
 Router
+Ruby
+Ruby on Rails
+SELECT * FROM TABLE_NAME WHERE `foo` = '1';
+SERVER
+SESSION
+SORT_ASC
+SORT_DESC
+SQL
+SQL injection
+SSL
+SVN
+SaaS
+SaaS - Software as a Service
+Safari
+Samba
+Saturday
 Security
+September
 Session
-Str
-Upload
+SimpleText
+Skype
+SourceForge
+SpamAssassin
+StuffIt Expander
+Sublime Text
+Sunday
+TRUE
+TWAIN
+TeX
+Techniques for WCAG 2.0
+Thursday
+Tiny MCE
+TrueType
+Tuesday
+Twitter
+UML
+UML - Unified Modeling Language
+UNIX
+UPDATE TABLE_NAME SET `column` = REPLACE(column, 'Foo', 'FooBar') ;
+UPDATE TABLE_NAME SET `field_name1` = 'value1',`field_name2` = 'value2' WHERE `id` = ?;
+UPDATE sqlite_sequence SET `seq` = 1 WHERE `name` = 'TABLE_NAME';
+UTF-8
+Understanding WCAG2.0
+Unicode
 Uri::base()
 Uri::build_query_string()
 Uri::create()
@@ -1019,30 +334,117 @@ Uri::segments()
 Uri::string()
 Uri::to_assoc()
 Uri::update_query_string()
+User Agent
+VALUE DOMAIN
 Validation
-View
-e()
-find('all')
-find('all', array('where' => array(array('category_id', 1), 'or' => array(array('category_id', 2),),),));
-find('all', array('where' => array(array('category_id', 1),), 'order_by' => array('created_at' => 'desc'),));
-find('first')
-find('last', array('order_by' => 'date'))
-
-MySQL
-ALTER TABLE TABLE_NAME ADD `is_bool` INTEGER NOT NULL DEFAULT 0 AFTER `foo`
-ALTER TABLE TABLE_NAME CHANGE `COLUMN` `COLUMN` INTEGER NOT NULL DEFAULT 0
-ALTER TABLE TABLE_NAME auto_increment=1;
-AUTO_INCREMENT
-CREATE TABLE TABLE_NAME (id INTEGER PRIMARY KEY, body TEXT NOT NULL DEFAULT '');
-DELETE FROM TABLE_NAME WHERE
-INSERT INTO TABLE_NAME (field_name1, field_name2) VALUES ('value1', 'value2');
-SELECT * FROM TABLE_NAME WHERE `foo` = '1';
-UPDATE TABLE_NAME SET `column` = REPLACE(column, 'Foo', 'FooBar') ;
-UPDATE TABLE_NAME SET `field_name1` = 'value1',`field_name2` = 'value2' WHERE `id` = ?;
-UPDATE sqlite_sequence SET `seq` = 1 WHERE `name` = 'TABLE_NAME';
-
-CSS
+Vi
+Vim
+Visual Basic
+VoIP
+Vodafone
+VoiceOver
+W3C
+W3C - World Wide Web Consortium
+WAI
+WAI-ARIA
+WCAG
+WYSIWYG - What You See Is What You Get
+Web Accessibility Initiative
+Web Content Accessibility Guidelines
+Wednesday
+Wikipedia
+Windows
+WordPress
+World Wide Web Consortium
+XHTML
+XML
+XPReader
+XREA
+XSS
+Yahoo!
+Yahoo! Japan
+Yahoo! Site Explorer
+YouTube
+abbr // JPY
+abilympic
+abs
+access
+accessibility
+accesskey
+acos
+acronym
+acronym // NATO
+action
+add
+add-strings-to-ac-my-dictionary
+addcslashes
+address
+addslashes
+aggregate
+alias
+align
+alt
+alternative
+amazon
+ambiguous
+analytics
 animation
+anything
+apologize
+applet
+application
+archive
+area
+array
+array_diff
+array_fill
+array_fill_keys
+array_filter
+array_flip
+array_intersect
+array_intersect_assoc
+array_intersect_key
+array_intersect_uassoc
+array_intersect_ukey
+array_key_exists
+array_key_exists($key, $array)
+array_keys
+array_map
+array_merge
+array_merge_recursive
+array_multisort
+array_pad
+array_pop
+array_push
+array_rand
+array_reduce
+array_replace
+array_replace_recursive
+array_reverse
+array_search
+array_shift
+array_slice
+array_splice
+array_sum
+array_unique
+array_unshift
+array_values
+array_walk
+array_walk_recursive
+arsort
+article
+aside
+asin
+asort
+assert
+assert_options
+asset
+assign
+assign var="key_yesnos" value=","|explode:"0,1"
+assign var="yesnos" value=","|explode:"いいえ,はい"
+attribute
+auto-complete
+back
 background
 background-color: #fff;
 background-image
@@ -1053,49 +455,258 @@ background-repeat
 background-repeat: no-repeat;
 background-repeat: repeat-x;
 background-repeat: repeat-y;
+bar
+barrier Free
+base
+base64
+base64_decode
+base64_encode
+base_convert
+basename
+baz
+bin2hex
+bindec
+block
+blockquote
+blue
+bootstrap
 border
 border-bottom
-border-collapse
 border-collapse: collapse;
-border-color
-border-image
 border-left
-border-radius
 border-radius: 10px;
 border-right
-border-spacing
 border-style
 border-top
 border-width
 border: 1px #aaa solid;
 border: none;
 bottom
-box-sizing: border-box
+box-sizing: border-box;
+break
 break-after
 break-before
 break-inside
+browser
+buffer
+button
+cache
+calendar
+call
+call_user_func
+call_user_func_array
+call_user_method
+call_user_method_array
+candidate
+capitalize
+caption
+catch
+categorize
+category
+ceil
+change
+chdir
+cheat
+check
+checkbox
+checkdate
+checkdnsrr
+chgrp
+chmod
+chop
+chown
+chr
+chroot
+class
+class_alias
+class_exists
 clear
 clear: both;
 clear: left;
 clear: right;
+client
 clip
 clip: rect(1px 1px 1px 1px);
 clip: rect(1px, 1px, 1px, 1px);
+collector
 color
 columns
+command
+comment
+compact
+complete
+component
+condition
+config
+console
+console.log()
+constant
+contact
 content
+continue
+continuity
+controller
+cookie
+copy
+copyright
+core
+coreserver
+cos
+could
+count
+count_chars
+country
+create
+create_function
+created
+created_at
+creator
+creator_id
+criteria
 crop
+crypt
+css
+csv
 cue
+current
 cursor
+custom
+custom post type
+custom_fields
+custom_post_type
+cvs
+dash
+dashboard
+date
+date_add
+date_create
+date_create_from_format
+date_date_set
+date_default_timezone_get
+date_default_timezone_set
+date_diff
+date_format
+date_format:"%Y-%m-%d %H:%M:%S"
+date_i18n($dateformatstring, $unixtimestamp)
+date_interval_format
+date_modify
+date_parse
+date_parse_from_format
+date_time_set
+date_timestamp_get
+date_timestamp_set
+date_timezone_get
+date_timezone_set
+db
+decbin
+dechex
+decoct
+decrement
+define
+defined
+delete
+deleted
+deleted_at
+description
+development
+dictionary
+die
+dir
 direction
+directory
+dirname
 display
+dl
+doc
+document
+docx
+down
+download
+draft
+driver
+dummy
+dynamic
+dynamic_sidebar();
+e()
+e-commerce
+e-learning
+e-mail
+each
+early
+echo
+echo '0';
+echo '<br />';
+ecology
+edit
+editor
+editor_id
+education
+elisp
+emacsclient
+email
+empty
 empty-cells
+end
+engine
+error
+error_log
+error_reporting
+error_reporting(E_ALL & ~E_STRICT);
+esc_html()
+eval
+example
+example.com
+example@example.com
+exception
+exec
+exist
+exit
+exp
+expansion
+expire
+expired
+expired_at
+explanation
+explode
+extension
+extract
+face
+facebook
+fall
+false
+favicon
+fclose
+fetch
+fgetcsv
+fgets
+fgetss
+field
+figure
+file
+file_exists
+file_get_contents
+file_put_contents
+fileatime
+filectime
+filegroup
+filemtime
+filesize
+filetype
+find('all')
+find('all', array('where' => array(array('category_id', 1), 'or' => array(array('category_id', 2),),),));
+find('all', array('where' => array(array('category_id', 1),), 'order_by' => array('created_at' => 'desc'),));
+find('first')
+find('last', array('order_by' => 'date'))
+fire
 fit
 fit-position
 flex
 float
 float: left;
 float: right;
+floor
+flush
+focus
 font
 font-family
 font-family: monospace;
@@ -1109,22 +720,201 @@ font-style: normal;
 font-weight
 font-weight: bold;
 font-weight: normal;
+foot
+footer
+fopen
+for ($n = 1; $n < 10; $n++): endfor;
+for ($n = 1; $n < 10; $n++){}
+forbidden
+foreach (): endforeach;
+foreach (){}
+foreign
+free
+ftp
+func_get_arg
+func_get_args
+func_num_args
+function
+function_exists
+fwrite
+gallery
+garbage
+garbage collector
+get
+get_browser
+get_called_class
+get_class
+get_class_methods
+get_class_vars
+get_current_user
+get_declared_classes
+get_declared_interfaces
+get_declared_traits
+get_defined_constants
+get_defined_functions
+get_defined_vars
+get_extension_funcs
+get_headers
+get_include_path
+get_included_files
+get_loaded_extensions
+get_magic_quotes_gpc
+get_magic_quotes_runtime
+get_meta_tags
+get_object_vars
+get_parent_class
+get_post($post_id);
+get_post_meta($post_id, $key, TRUE);
+get_post_meta()
+get_posts('post_type=POST_TYPE&orderby=menu_order&order=DESC&numberposts=-1&taxonomy=TAXONOMY_NAME&term=SLUG');
+get_posts()
+get_stylesheet_directory_uri()
+getdate
+getenv
+gettext
+gettype
+gist
+git
+github
+glob
+global
+glossary
+gmail.com
+grade
+guid
+guide
+guideline
+hash
+head
+header
 height
 height: 100%;
+hello
+history
+hoge
+home_url()
+html
+html_options options=$ZZZs name="ZZZ_id" selected=$ZZZ_ids
+html_options values=$ZZZ_ids output=$ZZZ_names selected=$ZZZ_ids
+http
+http-equiv
+http://
+https://
 hyphens
+i-mode
+iMac
+iPad
+iPhone
+iPod
+iPod mini
+iPod nano
+iPod shuffle
+iPod touch
+iTunes
+iTunes Music Store
 icon
+id
+if
+if (): else: endif;
+if (): elseif (): endif;
+if (): endif;
+if (){}
+image
 ime-mode
+implode
+in
+in_array
+in_array($needle, $haystack)
+increment
+index
+index.html
+index.php
+information
+ini_get
+ini_get_all
+ini_set
+input
+install
+instance
+interactive
+interface
+international
+introduce
+introduction
+intval
+invalid
+invoke
+ip
+is
+is_array
+is_available
+is_bool
+is_callable
+is_dir
+is_double
+is_executable
+is_file
+is_float
+is_int
+is_integer
+is_nan
+is_null
+is_numeric
+is_object
+is_scalar
+is_string
+is_subclass_of
+is_trash
+is_uploaded_file
+is_user_logged_in();
+is_visible
+is_writable
+isset
+jQuery
+jQuery (function(){ });
+javascript
+jidaikobo
+join
+journal
+json
+json_decode
+json_encode
+key
+key_exists
+keyword
+krsort
+ksort
+language
+lcfirst
 left
+letter
 letter-spacing
+lhasa
+library
+light
+lighthouse
+line
 line-break
 line-height
 line-height: 1;
+link
+lisp
+list
 list-style
 list-style-image
 list-style-image: none;
 list-style-image: url('');
 list-style-position
 list-style-type
+listen
+literacy
+local
+localhost
+log
+ltrim
+mail
+mailto
+main
 margin
 margin-bottom
 margin-left
@@ -1132,17 +922,100 @@ margin-right
 margin-top
 margin: 0;
 marks
+match
+max
 max-height
 max-width
+maybe
+maybe_serialize();
+maybe_unserialize();
+mb_check_encoding
+mb_convert_case
+mb_convert_encoding
+mb_convert_encoding($str, "SJIS") //内部文字エンコーディングからSJISに変換
+mb_convert_encoding($str, "UTF-8", "EUC-JP") //EUC-JPからUTF-8に変換
+mb_convert_kana
+mb_convert_kana($str, "KV") //「半角カタカナ」を「全角カタカナ」＋濁点付きの文字を一文字に変換
+mb_convert_kana($str, "a") //「全角英数字」を「半角」
+mb_convert_kana($str, "s") //「全角スペース」を「半角スペース」
+mb_internal_encoding
+mb_language
+mb_list_encodings
+mb_send_mail
+mb_strwidth
+mb_substr
+md5
+media
+memo
+memory
+memory_get_usage
+menu
+meta
+method
+method_exists
+micro
+microtime
+might
+migrate
+migration
+min
 min-height
 min-width
+mkdir
+mktime
+modified
+modified_at
+modifier
+modify
+module
+move
 move-to
+move_uploaded_file
+multi
+multiple
+my
+mysqli('example.com', 'user', 'password', 'database'); // $mysqli->query();
+name
+namespace
+natcasesort
+natsort
+nav
+navigation
+net
+next
+nil
+nl2br
+noscript
+number
+number_format
+ob_clean
+ob_end_clean
+ob_end_flush
+ob_flush
+ob_get_clean
+ob_get_contents
+ob_get_flush
+ob_get_length
+ob_get_level
+ob_get_status
+ob_start
+obj
+object
+obsolete
 opacity
+open
+optimization
+option
 order
 orphans
 outline
+over
 overflow
 overflow: auto;
+override
+override_function
+pack
+package
 padding
 padding-bottom
 padding-left
@@ -1154,17 +1027,236 @@ page-break-after
 page-break-before
 page-break-inside
 page-policy
+pagination
+paragraph
+parent
+parse
+parse_ini_file
+parse_ini_string
+parse_str
+parse_url
+path
+pathinfo
 pause
+pay
+pdf
+peace
+permission
+phishing
+photo
+php
+phpMyAdmin
+phpinfo
+phpversion
+pi
+picture
+piece
+pos
 position
 position: absolute;
 position: relative;
+post
+post_content
+post_date
+post_excerpt
+post_status
+post_title
+post_type
+pow
+power
+prefix
+preg_grep
+preg_match
+preg_match($pattern, $subject, $matches)
+preg_match_all
+preg_replace
+preg_replace($pattern, $replacement, $subject)
+presenter
+prev
+print
+print_r
+printf
+privacy
+privacypolicy
+production
+program
+prompt
+property
+property_exists
+proprietary
+public
+purpose
+query
+query_posts
+query_posts('post_type=POST_TYPE&orderby=menu_order&numberposts=-1');
+query_string
+quotemeta
 quotes
+rad2deg
+radio
+radio button
+rand
+range
+rawurldecode
+rawurlencode
+read
+read_exif_data
+readdir
+readfile
+readline
+readlink
+real
+realpath
+recent
+recognize
+recruit
+redirect
+region
+register
+rename
+rename_function
+request
+reset
 resize
+resource
 rest
+restore
+restore_current_blog()
+return
+rewind
+rewinddir
 right
+rmdir
+robust
+round
+route
+rsort
+rsync
+rtrim
+said
+scandir
+school
+script
+scroll
+scrollable
+search
+secret
+section
+select
+sequence
+serialize
+server
+service
+session
+set
+setcookie
+setlocale
+settype
+sha1
+sheet
+should
+shuffle
+simple
+sin
+sincerely
+site
+sitemap
+sitepolicy
 size
+sizeof
+sleep
+smart
+smartphone
+smarty
+smarty.capture
+smarty.capture.sql
+smarty.const
+smarty.cookies
+smarty.env
+smarty.foreach.FOREACHNAME.first
+smarty.foreach.FOREACHNAME.iteration
+smarty.foreach.FOREACHNAME.last
+smarty.foreach.FOREACHNAME.show
+smarty.foreach.FOREACHNAME.total
+smarty.get
+smarty.post
+smarty.server
+smarty.session
+sort
+source
+spacify
+spam
 speak
+split
+spring
+sprintf
+sprintf("%02d", $num)
+sqlite
+srand
+sscanf
+ssh
+stage
+staging
+start
+stat
+static
+stationery
+str
+str_getcsv
+str_ireplace
+str_pad
+str_repeat
+str_replace
+str_replace($search, $replace, $subject)
+str_rot13
+str_shuffle
+str_split
+str_word_count
+strange
+strcasecmp
+strchr
+strip_tags
+stripcslashes
+stripos
+stripslashes
+stristr
+strlen
+strong
+strpos
+strpos($haystack, $needle)
+strpos($val, 'hoge') !== false
+strripos
+strrpos
+strstr
+strtolower
+strtotime
+strtoupper
+strval
+studioNiCr
+study
+style
+stylesheet
+submit
+substr
+substr($string, $start, $length)
+successfully
+suffix
+suggestion
+summary
+summer
+svn
+switch
+switch_to_blog()
+symlink
+system
+table
 table-layout
+tan
+tar
+tar.gz
+target
+technique
+text
 text-align
 text-align-last
 text-align: center;
@@ -1174,8 +1266,85 @@ text-decoration
 text-decoration: none;
 text-decoration: underline;
 text-indent
+text/css
+text/html
+text/javascript
+text/plain
+text/xml
+text/xsl
+textarea
+th
+thead
+theme
+thesis
+this
+thread
+threshold
+through
+time
+timtowtdi - There is more than one way to do it
+tiny
+title
+tmp
+tmpfile
+toggle
+token
+tomorrow
 top
+topic
+toppage
+touch
+trait_exists
 transform
+trigger_error
+trim
+true
+truncate
+try
+try {} catch (Exception $e) {}
+twitter
+type
+uasort
+ucfirst
+ucwords
+uksort
+umask
+under
+underline
+understand
+unlink
+unpack
+unserialize
+unset
+untaint
+up
+update
+updated
+updated_at
+updater
+upload
+uri
+url
+urldecode
+urlencode
+usage
+use
+user
+usort
+utf8_decode
+utf8_encode
+utility
+val
+valid
+vals
+value
+var
+var_dump
+var_export
+varchar
+variant
+verbose
+version
 vertical-align
 vertical-align: baseline;
 vertical-align: bottom;
@@ -1185,15 +1354,56 @@ vertical-align: super;
 vertical-align: text-bottom;
 vertical-align: text-top;
 vertical-align: top;
+vertival
+view
+viewport
+virtual
+virtualhost
 visibility
 visibility: hidden;
+visible
+visited
+visual
+voice
+volume
+vulnerability
+vulnerable
+web
+website
+which
+while
+while (): endwhile;
+white
 white-space
 white-space: normal;
 white-space: nowrap;
 widows
 width
 width: 100%;
+windows
+winter
+word
 word-break
 word-break: break-all;
 word-spacing
+wordwrap
+world
+would
+wpdb
+wpdb->escape();
+wpdb->get_results();
+wpdb->get_var();
+wpdb->prepare('%d, %s', $d, $s);
+wpdb->prepare();
+wpdb->query();
+wrapper
+write
+www.example.com
+xhtml
+xls
+xlsx
+xml
+xor
+yesterday
 z-index
+zoom
