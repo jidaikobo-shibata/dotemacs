@@ -114,12 +114,18 @@
 (cua-mode t) ; cua-modeをオン。C-RETで矩形選択モードに
 (setq-default cua-enable-cua-keys nil) ; CUAキーバインドを無効にする
 
-;; 複数フレームを開かないようにする
-(setq-default ns-pop-up-frames nil)
-
 ;; ファイルが #! から始まる場合、+xを付けて保存する
 (add-hook 'after-save-hook
           'executable-make-buffer-file-executable-if-script-p)
+
+;; .poファイルを保存したらmsgfmt -oする
+(add-hook 'after-save-hook
+          (lambda ()
+            (when (string= (file-name-extension (buffer-file-name)) "po")
+              (shell-command (concat
+                              "msgfmt -o "
+                              (substring (buffer-file-name) 0 -2) "mo "
+                              (buffer-file-name))))))
 
 ;;; 関数名の表示
 (which-function-mode 1)
@@ -142,6 +148,9 @@
 
 ;; tabbar使いなので、ほとんどの場合、window分割はしない
 (add-to-list 'same-window-regexps "^[a-zA-Z0-9_-]+")
+
+;; 複数フレームを開かないようにする
+;; (setq-default ns-pop-up-frames nil)
 
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
@@ -280,33 +289,33 @@
 ;; mac-likeなcmd関係
 ;; thx http://d.hatena.ne.jp/gan2/20080109/1199887209
 ;; thx http://www.unixuser.org/~euske/doc/emacsref/#file
-(global-set-key (kbd "s-a") 'mark-whole-buffer) ; select all (cmd+a)
-(global-set-key (kbd "s-c") 'kill-ring-save) ; copy (cmd+c)
-(global-set-key (kbd "s-x") 'kill-region) ; cut (cmd+x)
-(global-set-key (kbd "s-v") 'yank) ; paste (cmd+v)
-(global-set-key (kbd "s-s") 'save-buffer) ; save (cmd+s)
-(global-set-key (kbd "s-S") 'write-file) ; save as (cmd+shift+s)
-(global-set-key (kbd "s-o") 'find-file) ; open (cmd+o)
-(global-set-key (kbd "s-z") 'undo-tree-undo) ; undo (cmd+z)
-(global-set-key (kbd "s-Z") 'undo-tree-redo) ; redo (cmd+shift+z)
-(global-set-key (kbd "s-+") 'text-scale-increase) ; resize increase (cmd++)
-(global-set-key (kbd "<s-kp-add>") 'text-scale-increase) ; resize increase (cmd++)
-(global-set-key (kbd "s--") 'text-scale-decrease) ; resize decrease (cmd+-)
-(global-set-key (kbd "<s-kp-subtract>") 'text-scale-decrease) ; resize decrease (cmd+-)
+(global-set-key (kbd "s-a") 'mark-whole-buffer)
+(global-set-key (kbd "s-c") 'kill-ring-save)
+(global-set-key (kbd "s-x") 'kill-region)
+(global-set-key (kbd "s-v") 'yank)
+(global-set-key (kbd "s-s") 'save-buffer)
+(global-set-key (kbd "s-S") 'write-file)
+(global-set-key (kbd "s-o") 'find-file)
+(global-set-key (kbd "s-z") 'undo-tree-undo)
+(global-set-key (kbd "s-Z") 'undo-tree-redo)
+(global-set-key (kbd "s-+") 'text-scale-increase)
+(global-set-key (kbd "<s-kp-add>") 'text-scale-increase)
+(global-set-key (kbd "s--") 'text-scale-decrease)
+(global-set-key (kbd "<s-kp-subtract>") 'text-scale-decrease)
 (global-set-key (kbd "<s-kp-equal>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "s-=") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "<s-kp-0>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "<s-0>") (lambda () (interactive) (text-scale-mode 0)))
-(global-set-key (kbd "s-q") 'save-buffers-kill-emacs) ; quit (cmd+q)
-(global-set-key (kbd "<s-up>") 'beginning-of-buffer) ; cmd+up
-(global-set-key (kbd "<s-down>") 'end-of-buffer) ; cmd+down
-(global-set-key (kbd "<s-left>") 'beginning-of-line) ; cmd+left
-(global-set-key (kbd "<s-right>") 'end-of-line) ; cmd+right
-(global-set-key (kbd "<backspace>") 'delete-backward-char) ; delete
+(global-set-key (kbd "s-q") 'save-buffers-kill-emacs)
+(global-set-key (kbd "<s-up>") (lambda () (interactive) (goto-char (point-min))))
+(global-set-key (kbd "<s-down>") (lambda () (interactive) (goto-char (point-max))))
+(global-set-key (kbd "<s-left>") 'beginning-of-line)
+(global-set-key (kbd "<s-right>") 'end-of-line)
+(global-set-key (kbd "<backspace>") 'delete-backward-char)
 (global-set-key (kbd "<backtab>") 'align-regexp)
 (global-set-key (kbd "<C-tab>") 'align-regexp)
-(global-set-key (kbd "<C-up>") 'backward-paragraph) ; Control-down
-(global-set-key (kbd "<C-down>") 'forward-paragraph) ; Control-down
+;; (global-set-key (kbd "<C-up>") 'backward-paragraph)
+;; (global-set-key (kbd "<C-down>") 'forward-paragraph)
 ;; (global-set-key (kbd "M-right") 'forward-symbol)
 ;; (global-set-key (kbd "M-left") (lambda () (interactive) (forward-symbol -1)))
 
@@ -340,6 +349,53 @@
 
 ;; opt+¥でバックスラッシュを入力
 (global-set-key (kbd "M-¥") "\\")
+
+;;; ------------------------------------------------------------
+;;; 次/前の空行
+;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。https://gist.github.com/jewel12/2873112 をforkしたのだけど、巨大なファイルで次の空行を見つけられなかったので、Evilから一部拝借。
+;; gist-id: ad27b19dd3779ccc1ff2
+;; gist-name: move(region)-to-next(previous)-blank-line.el
+;; gist-private: nil
+
+(defun move-to-previous-blank-line ()
+  "Go to previous empty lines."
+  (interactive)
+  (goto-char
+   (or (save-excursion
+         (unless (bobp)
+           (backward-char)
+           (re-search-backward "^$" nil t)))
+       (point))))
+
+(defun region-to-previous-blank-line ()
+  "Go to previous empty lines with expand region."
+  (interactive)
+  (when (and (not (memq last-command '(region-to-prev-blank-line)))
+             (not mark-active))
+    (set-mark-command nil))
+  (move-to-previous-blank-line))
+
+(defun move-to-next-blank-line ()
+  "Go to next empty lines."
+  (interactive)
+  (let ((orig (point)))
+    (when (re-search-forward "^$" nil t)
+      (if (eobp)
+          (goto-char orig)
+        (forward-char)))))
+
+(defun region-to-next-blank-line ()
+  "Go to next empty lines with expand region."
+  (interactive)
+  (when (and (not (memq last-command '(region-to-next-blank-line)))
+             (not mark-active))
+    (set-mark-command nil))
+  (move-to-next-blank-line))
+
+(global-set-key (kbd "<C-up>") 'move-to-previous-blank-line)
+(global-set-key (kbd "<C-down>") 'move-to-next-blank-line)
+(global-set-key (kbd "<C-S-up>") 'region-to-previous-blank-line)
+(global-set-key (kbd "<C-S-down>") 'region-to-next-blank-line)
 
 ;;; ------------------------------------------------------------
 ;;; find-fileをzshライクに
@@ -439,7 +495,8 @@
   "Alias fo ac-prefix-default."
   (save-match-data
     (let ((prefix-regexp "\\(?:\\sw\\|\\s_\\)+")
-          (category-regexp (concat (lugecy-char-category-to-regexp (or (char-before) 0)) "+"))
+          (category-regexp
+           (concat (lugecy-char-category-to-regexp (or (char-before) 0)) "+"))
           prefix-limit)
       (and
        (looking-back prefix-regexp (line-beginning-position) t)
@@ -770,11 +827,12 @@
 
 (require 'recentf-ext)
 (recentf-mode 1)
-(setq recentf-exclude '("/TAGS$"
-                        "/var/tmp/"
-                        ".recentf"
-                        "^/[^/:]+:" ; TRAMP
-                        ".+Fetch Temporary Folder.+"))
+(setq recentf-exclude
+      '("/TAGS$"
+        "/var/tmp/"
+        ".recentf"
+        "^/[^/:]+:" ; TRAMP
+        ".+Fetch Temporary Folder.+"))
 (setq recentf-max-saved-items 1000)
 
 ;;; ------------------------------------------------------------
@@ -918,13 +976,14 @@
 
 (defvar anything-c-source-coding-system
   '((name . "Encode and Line Folding")
-    (candidates . (lambda () '("set UTF-8"
-                               "set EUC-JP"
-                               "set Shift-JIS"
-                               "set ISO-2022-JP"
-                               "set LF"
-                               "set CR"
-                               "set CR+LF")))
+    (candidates . (lambda ()
+                    '("set UTF-8"
+                      "set EUC-JP"
+                      "set Shift-JIS"
+                      "set ISO-2022-JP"
+                      "set LF"
+                      "set CR"
+                      "set CR+LF")))
     (action ("default" . anything-coding-system))))
 
 (defun anything-coding-system (act)
@@ -994,21 +1053,17 @@
                  (local-set-key (kbd "RET") 'gtags-select-tag)))
 
 ;; hooks
-(add-hook 'php-mode-hook
-          '(lambda()
-             (gtags-mode 1)))
+(add-hook 'php-mode-hook '(lambda() (gtags-mode 1)))
 
 ;; update gtags
 ;; thx http://qiita.com/hayamiz/items/8e8c7fca64b4810d8e78
 (defun my-update-gtags ()
   "Update gtags."
-  (let* ((file (buffer-file-name (current-buffer)))
-         (dir (directory-file-name (file-name-directory file))))
     (when (and (gtags-get-rootpath)
                (executable-find "global"))
       (start-process "gtags-update" nil
                      "global" "-uv")
-      (message "gtags updated successfully."))))
+      (message "gtags updated successfully.")))
 
 (add-hook 'after-save-hook 'my-update-gtags)
 
@@ -1236,7 +1291,7 @@
 ;; auto-async-byte-compile
 ;; thx http://www.emacswiki.org/emacs/auto-async-byte-compile.el
 (require 'auto-async-byte-compile)
-(setq auto-async-byte-compile-exclude-files-regexp "init.el")
+(setq auto-async-byte-compile-exclude-files-regexp "init.el\\|wl.el")
 (add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode)
 
 ;;; ------------------------------------------------------------
@@ -1886,6 +1941,28 @@ If gist-id exists update gist.  BEG END."
                             (and (> (length (buffer-string)) 10000)
                                  (yes-or-no-p "Current buffer is large. Preview takes quite time. Preview this?"))))
                       (pdf-preview-buffer)))))
+
+
+;;; ------------------------------------------------------------
+;;; Mew
+
+(autoload 'mew "mew" nil t)
+(autoload 'mew-send "mew" nil t)
+
+;; Optional setup (Read Mail menu):
+(setq read-mail-command 'mew)
+
+;; Optional setup (e.g. C-xm for sending a message):
+(autoload 'mew-user-agent-compose "mew" nil t)
+(if (boundp 'mail-user-agent)
+    (setq mail-user-agent 'mew-user-agent))
+(if (fboundp 'define-mail-user-agent)
+    (define-mail-user-agent
+      'mew-user-agent
+      'mew-user-agent-compose
+      'mew-draft-send-message
+      'mew-draft-kill
+      'mew-send-hook))
 
 ;;; ------------------------------------------------------------
 ;;; eww
