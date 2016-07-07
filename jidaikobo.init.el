@@ -366,7 +366,7 @@
          (unless (bobp)
            (backward-char)
            (re-search-backward "^$" nil t)))
-       (point))))
+       (point-min))))
 
 (defun region-to-previous-blank-line ()
   "Go to previous empty lines with expand region."
@@ -379,11 +379,12 @@
 (defun move-to-next-blank-line ()
   "Go to next empty lines."
   (interactive)
-  (let ((orig (point)))
-    (when (re-search-forward "^$" nil t)
-      (if (eobp)
-          (goto-char orig)
-        (forward-char)))))
+  (goto-char
+   (or (save-excursion
+         (unless (bobp)
+           (forward-char)
+           (re-search-forward "^$" nil t)))
+       (point-max))))
 
 (defun region-to-next-blank-line ()
   "Go to next empty lines with expand region."
@@ -2101,12 +2102,30 @@ If gist-id exists update gist.  BEG END."
 
 ;;; ------------------------------------------------------------
 ;;; Todo:
+
 ;; doctypeを見てのbrやタグの挿入
-;; 単語境界をもうちょっと細かくしたい（シンタックステーブルか？）
+
+;; 単語境界をもうちょっと細かくしたい（シンタックステーブルか？）というか、right-wordなどで行頭行末で引っかかってほしい
+;; words-include-escapes,(skip-chars-forward "a-zA-Z")(skip-chars-backward "a-zA-Z")
+;; http://www.fan.gr.jp/~ring/doc/elisp_20/elisp_30.html#SEC464
+
 ;; 複数の検索置換セット
 ;; portのEmacsを試してみる？
-;; リージョン解除関数がおかしい。C-@でマークしたら、たしかに解除するが、C-S-downのあとS-downしたりするとリージョンが解除される。ここは微調整したいところなので、なんとかしたい。S-downにadviceして、markを維持するような措置が必要？？
 ;; 印刷設定を http://d.hatena.ne.jp/r_takaishi/20110304/1299203553 を参考に改良してみる
+;; search-centerの履歴
+;; auto-completeのdictionaryは、保存時にgit commitしてもよい
+
+;; 履歴を保存するとエラーになるので
+;; http://tech.kayac.com/archive/emacs.html
+;; (remove-hook 'kill-emacs-hook 'anything-c-adaptive-save-history)
+;; (ad-disable-advice 'anything-exit-minibuffer 'before 'anything-c-adaptive-exit-minibuffer)
+;; (ad-disable-advice 'anything-select-action 'before 'anything-c-adaptive-select-action)
+;; (setq anything-c-adaptive-history-length 0)
+
+;; anything-c-source-occur
+
+;; Variable: (setq inhibit-field-text-motion t)
+;; If this variable is non-nil, certain motion functions including forward-word, forward-sentence, and forward-paragraph ignore field boundaries.
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
