@@ -162,8 +162,8 @@
 ;;; フレーム初期値
 
 (add-to-list 'default-frame-alist '(alpha . (1.00 1.00)))
-(add-to-list 'default-frame-alist '(width . 100))
-(add-to-list 'default-frame-alist '(height . 55))
+(add-to-list 'default-frame-alist '(width . 105))
+(add-to-list 'default-frame-alist '(height . 60))
 (add-to-list 'default-frame-alist '(top . 0))
 (add-to-list 'default-frame-alist '(left . 0))
 (ignore-errors (add-to-list 'default-frame-alist '(font . "ricty-16")))
@@ -610,9 +610,6 @@
    ;; read onlyバッファだったら次のリンク
    (buffer-read-only
     (forward-button 1 t))
-   ;; Anythingのときにはアクション選択
-   (anything-alive-p
-    (anything-select-action))
    ;; ミニバッファだったらミニバッファ補完
    ((minibufferp (current-buffer))
     (minibuffer-complete))
@@ -675,16 +672,18 @@
 (defvar inside-string-or-comment-p)
 (defvar re-search-forward-without-string-and-comments)
 
-(if (not (fboundp 'defun-if-undefined))
-    (defmacro defun-if-undefined (name &rest rest)
-      `(unless (fboundp (quote ,name))
-         (defun ,name ,@rest))))
+;; (if (not (fboundp 'defun-if-undefined))
+;;     (defmacro defun-if-undefined (name &rest rest)
+;;       `(unless (fboundp (quote ,name))
+;;          (defun ,name ,@rest))))
 
-(defun-if-undefined inside-string-or-comment-p ()
+(defun inside-string-or-comment-p ()
+  "Inside string or comment p."
   (let ((state (parse-partial-sexp (point-min) (point))))
     (or (nth 3 state) (nth 4 state))))
 
-(defun-if-undefined re-search-forward-without-string-and-comments (&rest args)
+(defun re-search-forward-without-string-and-comments (&rest args)
+  "Re search forward without string and comments.  ARGS."
   (let ((value (apply #'re-search-forward args)))
     (if (and value (inside-string-or-comment-p))
         (apply #'re-search-forward-without-string-and-comments args)
@@ -796,8 +795,8 @@
   ;; リージョン解除関数
   (defun my-deactivate-region ()
     "Logic of deactivate region by cursor."
-    (message "l: %s c: %s" last-input-event this-command)
-    (message "m:%s r:%s u:%s" mark-active (region-active-p) (use-region-p))
+    ;; (message "l: %s c: %s" last-input-event this-command)
+    ;; (message "m:%s r:%s u:%s" mark-active (region-active-p) (use-region-p))
     ;; (message "s:%s e:%s" (region-beginning) (region-end))
 
     (when (and (not (memq last-input-event '(S-left S-right S-down S-up C-S-left C-S-right C-S-down C-S-up M-S-left M-S-right M-S-down M-S-up)))
@@ -925,8 +924,9 @@ mark-active)
         anything-c-source-bookmarks
         anything-c-source-recentf))
 
-;; ESCで抜ける
+;; key binds
 (define-key anything-map [escape] 'anything-keyboard-quit)
+(define-key anything-map (kbd "<tab>") 'anything-select-action)
 
 ;; M-xによる補完をAnythingで行なう
 (require 'anything-complete)
@@ -1145,9 +1145,9 @@ mark-active)
 ;;; tabbar
 
 (defvar is-use-tabbar nil)
+(autoload 'tabbar-mode "tabbar" "" t)
 
 (when is-use-tabbar
-  (require 'tabbar)
   (tabbar-mode 1)
 
   ;; my-tabbar-buffer-list
@@ -1212,6 +1212,7 @@ mark-active)
   ;; gist-name: move-current-tab-to-top.el
   ;; gist-private: nil
 
+  (eval-when-compile (defvar tabbar-current-tabset))
   (defun move-current-tab-to-top ()
     "Move current tab to top."
     (interactive)
@@ -1701,7 +1702,7 @@ It defaults to a comma."
    (format "cd %s" default-directory)))
 
 (defun util/execute-on-iterm (command)
-  "Change directory to current buffer path by iTerm.app."
+  "Change directory to current buffer path by iTerm.app.  COMMAND."
   (interactive "MCommand: ")
   (do-applescript
    (format "tell application \"iTerm2\"
@@ -1824,6 +1825,7 @@ It defaults to a comma."
       (cons '("\\.css$" . css-mode) auto-mode-alist))
 
 ;; hooks
+(defvar cssm-indent-function)
 (add-hook 'css-mode-hook
           (lambda ()
             (setq css-indent-offset 2)
@@ -2062,17 +2064,17 @@ If gist-id exists update gist.  BEG END."
 ;; 印刷プレビュー
 (when (require 'pdf-preview)
   (defvar pdf-preview-preview-command "open -a Preview.app")
-  (global-set-key (kbd "s-P")
-                  (lambda ()
-                    (interactive)
-                    (when (and
-                           (yes-or-no-p "Show current buffer by Preview.app?")
-                           (or
-                            (<= (length (buffer-string)) 10000)
-                            (and (> (length (buffer-string)) 10000)
-                                 (yes-or-no-p "Current buffer is large. Preview takes quite time. Preview this?"))))
-                      (pdf-preview-buffer)))))
-
+  (global-set-key
+   (kbd "s-P")
+   (lambda ()
+     (interactive)
+     (when (and
+            (yes-or-no-p "Show current buffer by Preview.app?")
+            (or
+             (<= (length (buffer-string)) 10000)
+             (and (> (length (buffer-string)) 10000)
+                  (yes-or-no-p "Large buffer. Preview takes quite time. Preview this?"))))
+       (pdf-preview-buffer)))))
 
 ;;; ------------------------------------------------------------
 ;;; Mew
@@ -2083,7 +2085,7 @@ If gist-id exists update gist.  BEG END."
 ;; Optional setup (Read Mail menu):
 (setq read-mail-command 'mew)
 
-;; Optional setup (e.g. C-xm for sending a message):
+;; Optional setup (e.g. C-x m for sending a message):
 (autoload 'mew-user-agent-compose "mew" nil t)
 (if (boundp 'mail-user-agent)
     (setq mail-user-agent 'mew-user-agent))
@@ -2121,33 +2123,20 @@ If gist-id exists update gist.  BEG END."
 
 ;; doctypeを見てのbrやタグの挿入
 
-;; 単語境界をもうちょっと細かくしたい（シンタックステーブルか？）というか、right-wordなどで行頭行末で引っかかってほしい
-;; words-include-escapes,(skip-chars-forward "^$")(skip-chars-backward "^A-Za-z0-9")
-;; http://www.fan.gr.jp/~ring/doc/elisp_20/elisp_30.html#SEC464
-
 ;; 複数の検索置換セット
-;; portのEmacsを試してみる？
-;; 印刷設定を http://d.hatena.ne.jp/r_takaishi/20110304/1299203553 を参考に改良してみる
-;; search-centerの履歴
-;; auto-completeのdictionaryは、保存時にgit commitしてもよい
 
-;; 履歴を保存するとエラーになるので
-;; http://tech.kayac.com/archive/emacs.html
-;; (remove-hook 'kill-emacs-hook 'anything-c-adaptive-save-history)
-;; (ad-disable-advice 'anything-exit-minibuffer 'before 'anything-c-adaptive-exit-minibuffer)
-;; (ad-disable-advice 'anything-select-action 'before 'anything-c-adaptive-select-action)
-;; (setq anything-c-adaptive-history-length 0)
+;; portのEmacsを試してみる？
+
+;; search-centerの履歴
 
 ;; anything-c-source-occur
-
-;; Variable: (setq inhibit-field-text-motion t)
-;; If this variable is non-nil, certain motion functions including forward-word, forward-sentence, and forward-paragraph ignore field boundaries.
 
 ;; http://xyzzy.s53.xrea.com/reference/wiki.cgi?p=set%2Dsyntax%2Dstart%2Dmulti%2Dcomment
 ;; (set-syntax-start-multi-comment *c-mode-syntax-table* "/*")
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
+
 ;; (global-set-key (kbd "C--") 'func)
 ;; (message "this-event: %s this-command: %s" last-input-event this-command)
 ;; (message "initial: %s point: %s" initial-point (point))

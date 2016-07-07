@@ -1,3 +1,13 @@
+;; syntax table
+;; http://chiyanop.blogspot.jp/2014/12/emacs-syntax-table.html
+
+;; Variable: (setq inhibit-field-text-motion t)
+;; If this variable is non-nil, certain motion functions including forward-word, forward-sentence, and forward-paragraph ignore field boundaries.
+
+;; 単語境界をもうちょっと細かくしたい（シンタックステーブルか？）というか、right-wordなどで行頭行末で引っかかってほしい
+;; words-include-escapes,(skip-chars-forward "^$")(skip-chars-backward "^A-Za-z0-9")
+;; http://www.fan.gr.jp/~ring/doc/elisp_20/elisp_30.html#SEC464
+
 ;; (defun back-to-indentation-or-beginning ()
 ;;   (interactive)
 ;;   (if this-command-keys-shift-translated
@@ -20,6 +30,42 @@
 ;;     (get-buffer-create bufname)
 ;;     (switch-to-buffer bufname)
 ;;     (text-mode)))
+
+;; 印刷設定
+;; thx http://tam5917.hatenablog.com/entry/20120914/1347600433
+
+;; (eval-when-compile (require 'ps-mule nil t))
+;; (setq ps-paper-type        'a4 ;paper size
+;;       ps-lpr-command       "lpr"
+;;       ps-lpr-switches      '("-o Duplex=DuplexNoTumble")
+;;       ps-printer-name      "hogehoge"   ; your printer name
+;;       ps-multibyte-buffer  'non-latin-printer ;for printing Japanese
+;;       ps-n-up-printing     2 ;print n-page per 1 paper
+
+;;       ;; Margin
+;;       ps-left-margin       20
+;;       ps-right-margin      20
+;;       ps-top-margin        20
+;;       ps-bottom-margin     20
+;;       ps-n-up-margin       20
+
+;;       ;; Header/Footer setup
+;;       ps-print-header      t            ;buffer name, page number, etc.
+;;       ps-print-footer      nil          ;page number
+
+;;       ;; font
+;;       ps-font-size         '(9 . 10)
+;;       ps-header-font-size  '(10 . 12)
+;;       ps-header-title-font-size '(12 . 14)
+;;       ps-header-font-family 'Helvetica    ;default
+;;       ps-line-number-font  "Times-Italic" ;default
+;;       ps-line-number-font-size 6
+
+;;       ;; line-number
+;;       ps-line-number       t ; t:print line number
+;;       ps-line-number-start 1
+;;       ps-line-number-step  1
+;;       )
 
 ;; ;; 英語
 ;; ;; Thx Http://Tech.Basicinc.Jp/Mac/2013/08/04/Linux_Command/
