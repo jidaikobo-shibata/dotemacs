@@ -353,14 +353,14 @@
 
 ;;; ------------------------------------------------------------
 ;;; 次/前の空行
-;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。https://gist.github.com/jewel12/2873112 をforkしたのだけど、巨大なファイルで次の空行を見つけられなかったので、Evilから一部拝借。
+;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。
 ;; gist-id: ad27b19dd3779ccc1ff2
-;; gist-name: move(region)-to-next(previous)-blank-line.el
+;; gist-name: move-to-next(previous)-blank-line.el
 ;; gist-private: nil
 
 (defun move-to-previous-blank-line ()
   "Go to previous empty lines."
-  (interactive)
+  (interactive "^")
   (goto-char
    (or (save-excursion
          (unless (bobp)
@@ -368,36 +368,53 @@
            (re-search-backward "^$" nil t)))
        (point-min))))
 
-(defun region-to-previous-blank-line ()
-  "Go to previous empty lines with expand region."
-  (interactive)
-  (when (and (not (memq last-command '(region-to-prev-blank-line)))
-             (not mark-active))
-    (set-mark-command nil))
-  (move-to-previous-blank-line))
-
 (defun move-to-next-blank-line ()
   "Go to next empty lines."
-  (interactive)
+  (interactive "^")
   (goto-char
    (or (save-excursion
-         (unless (bobp)
+         (unless (eobp)
            (forward-char)
            (re-search-forward "^$" nil t)))
        (point-max))))
 
-(defun region-to-next-blank-line ()
-  "Go to next empty lines with expand region."
-  (interactive)
-  (when (and (not (memq last-command '(region-to-next-blank-line)))
-             (not mark-active))
-    (set-mark-command nil))
-  (move-to-next-blank-line))
+(global-set-key (kbd "<M-up>") 'move-to-previous-blank-line)
+(global-set-key (kbd "<M-down>") 'move-to-next-blank-line)
 
-(global-set-key (kbd "<C-up>") 'move-to-previous-blank-line)
-(global-set-key (kbd "<C-down>") 'move-to-next-blank-line)
-(global-set-key (kbd "<C-S-up>") 'region-to-previous-blank-line)
-(global-set-key (kbd "<C-S-down>") 'region-to-next-blank-line)
+;;; ------------------------------------------------------------
+;;; 次/前のwordbreakへ
+;; gist-description: Emacs(Elisp): forward/backward-wordだと、移動距離が微妙に大きいので、単語境界でひっかかるように。
+;; gist-id: 467f4302c002049bfb95511bd21cdbe7
+;; gist-name: move-to-next(previous)-word-break.el
+;; gist-private: nil
+;; thx http://d.hatena.ne.jp/h1mesuke/20070803/p1
+
+(defun move-to-next-word-break (&optional arg)
+  "Move point forward ARG word breaks (backward if ARG is negative)."
+  (interactive "^P")
+  (setq arg (if arg (prefix-numeric-value arg) 1))
+  (if (< arg 0)
+      (move-to-previous-word-break (- arg))
+    (while (and (> arg 0)
+                (< (point) (point-max))
+                (progn (forward-char)
+                       (re-search-forward "\\b" nil t)))
+      (setq arg (1- arg)))))
+
+(defun move-to-previous-word-break (&optional arg)
+  "Move point backward ARG word breaks (forward if ARG is negative)."
+  (interactive "^P")
+  (setq arg (if arg (prefix-numeric-value arg) 1))
+  (if (< arg 0)
+      (move-to-next-word-break (- arg))
+    (while (and (> arg 0)
+                (> (point) (point-min))
+                (progn (backward-char)
+                       (re-search-backward "\\b" nil t)))
+      (setq arg (1- arg)))))
+
+(global-set-key (kbd "<M-left>") 'move-to-previous-word-break)
+(global-set-key (kbd "<M-right>") 'move-to-next-word-break)
 
 ;;; ------------------------------------------------------------
 ;;; find-fileをzshライクに
@@ -762,7 +779,7 @@
 
 (defvar is-deactivate-region nil)
 (when is-deactivate-region
-  ;; regionの解除advice版 - Hookよりこちらのほうが軽い!?
+  ;; regionの解除advice版
   (defadvice previous-line (before deactivate-region activate)
     "Deactivate Region by cursor."
     (my-deactivate-region))
@@ -779,19 +796,18 @@
   ;; リージョン解除関数
   (defun my-deactivate-region ()
     "Logic of deactivate region by cursor."
-    ;; (message "l: %s c: %s" last-input-event this-command)
-    ;; (message "m:%s r:%s u:%s" mark-active (region-active-p) (use-region-p))
+    (message "l: %s c: %s" last-input-event this-command)
+    (message "m:%s r:%s u:%s" mark-active (region-active-p) (use-region-p))
     ;; (message "s:%s e:%s" (region-beginning) (region-end))
 
-    (when (and (use-region-p)
-               (not (memq last-input-event '(S-left S-right S-down S-up C-S-left C-S-right C-S-down C-S-up))))
-      ;; (message "r: %s" (memq last-input-event '(S-left S-right S-down S-up)))
-      (cond
-       ((memq last-input-event '(right down))
-        (goto-char (region-end)))
-       ((memq this-command '(left-char previous-line))
-        (goto-char (region-beginning))))
-      (deactivate-mark))))
+    (when (and (not (memq last-input-event '(S-left S-right S-down S-up C-S-left C-S-right C-S-down C-S-up M-S-left M-S-right M-S-down M-S-up)))
+mark-active)
+            (cond
+             ((memq last-input-event '(right down))
+              (goto-char (region-end)))
+             ((memq this-command '(left-char previous-line))
+              (goto-char (region-beginning))))
+            (deactivate-mark))))
 
 ;;; ------------------------------------------------------------
 ;;; popwin
@@ -1739,8 +1755,8 @@ It defaults to a comma."
 
 (load "flycheck")
 (setq-default flycheck-emacs-lisp-load-path 'inherit)
-(global-set-key (kbd "<M-up>") 'flycheck-previous-error) ; previous error (M+up)
-(global-set-key (kbd "<M-down>") 'flycheck-next-error) ; next error (M+down)
+(global-set-key (kbd "<C-M-up>") 'flycheck-previous-error) ; previous error (M+up)
+(global-set-key (kbd "<C-M-down>") 'flycheck-next-error) ; next error (M+down)
 
 ;; hooks
 (add-hook 'php-mode-hook 'flycheck-mode)
@@ -2106,7 +2122,7 @@ If gist-id exists update gist.  BEG END."
 ;; doctypeを見てのbrやタグの挿入
 
 ;; 単語境界をもうちょっと細かくしたい（シンタックステーブルか？）というか、right-wordなどで行頭行末で引っかかってほしい
-;; words-include-escapes,(skip-chars-forward "a-zA-Z")(skip-chars-backward "a-zA-Z")
+;; words-include-escapes,(skip-chars-forward "^$")(skip-chars-backward "^A-Za-z0-9")
 ;; http://www.fan.gr.jp/~ring/doc/elisp_20/elisp_30.html#SEC464
 
 ;; 複数の検索置換セット
@@ -2126,6 +2142,9 @@ If gist-id exists update gist.  BEG END."
 
 ;; Variable: (setq inhibit-field-text-motion t)
 ;; If this variable is non-nil, certain motion functions including forward-word, forward-sentence, and forward-paragraph ignore field boundaries.
+
+;; http://xyzzy.s53.xrea.com/reference/wiki.cgi?p=set%2Dsyntax%2Dstart%2Dmulti%2Dcomment
+;; (set-syntax-start-multi-comment *c-mode-syntax-table* "/*")
 
 ;;; ------------------------------------------------------------
 ;;; experimental area

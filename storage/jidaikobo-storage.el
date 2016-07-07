@@ -1,3 +1,15 @@
+;; (defun back-to-indentation-or-beginning ()
+;;   (interactive)
+;;   (if this-command-keys-shift-translated
+;;       (unless mark-active (push-mark nil t t))
+;;     (when (and mark-active cua--last-region-shifted)
+;;       (deactivate-mark)))
+;;   (if (= (point) (progn (back-to-indentation) (point)))
+;;       (beginning-of-line)))
+
+;; (setq this-command-keys-shift-translated t)
+;;   (handle-shift-selection)
+
 ;; (add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 
 ;; ;; new tab
