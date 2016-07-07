@@ -393,6 +393,7 @@ applet
 application
 archive
 area
+args
 array
 array_diff
 array_fill
