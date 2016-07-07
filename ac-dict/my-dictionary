@@ -1209,6 +1209,7 @@ start
 stat
 static
 stationery
+storage
 str
 str_getcsv
 str_ireplace
