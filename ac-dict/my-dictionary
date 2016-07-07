@@ -1,6 +1,7 @@
 ALTER TABLE TABLE_NAME ADD `is_bool` INTEGER NOT NULL DEFAULT 0 AFTER `foo`
 ALTER TABLE TABLE_NAME CHANGE `COLUMN` `COLUMN` INTEGER NOT NULL DEFAULT 0
 ALTER TABLE TABLE_NAME auto_increment=1;
+ASC
 ASCII
 AUTO_INCREMENT
 Accessibility
@@ -452,6 +453,7 @@ background-repeat
 background-repeat: no-repeat;
 background-repeat: repeat-x;
 background-repeat: repeat-y;
+backward
 bar
 barrier Free
 base
@@ -461,6 +463,7 @@ base64_encode
 base_convert
 basename
 baz
+before
 bin2hex
 bindec
 block
@@ -509,6 +512,8 @@ checkbox
 checkdate
 checkdnsrr
 chgrp
+child
+children
 chmod
 chop
 chown
@@ -530,6 +535,7 @@ color
 columns
 command
 comment
+commit
 compact
 complete
 component
@@ -694,7 +700,9 @@ find('all', array('where' => array(array('category_id', 1), 'or' => array(array(
 find('all', array('where' => array(array('category_id', 1),), 'order_by' => array('created_at' => 'desc'),));
 find('first')
 find('last', array('order_by' => 'date'))
+finish
 fire
+first
 fit
 fit-position
 flex
@@ -717,16 +725,17 @@ font-style: normal;
 font-weight
 font-weight: bold;
 font-weight: normal;
-foofoo
 foot
 footer
 fopen
+for
 for ($n = 1; $n < 10; $n++): endfor;
 for ($n = 1; $n < 10; $n++){}
 forbidden
 foreach (): endforeach;
 foreach (){}
 foreign
+forward
 free
 ftp
 func_get_arg
@@ -790,9 +799,6 @@ height: 100%;
 hello
 history
 hoge
-hogehoge
-hogehogehoge
-hogehogehogehoge
 home_url()
 html
 html_options options=$ZZZs name="ZZZ_id" selected=$ZZZ_ids
@@ -823,6 +829,7 @@ if (){}
 image
 ime-mode
 implode
+important
 in
 in_array
 in_array($needle, $haystack)
