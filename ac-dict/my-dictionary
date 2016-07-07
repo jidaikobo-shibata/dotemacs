@@ -1360,6 +1360,7 @@ varchar
 variant
 verbose
 version
+vertical
 vertical-align
 vertical-align: baseline;
 vertical-align: bottom;
