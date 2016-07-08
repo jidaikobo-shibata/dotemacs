@@ -1052,6 +1052,7 @@ parse_ini_file
 parse_ini_string
 parse_str
 parse_url
+password
 path
 pathinfo
 pause
