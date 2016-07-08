@@ -345,6 +345,7 @@
 ;; escでM-g
 ;; http://emacswiki.org/emacs/CancelingInEmacs
 (setq-default normal-escape-enabled t)
+(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit) ; minibuffer
 (define-key minibuffer-inactive-mode-map [escape] 'keyboard-quit) ; minibuffer
 (define-key isearch-mode-map [escape] 'isearch-abort) ; isearch
 (define-key isearch-mode-map "\e" 'isearch-abort) ; \e seems to work better for terminals
@@ -430,12 +431,8 @@
 (require 'zlc)
 (zlc-mode 1)
 (let ((map minibuffer-local-map))
-  (define-key map (kbd "<down>")  'zlc-select-next-vertical)
-  (define-key map (kbd "<up>")    'zlc-select-previous-vertical)
-  (define-key map (kbd "<right>") 'zlc-select-next)
-  (define-key map (kbd "<left>")  'zlc-select-previous)
-  (define-key map (kbd "M-<tab>") 'zlc-select-previous)
-  (define-key map (kbd "M-TAB") 'zlc-select-previous))
+  (define-key map (kbd "<down>") 'next-history-element)
+  (define-key map (kbd "<up>")   'previous-history-element))
 
 ;;; ------------------------------------------------------------
 ;;; open-junk-file
