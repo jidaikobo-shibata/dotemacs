@@ -966,6 +966,7 @@ memo
 memory
 memory_get_usage
 menu
+message "%s"
 meta
 method
 method_exists
