@@ -539,16 +539,11 @@
 ;; hooks
 (add-hook 'html-mode-hook
           '(lambda()
-             (auto-complete-mode t)
-             (define-key html-mode-map (kbd "<M-tab>") 'auto-complete)))
+             (auto-complete-mode t)))
 
-(add-hook 'php-mode-hook
+(add-hook 'conf-mode-hook
           '(lambda()
-             (define-key php-mode-map (kbd "<M-tab>") 'auto-complete)))
-
-(add-hook 'kontiki-mode-hook
-          '(lambda()
-             (define-key kontiki-mode-map (kbd "<M-tab>") 'auto-complete)))
+             (auto-complete-mode t)))
 
 ;; (add-hook 'emacs-lisp-mode-hook
 ;;           (lambda ()
@@ -997,7 +992,7 @@ mark-active)
 (when (func-anything-c-source-my-fetch)
   (defvar anything-c-source-my-fetch
     '((name . "open Fetch.app")
-      (candidates . (lambda () (interactive) (func-anything-c-source-my-fetch)))
+      (candidates . (lambda () (func-anything-c-source-my-fetch)))
       (type . file)
       (action . (("open Fetch" . anything-fetch-open)))))
 
@@ -1024,7 +1019,7 @@ mark-active)
 (when (func-anything-c-source-cd-to-projects)
   (defvar anything-c-source-cd-to-projects
     '((name . "cd to projects")
-      (candidates . (lambda () (interactive) (func-anything-c-source-cd-to-projects)))
+      (candidates . (lambda () (func-anything-c-source-cd-to-projects)))
       (action . (("Change internal directory" . anything-change-internal-directory)
                  ("Dired" . anything-project-dired)
                  ("Generate gtags at project" . anything-generate-gtags-at-project)))))
@@ -1429,11 +1424,18 @@ mark-active)
 (setq dired-dwim-target t)
 
 ;; diredでタブを開きすぎないようにする
+;; thx http://nishikawasasaki.hatenablog.com/entry/20120222/1329932699
 (put 'dired-find-alternate-file 'disabled nil)
+(define-key dired-mode-map (kbd "RET") 'dired-open-in-accordance-with-situation)
+(define-key dired-mode-map (kbd "a") 'dired-find-file)
 
-;; RET 標準の dired-find-file では dired バッファが複数作られるのでdired-find-alternate-file を代わりに使う
-(define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
-;; (define-key dired-mode-map (kbd "a") 'dired-find-file)
+(defun dired-open-in-accordance-with-situation ()
+  "Dired open in accordance with situation."
+  (interactive)
+  (let ((file (dired-get-filename)))
+    (if (file-directory-p file)
+        (dired-find-alternate-file)
+      (dired-find-file))))
 
 (define-key dired-mode-map (kbd "C-o") 'other-window)
 
@@ -1468,42 +1470,34 @@ mark-active)
 ;; (shell-command-to-string "/usr/local/bin/bash/pwd")
 ;; (insert (format "%s" shell-prompt-pattern))
 
+(setq tramp-default-method "ssh")
+
 ;;; ------------------------------------------------------------
 ;;; ~/.ssh/configを情報源として、tramp接続
 
 (defvar anything-c-source-my-hosts
   '((name . "hosts")
-    (candidates . (lambda ()
-                    (let ((source (split-string
-                                   (with-temp-buffer
-                                     (insert-file-contents "~/.ssh/config")
-                                     (buffer-string))
-                                   "^[H\\|h]ost\\b"))
-                          (hosts (list))
-                          (lines (list))
-                          (candidates (list))
-                          username
-                          hostname)
-                      ;; trim
-                      (dolist (host source hosts)
-                        (setq host (string-trim host))
-                        (when (and (not (string= host ""))
-                                   (not (string= (substring host 0 1) "*")))
-                          (add-to-list 'hosts (concat host "\n\n") t)
-                          ))
-                      ;; modify
-                      (dolist (host hosts)
-                        (when (string-match "[H\\|h]ostname +\\(.+?\\)\n" host)
-                          (setq hostname
-                                (string-trim (substring host (match-beginning 1) (match-end 1)))))
-                        (when (string-match "[U\\|u]ser +\\(.+?\\)\n" host)
-                          (setq username
-                                (string-trim (substring host (match-beginning 1) (match-end 1)))))
-                        (when (and hostname username)
-                          (add-to-list 'candidates (concat "/" username "@" hostname ":") t)))
-                      candidates)))
+    (candidates . (lambda () (anything-c-source-my-hosts-candidates)))
     (type . file)
     (action . (("Tramp" . anything-tramp-open)))))
+
+(defun anything-c-source-my-hosts-candidates ()
+  "Tramp candidates."
+  (let ((source (split-string
+                 (with-temp-buffer
+                   (insert-file-contents "~/.ssh/config")
+                   (buffer-string))
+                 "\n"))
+        (hosts (list)))
+    ;; trim
+    (dolist (host source)
+      (when (string-match "[H\\|h]ost +\\(.+?\\)$" host)
+        (setq host (string-trim (substring host (match-beginning 1) (match-end 2))))
+        (unless (string= host "*")
+          (add-to-list
+           'hosts
+           (concat "/" tramp-default-method ":" host ":") t))))
+    hosts))
 
 (defun anything-tramp-open (path)
   "Tramp open.  PATH is path."
