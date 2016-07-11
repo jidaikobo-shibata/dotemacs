@@ -233,7 +233,6 @@
       auto-async-byte-compile
       auto-complete
       cursor-chg
-      descbinds-anything
       flycheck
       foreign-regexp
       google-translate
@@ -343,10 +342,13 @@
 (global-set-key (kbd "C-0") 'delete-window)
 
 ;; escでM-g
-;; http://emacswiki.org/emacs/CancelingInEmacs
 (setq-default normal-escape-enabled t)
-(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit) ; minibuffer
-(define-key minibuffer-inactive-mode-map [escape] 'keyboard-quit) ; minibuffer
+(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-inactive-mode-map [escape] 'minibuffer-keyboard-quit)
 (define-key isearch-mode-map [escape] 'isearch-abort) ; isearch
 (define-key isearch-mode-map "\e" 'isearch-abort) ; \e seems to work better for terminals
 (global-set-key (kbd "<escape>") 'keyboard-quit) ; everywhere else
@@ -548,9 +550,9 @@
           '(lambda()
              (define-key kontiki-mode-map (kbd "<M-tab>") 'auto-complete)))
 
-(add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (add-to-list 'ac-sources 'ac-source-symbols t)))
+;; (add-hook 'emacs-lisp-mode-hook
+;;           (lambda ()
+;;             (add-to-list 'ac-sources 'ac-source-symbols t)))
 
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
@@ -752,15 +754,6 @@
 (global-set-key (kbd "<M-s-up>") (lambda () (interactive) (next-block "prev")))
 
 ;;; ------------------------------------------------------------
-;;; 釣り合いのとれる括弧のハイライト
-;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
-
-(require 'mic-paren)
-(paren-activate)
-(setq paren-match-face 'underline paren-sexp-mode t)
-(setq paren-sexp-mode t)
-
-;;; ------------------------------------------------------------
 ;;; 一行目と最終行での上下キーの振る舞い（行末と行頭へ）
 
 (defvar prev-line-num (line-number-at-pos))
@@ -774,6 +767,28 @@
              (memq last-input-event '(down S-down)))
     (end-of-line))
   (setq prev-line-num (line-number-at-pos)))
+
+;;; ------------------------------------------------------------
+;;; 釣り合いのとれる括弧のハイライト
+;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
+
+(require 'mic-paren)
+(paren-activate)
+(setq paren-match-face 'underline paren-sexp-mode t)
+(setq paren-sexp-mode t)
+
+;;; ------------------------------------------------------------
+;;; jump-match-paren
+;; thx https://gist.github.com/donghee/3937661
+
+(defun jump-match-paren (arg)
+  "Go to the matching parenthesis.  ARG."
+  (interactive "p")
+  (cond ((looking-at "\\s\(\\|\\s\[") (forward-list 1) (backward-char 1))
+        ((looking-at "\\s\)\\|\\s\]") (forward-char 1) (backward-list 1))
+        (t (back-to-indentation))))
+
+(global-set-key (kbd "s-b") 'jump-match-paren)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
@@ -889,7 +904,6 @@ mark-active)
 (undohist-initialize)
 
 ;; undo-tree
-;; redo (cmd+shft+z)
 (require 'undo-tree)
 (global-undo-tree-mode t)
 
@@ -1103,14 +1117,6 @@ mark-active)
    "*my-anything-for-functions*"))
 
 (global-set-key (kbd "C-,") 'my-anything-for-functions)
-
-;;; ------------------------------------------------------------
-;;; descbinds-anythingの乗っ取り
-;; thx http://d.hatena.ne.jp/buzztaiki/20081115/1226760184
-
-(require 'descbinds-anything)
-(descbinds-anything-install)
-(global-set-key (kbd "C-.") 'descbinds-anything)
 
 ;;; ------------------------------------------------------------
 ;;; gtags
@@ -1387,7 +1393,7 @@ mark-active)
 ;; thx http://qiita.com/k_ui/items/d9e03ea9523036970519
 
 (defun reopen-with-sudo ()
-  "Reopen current buffer-file with sudo using tramp."
+  "Reopen current buffer-file with sudo."
   (interactive)
   (let ((file-name (buffer-file-name)))
     (if file-name
@@ -1419,14 +1425,17 @@ mark-active)
 ;; diredバッファでC-sした時にファイル名だけにマッチするように
 (setq dired-isearch-filenames t)
 
+;; ウィンドウ分割で左右に違うDiredを開いているときにRやCのデフォルト値がもう片方になる
+(setq dired-dwim-target t)
+
 ;; diredでタブを開きすぎないようにする
-;; http://nishikawasasaki.hatenablog.com/entry/20120222/1329932699
-;; dired-find-alternate-file の有効化
 (put 'dired-find-alternate-file 'disabled nil)
 
 ;; RET 標準の dired-find-file では dired バッファが複数作られるのでdired-find-alternate-file を代わりに使う
 (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
-(define-key dired-mode-map (kbd "a") 'dired-find-file)
+;; (define-key dired-mode-map (kbd "a") 'dired-find-file)
+
+(define-key dired-mode-map (kbd "C-o") 'other-window)
 
 ;; anything in dired
 ;; thx http://syohex.hatenablog.com/entry/20120105/1325770778
@@ -1458,6 +1467,60 @@ mark-active)
 ;; (add-to-list 'tramp-remote-path "/usr/local/bin/bash")
 ;; (shell-command-to-string "/usr/local/bin/bash/pwd")
 ;; (insert (format "%s" shell-prompt-pattern))
+
+;;; ------------------------------------------------------------
+;;; ~/.ssh/configを情報源として、tramp接続
+
+(defvar anything-c-source-my-hosts
+  '((name . "hosts")
+    (candidates . (lambda ()
+                    (let ((source (split-string
+                                   (with-temp-buffer
+                                     (insert-file-contents "~/.ssh/config")
+                                     (buffer-string))
+                                   "^[H\\|h]ost\\b"))
+                          (hosts (list))
+                          (lines (list))
+                          (candidates (list))
+                          username
+                          hostname)
+                      ;; trim
+                      (dolist (host source hosts)
+                        (setq host (string-trim host))
+                        (when (and (not (string= host ""))
+                                   (not (string= (substring host 0 1) "*")))
+                          (add-to-list 'hosts (concat host "\n\n") t)
+                          ))
+                      ;; modify
+                      (dolist (host hosts)
+                        (when (string-match "[H\\|h]ostname +\\(.+?\\)\n" host)
+                          (setq hostname
+                                (string-trim (substring host (match-beginning 1) (match-end 1)))))
+                        (when (string-match "[U\\|u]ser +\\(.+?\\)\n" host)
+                          (setq username
+                                (string-trim (substring host (match-beginning 1) (match-end 1)))))
+                        (when (and hostname username)
+                          (add-to-list 'candidates (concat "/" username "@" hostname ":") t)))
+                      candidates)))
+    (type . file)
+    (action . (("Tramp" . anything-tramp-open)))))
+
+(defun anything-tramp-open (path)
+  "Tramp open.  PATH is path."
+  (find-file path))
+
+;; (defun anything-tramp-close (path)
+;;   "Tramp close.  PATH is path."
+;;   (find-file path))
+
+(defun my-anything-for-tramp ()
+  "Anything command included find by gtags."
+  (interactive)
+  (anything-other-buffer
+   '(anything-c-source-my-hosts)
+   "*my-anything-for-tramp*"))
+
+(global-set-key (kbd "C-.") 'my-anything-for-tramp)
 
 ;;; ------------------------------------------------------------
 ;;; whitespace関連設定
@@ -1967,12 +2030,6 @@ It defaults to a comma."
 (global-set-key (kbd "s-W") 'resize-selected-frame)
 
 ;;; ------------------------------------------------------------
-;;; gist
-;; thx http://d.hatena.ne.jp/mhayashi1120/20120920/1348144820
-
-(require 'yagist)
-
-;;; ------------------------------------------------------------
 ;;; web-beautify
 (require 'web-beautify)
 (setq-default web-beautify-args
@@ -1981,6 +2038,12 @@ It defaults to a comma."
                 "--indent_with_tabs"
                 "--indent-size 2"
                 "--end-with-newline"))
+
+;;; ------------------------------------------------------------
+;;; gist
+;; thx http://d.hatena.ne.jp/mhayashi1120/20120920/1348144820
+
+(require 'yagist)
 
 ;;; ------------------------------------------------------------
 ;; gist-description: Emacs(Elisp): create or update gist by using yagist. yagistでregionのgistをupdateする。
@@ -2038,19 +2101,6 @@ If gist-id exists update gist.  BEG END."
       (error "Lack of parameters"))))
 
 (global-set-key (kbd "C-M-g") 'yagist-region-create-or-update)
-
-;;; ------------------------------------------------------------
-;;; jump-match-paren
-;; thx https://gist.github.com/donghee/3937661
-
-(defun jump-match-paren (arg)
-  "Go to the matching parenthesis.  ARG."
-  (interactive "p")
-  (cond ((looking-at "\\s\(\\|\\s\[") (forward-list 1) (backward-char 1))
-        ((looking-at "\\s\)\\|\\s\]") (forward-char 1) (backward-list 1))
-        (t (back-to-indentation))))
-
-(global-set-key (kbd "s-b") 'jump-match-paren)
 
 ;;; ------------------------------------------------------------
 ;; 印刷設定

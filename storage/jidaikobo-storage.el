@@ -1,3 +1,11 @@
+;; いろいろくわしい！
+;; https://github.com/d5884/dot-emacs/blob/master/init.el
+;; ;; 波ダッシュを全角チルダへ(Windowsスタイル) (U+301C > U+FF5E)
+;; (let ((table (make-translation-table-from-alist '((#x301c . #xff5e)))))
+;;   (dolist (coding-system '(utf-8 cp932 utf-16le))
+;;     (coding-system-put coding-system :decode-translation-table table)
+;;     (coding-system-put coding-system :encode-translation-table table)))
+
 ;; syntax table
 ;; http://chiyanop.blogspot.jp/2014/12/emacs-syntax-table.html
 
