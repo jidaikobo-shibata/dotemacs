@@ -30,7 +30,7 @@
 ;; [e|E]macs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
 
 ;; cd ~/.emacs.d
-;; mkdir elisp && elisp
+;; mkdir elisp && cd elisp
 ;; wget https://www.emacswiki.org/emacs/download/ac-anything.el ac-anything.el
 
 ;;; Code:
@@ -154,7 +154,7 @@
 (add-to-list 'same-window-regexps "^[a-zA-Z0-9_-]+")
 
 ;; 複数フレームを開かないようにする
-;; (setq-default ns-pop-up-frames nil)
+(setq-default ns-pop-up-frames nil)
 
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
@@ -672,11 +672,6 @@
 
 (defvar inside-string-or-comment-p)
 (defvar re-search-forward-without-string-and-comments)
-
-;; (if (not (fboundp 'defun-if-undefined))
-;;     (defmacro defun-if-undefined (name &rest rest)
-;;       `(unless (fboundp (quote ,name))
-;;          (defun ,name ,@rest))))
 
 (defun inside-string-or-comment-p ()
   "Inside string or comment p."
