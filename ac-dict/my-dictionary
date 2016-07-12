@@ -245,7 +245,6 @@ PC
 PC Talker
 PDF
 PDO('mysql:host=localhost;dbname=database', 'user', 'password'); //  $pdo->query();
-PHP
 POP before SMTP
 Package::load()
 Package::loaded()
