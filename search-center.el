@@ -509,15 +509,17 @@
 (defun sc/get-str-from-window (type)
   "Get str from window.  TYPE[search|replace]."
   (interactive)
-  (let ((window-obj (if (string= type "search")
-                        (get-buffer-window sc/search-str-buffer)
-                      (get-buffer-window sc/replace-str-buffer)))
+  (let ((buffer-obj (if (string= type "search")
+                        (get-buffer sc/search-str-buffer)
+                      (get-buffer sc/replace-str-buffer)))
         (ret ""))
 
     ;; search or replace
     ;; コンテクストに応じた文字列の取得
-    (setq ret (if (windowp window-obj)
-                  (with-selected-window window-obj (buffer-string))
+    (setq ret (if (buffer-live-p buffer-obj)
+                  (save-current-buffer
+                    (set-buffer buffer-obj)
+                    (buffer-substring-no-properties (point-min) (point-max)))
                 nil))
 
     ;; check global variable
