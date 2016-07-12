@@ -251,8 +251,7 @@
   (global-set-key (kbd "s-R") 'sc/alias-replace-region)
   (global-set-key (kbd "s-M") 'sc/grep) ;; s-m is used by Mac OS X
   (global-set-key (kbd "s-h") (lambda () (interactive) (select-window sc/target-window)))
-  (global-set-key (kbd "C-g") 'sc/quit-str-windows)
-  (global-set-key [escape] 'sc/quit-str-windows))
+  (global-set-key (kbd "C-g") 'sc/quit-str-windows))
 
 ;;; ------------------------------------------------------------
 ;;; key-binds - emacs
@@ -274,7 +273,6 @@
   (define-key sc/keybind-map (kbd "R") 'sc/alias-replace-region)
   (define-key sc/keybind-map (kbd "m") 'sc/grep)
   (define-key sc/keybind-map (kbd "C-g") 'sc/quit-str-windows)
-  (define-key sc/keybind-map [escape] 'sc/quit-str-windows)
 
   ;; smartrep
   (when (package-installed-p 'smartrep)
