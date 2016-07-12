@@ -1,3 +1,12 @@
+;; これやるとむちゃくちゃ打鍵が遅くなるのでやめる
+;; (add-hook 'emacs-lisp-mode-hook
+;;           (lambda ()
+;;             (add-to-list 'ac-sources 'ac-source-symbols t)))
+
+;; ;; ac-anything
+;; (when (require 'ac-anything nil t)
+;;   (define-key ac-complete-mode-map (kbd "<M-tab>") 'ac-complete-with-anything))
+
 ;; いろいろくわしい！
 ;; https://github.com/d5884/dot-emacs/blob/master/init.el
 ;; ;; 波ダッシュを全角チルダへ(Windowsスタイル) (U+301C > U+FF5E)
@@ -81,6 +90,12 @@
 ;;   (Ac-File-Dictionary "/Usr/Share/Dict/Words"))
 ;; (Defvar Ac-English-Dict
 ;;   '((Candidates . Ac-English-Cache)))
+
+;; tramp関係
+;; (setq explicit-shell-file-name "bash")
+;; (add-to-list 'tramp-remote-path "/usr/local/bin/bash")
+;; (shell-command-to-string "/usr/local/bin/bash/pwd")
+;; (insert (format "%s" shell-prompt-pattern))
 
 ;; ;;; ------------------------------------------------------------
 ;; ;;; 次/前の空行
@@ -834,3 +849,14 @@
 ;; ; として、全角スペースを不可視にしている。
 ;; ; https://github.com/yascentur/Ricty/tree/3.2.2
 ;; ; のREADMEには、このシェルスクリプトのオプションがあるので、参考にすると良い。
+
+
+;; ;; ファイルが #! から始まる場合、+xを付けて保存する
+;; (add-hook 'after-save-hook
+;;           'executable-make-buffer-file-executable-if-script-p)
+
+;; [backword|forward]-paragraphだと、syntax table依存で、htmlなどでまどろっこしい
+;; (global-set-key (kbd "<C-up>") 'backward-paragraph)
+;; (global-set-key (kbd "<C-down>") 'forward-paragraph)
+;; (global-set-key (kbd "M-right") 'forward-symbol)
+;; (global-set-key (kbd "M-left") (lambda () (interactive) (forward-symbol -1)))
