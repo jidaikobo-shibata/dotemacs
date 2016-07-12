@@ -493,6 +493,7 @@ break-before
 break-inside
 browser
 buffer
+buffer-substring-no-properties
 button
 cache
 calendar
