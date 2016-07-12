@@ -181,7 +181,7 @@
 ;;; hook
 
 ;; compatible with isearch command
-;; isearchコマンドとの同期
+;; i-search、i-search-backwardコマンドとの同期
 (when sc/is-sync-isearch
   (add-hook 'isearch-update-post-hook 'sc/isearch-update-string)
   (defun sc/isearch-update-string ()
@@ -251,7 +251,8 @@
   (global-set-key (kbd "s-R") 'sc/alias-replace-region)
   (global-set-key (kbd "s-M") 'sc/grep) ;; s-m is used by Mac OS X
   (global-set-key (kbd "s-h") (lambda () (interactive) (select-window sc/target-window)))
-  (define-key search-center-mode-map [escape] 'keyboard-quit))
+  (global-set-key (kbd "C-g") 'sc/quit-str-windows)
+  (global-set-key [escape] 'sc/quit-str-windows))
 
 ;;; ------------------------------------------------------------
 ;;; key-binds - emacs
@@ -272,8 +273,8 @@
   (define-key sc/keybind-map (kbd "r") 'sc/alias-replace-here)
   (define-key sc/keybind-map (kbd "R") 'sc/alias-replace-region)
   (define-key sc/keybind-map (kbd "m") 'sc/grep)
-  (define-key sc/keybind-map (kbd "h") (lambda () (interactive)
-                                         (select-window sc/target-window)))
+  (define-key sc/keybind-map (kbd "C-g") 'sc/quit-str-windows)
+  (define-key sc/keybind-map [escape] 'sc/quit-str-windows)
 
   ;; smartrep
   (when (package-installed-p 'smartrep)
@@ -285,6 +286,17 @@
         ("l" . 'sc/alias-replace-next)
         ("r" . 'sc/alias-replace-here)
         ("R" . 'sc/alias-replace-region)))))
+
+;;; ------------------------------------------------------------
+;;; Quit
+
+(defun sc/quit-str-windows ()
+  "Quit string windows.  Delete string windows by idle timer."
+  (interactive)
+  (if (or (equal (selected-window) (get-buffer-window sc/search-str-buffer))
+          (equal (selected-window) (get-buffer-window sc/replace-str-buffer)))
+      (select-window sc/target-window)
+    (keyboard-quit)))
 
 ;;; ------------------------------------------------------------
 ;;; keep target-buffer
