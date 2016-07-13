@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+
 ;;; ------------------------------------------------------------
 ;;; minimal settings 最小限設定
 ;;; ------------------------------------------------------------
@@ -99,9 +100,6 @@
 ;; タイトルバーにファイル名表示
 (setq frame-title-format (format "%%f %%* Emacs@%s" (system-name)))
 
-;; モードライン関数名の表示
-(which-function-mode 1)
-
 ;; ミニバッファ履歴を保存
 (savehist-mode 1)
 
@@ -156,6 +154,7 @@
 (put 'narrow-to-page 'disabled nil)
 (put 'delete-region 'disabled nil)
 
+
 ;;; ------------------------------------------------------------
 ;;; frame フレーム
 ;;; ------------------------------------------------------------
@@ -176,6 +175,7 @@
   (set-frame-size (selected-frame) 105 60))
 (global-set-key (kbd "s-W") 'resize-selected-frame)
 
+
 ;;; ------------------------------------------------------------
 ;;; package関連
 ;;; ------------------------------------------------------------
@@ -264,6 +264,7 @@
     (unless (package-installed-p package)
       (package-install package))))
 
+
 ;;; ------------------------------------------------------------
 ;;; jidaikobo's elisp.
 ;;; ------------------------------------------------------------
@@ -283,6 +284,7 @@
              (file-name-as-directory (concat jidaikobo-dir "themes/")))
 (load-theme 'jidaikobo-dark t)
 
+
 ;;; ------------------------------------------------------------
 ;;; undo、redo関連
 ;;; ------------------------------------------------------------
@@ -300,6 +302,7 @@
   "Deactivate Region when attempt to undo."
   (deactivate-mark))
 
+
 ;;; ------------------------------------------------------------
 ;;; recentf
 ;;; ------------------------------------------------------------
@@ -314,6 +317,7 @@
         ".+Fetch Temporary Folder.+"))
 (setq recentf-max-saved-items 1000)
 
+
 ;;; ------------------------------------------------------------
 ;;; キーボード操作
 ;;; ------------------------------------------------------------
@@ -604,6 +608,7 @@
              (define-key php-mode-map (kbd "TAB") 'my-tab-dwim)
              (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
 
+
 ;;; ------------------------------------------------------------
 ;;; ファイル操作
 ;;; ------------------------------------------------------------
@@ -831,7 +836,7 @@ end tell"
 ;;   (find-file path))
 
 (defun my-anything-for-tramp ()
-  "Anything command included find by gtags."
+  "Anything command for .ssh/config."
   (interactive)
   (anything-other-buffer
    '(anything-c-source-my-hosts)
@@ -849,6 +854,7 @@ end tell"
                               (substring (buffer-file-name) 0 -2) "mo "
                               (buffer-file-name))))))
 
+
 ;;; ------------------------------------------------------------
 ;;; auto-complete
 ;;; ------------------------------------------------------------
@@ -863,7 +869,6 @@ end tell"
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
 (setq ac-quick-help-delay 0.5)
-(define-key ac-mode-map (kbd "<M-tab>") 'auto-complete)
 
 ;; ユーザ辞書設定
 (defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
@@ -982,6 +987,7 @@ end tell"
      ((aref c ?a) "\\ca")               ; ASCII
      (t "\\(?:\\sw\\|\\s_\\)"))))
 
+
 ;;; ------------------------------------------------------------
 ;;; popwin
 ;;; ------------------------------------------------------------
@@ -1096,6 +1102,7 @@ end tell"
 (add-hook 'conf-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'sh-script-mode-hook #'my-set-indent-tabs-mode)
 
+
 ;;; ------------------------------------------------------------
 ;;; Anything
 ;;; ------------------------------------------------------------
@@ -1199,7 +1206,7 @@ end tell"
 ;; 結果がなければたさない
 (when (func-anything-c-source-cd-to-projects)
   (defvar anything-c-source-cd-to-projects
-    '((name . "cd to projects")
+    '((name . "cd to project")
       (candidates . (lambda () (func-anything-c-source-cd-to-projects)))
       (action . (("Change internal directory" . anything-change-internal-directory)
                  ("Dired" . anything-project-dired)
@@ -1215,7 +1222,7 @@ end tell"
 
   (defun anything-generate-gtags-at-project (dir)
     "Generate gtags at project.  DIR is path."
-    (shell-command-to-string (concat "cd " dir " ; gtags -v")))
+    (shell-command-to-string (concat "cd " dir " && gtags -v")))
 
   (add-to-list 'alist-anything-for-files 'anything-c-source-cd-to-projects))
 
@@ -1228,7 +1235,6 @@ end tell"
   (anything-other-buffer
    alist-anything-for-files
    "*my-anything-for-files*"))
-
 (global-set-key (kbd "C-;") 'my-anything-for-files)
 
 ;;; ------------------------------------------------------------
@@ -1272,7 +1278,6 @@ end tell"
   (anything-other-buffer
    '(anything-c-source-coding-system)
    "*my-anything-c-source-coding-system*"))
-
 (global-set-key (kbd "C-^") 'my-anything-for-coding-system)
 
 ;;; ------------------------------------------------------------
@@ -1282,11 +1287,14 @@ end tell"
   "Anything command for program."
   (interactive)
   (anything-other-buffer
-   '(anything-c-source-imenu)
+   '(anything-c-source-emacs-functions-with-abbrevs
+     anything-c-source-emacs-commands
+     anything-c-source-emacs-variables
+     anything-c-source-imenu)
    "*my-anything-for-functions*"))
-
 (global-set-key (kbd "C-,") 'my-anything-for-functions)
 
+
 ;;; ------------------------------------------------------------
 ;;; タブ関連 - tabbar
 ;;; ------------------------------------------------------------
@@ -1423,6 +1431,7 @@ end tell"
 
 (global-set-key (kbd "s-w") 'my-delete-windows)
 
+
 ;;; ------------------------------------------------------------
 ;;; カーソル関連
 ;;; ------------------------------------------------------------
@@ -1436,6 +1445,7 @@ end tell"
 (setq curchg-input-method-cursor-color "firebrick")
 (setq curchg-change-cursor-on-input-method-flag t)
 
+
 ;;; ------------------------------------------------------------
 ;;; 行設定
 ;;; ------------------------------------------------------------
@@ -1471,24 +1481,42 @@ end tell"
 (add-hook 'fundamental-mode-hook (lambda () (linum-mode -1)))
 (add-hook 'kontiki-mode-hook (lambda () (linum-mode -1)))
 
+
 ;;; ------------------------------------------------------------
 ;;; モードライン設定
 ;;; ------------------------------------------------------------
 
+;; 関数名の表示
+(which-function-mode 1)
+
 ;; 何文字目にいるか表示
 (column-number-mode 1)
 
-;; 選択範囲の文字数をモードラインに表示
-;; thx http://d.hatena.ne.jp/sonota88/20110224/1298557375
-(defun count-lines-and-chars ()
-  "Count chars to show modeline."
-  (if mark-active
-      (format "%d lines,%d chars "
-              (count-lines (region-beginning) (region-end))
-              (- (region-end) (region-beginning)))
-    ""))
-(add-to-list 'default-mode-line-format
-             '(:eval (count-lines-and-chars)))
+;; フレーム情報
+(setq-default mode-line-frame-identification "")
+
+;; タブバーに出ているのでバッファ名は不要
+(setq-default mode-line-buffer-identification "")
+
+;; 現在行、総行、文字位置、選択範囲の文字数など
+(setq mode-line-position
+      '(:eval (format "%d/%d %d/%d %s"
+                      (line-number-at-pos)
+                      (count-lines (point-max) (point-min))
+                      (point)
+                      (point-max)
+                      (if mark-active
+                          (concat "[" (format "%s" (- (region-end) (region-beginning))) "]")
+                        ""))))
+
+;; Sitesのなかにいるとき、Anythingのgtagが相手にしているディレクトリを表示
+(defun my-dirname-to-modeline ()
+  "Sites name."
+  (let ((pwd (string-trim (shell-command-to-string "pwd"))))
+    (if (string-match "/Sites/\\(.+?\\)\\b" pwd)
+      (concat " [" (substring pwd (match-beginning 1) (match-end 1)) "]")
+      "")))
+;;(add-to-list 'default-mode-line-format '(:eval (my-dirname-to-modeline)))
 
 ;; 改行の種類表示の変更
 ;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
@@ -1496,6 +1524,7 @@ end tell"
 (setq-default eol-mnemonic-dos "(CRLF)")
 (setq-default eol-mnemonic-mac "(CR)")
 
+
 ;;; ------------------------------------------------------------
 ;;; マウス設定
 ;;; ------------------------------------------------------------
@@ -1506,6 +1535,7 @@ end tell"
 (define-key global-map (kbd "<S-mouse-1>") 'mouse-set-point)
 (put 'mouse-set-point 'CUA 'move)
 
+
 ;;; ------------------------------------------------------------
 ;;; 編集支援
 ;;; ------------------------------------------------------------
@@ -1653,6 +1683,7 @@ end tell"
                    "nType 1:file header, 2:function header:\nsAuthor:\nsCopyright:\nsLink:")
                   (insert-function-header type author copyright link)))
 
+
 ;;; ------------------------------------------------------------
 ;;; ユーティリティ
 ;;; ------------------------------------------------------------
@@ -1813,6 +1844,7 @@ If gist-id exists update gist.  BEG END."
                 "--indent-size 2"
                 "--end-with-newline"))
 
+
 ;;; ------------------------------------------------------------
 ;;; Elisp
 ;;; ------------------------------------------------------------
@@ -1844,6 +1876,7 @@ If gist-id exists update gist.  BEG END."
                     (eval-buffer))
                   (message "eval done.")))
 
+
 ;;; ------------------------------------------------------------
 ;;; 各種モード
 ;;; ------------------------------------------------------------
@@ -1925,8 +1958,18 @@ If gist-id exists update gist.  BEG END."
 (add-to-list 'auto-mode-alist '("\\.css$" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.php$" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.js$" . web-mode))
+(add-to-list 'web-mode-imenu-regexp-list
+             '("\\(function\\|class\\) +?\\(.+?\\) *?(" 1 2 " "))
 (setq-default web-mode-engines-alist '(("php" . "\\.html?$")))
-(setq-default web-mode-disable-auto-pairing t)
+(setq-default web-mode-enable-auto-pairing nil)
+(setq-default web-mode-enable-auto-closing nil)
+(setq-default web-mode-enable-auto-opening nil)
+(setq-default web-mode-enable-auto-quoting nil)
+(setq-default web-mode-enable-auto-indentation nil)
+(setq-default web-mode-enable-html-entities-fontification t)
+(setq-default web-mode-enable-element-tag-fontification t)
+(setq-default web-mode-enable-part-face t)
+(setq-default web-mode-ignore-ac-start-advice t)
 
 ;; thx http://yanmoo.blogspot.jp/2013/06/html5web-mode.html
 (add-hook 'web-mode-hook
@@ -2038,6 +2081,7 @@ If gist-id exists update gist.  BEG END."
 (add-hook 'php-mode-hook 'rainbow-mode)
 (add-hook 'html-mode-hook 'rainbow-mode)
 
+
 ;;; ------------------------------------------------------------
 ;;; flycheck
 ;;; ------------------------------------------------------------
@@ -2080,6 +2124,7 @@ If gist-id exists update gist.  BEG END."
                   (yes-or-no-p "Large buffer. Preview takes quite time. Preview this?"))))
        (pdf-preview-buffer)))))
 
+
 ;;; ------------------------------------------------------------
 ;;; Mew
 ;;; ------------------------------------------------------------
@@ -2102,6 +2147,7 @@ If gist-id exists update gist.  BEG END."
       'mew-draft-kill
       'mew-send-hook))
 
+
 ;;; ------------------------------------------------------------
 ;;; eww
 ;;; ------------------------------------------------------------
@@ -2124,6 +2170,7 @@ If gist-id exists update gist.  BEG END."
       (rename-buffer "eww" t))
     (add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
 
+
 ;;; ------------------------------------------------------------
 ;;; Todo:
 ;;; ------------------------------------------------------------

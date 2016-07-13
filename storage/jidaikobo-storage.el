@@ -1,3 +1,15 @@
+;; ;; 選択範囲の文字数を表示
+;; ;; thx http://d.hatena.ne.jp/sonota88/20110224/1298557375
+;; (defun count-lines-and-chars ()
+;;   "Count chars to show modeline."
+;;   (if mark-active
+;;       (format "%d lines,%d chars "
+;;               (count-lines (region-beginning) (region-end))
+;;               (- (region-end) (region-beginning)))
+;;     ""))
+;; (add-to-list 'default-mode-line-format
+;;              '(:eval (count-lines-and-chars)))
+
 ;; localize
 ;; (add-to-list 'Info-directory-list "~/info")
 
