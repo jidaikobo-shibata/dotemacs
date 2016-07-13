@@ -1278,6 +1278,7 @@ stylesheet
 submit
 substr
 substr($string, $start, $length)
+substring
 successfully
 suffix
 suggestion
