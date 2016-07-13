@@ -1,3 +1,10 @@
+;; localize
+;; (add-to-list 'Info-directory-list "~/info")
+
+;; normalize-chars関係 確実に変換
+;; (put-char-code-property ?， 'jisx0208 ?,)
+;; (put-char-code-property ?． 'jisx0208 ?.)
+
 ;; これやるとむちゃくちゃ打鍵が遅くなるのでやめる
 ;; (add-hook 'emacs-lisp-mode-hook
 ;;           (lambda ()
