@@ -696,7 +696,7 @@ end tell"
               '(lambda ()
                  (local-set-key (kbd "RET") 'gtags-select-tag)))
 
-(add-hook 'php-mode-hook '(lambda() (gtags-mode 1)))
+(add-hook 'php-mode-hook '(lambda () (gtags-mode 1)))
 
 ;; update gtags
 ;; thx http://qiita.com/hayamiz/items/8e8c7fca64b4810d8e78
@@ -773,17 +773,13 @@ end tell"
 (define-key dired-toggle-mode-map (kbd "C-g") 'dired-toggle-action-quit)
 
 ;; dired-toggleでは簡易表示
-(add-hook 'dired-toggle-mode-hook 'dired-hide-details-mode)
-(defadvice dired-toggle-action-quit (after dired-toggle-action-quit-advice activate)
+(defadvice dired-toggle (after dired-toggle-advice activate)
+  "Into dired-hide-details-mode."
+  (dired-hide-details-mode t))
+(defadvice dired-toggle-action-quit (before dired-toggle-action-quit-advice activate)
   "Do not leave dired-hide-details-mode."
-  (when dired-hide-details-mode
-    (add-hook 'wdired-mode-hook
-              'dired-hide-details-update-invisibility-spec
-              nil
-              t)))
-
-;; dired-toggleすると、ふつうのdiredが影響を受けちゃうことがあるみたいなので、明示的に抜ける
-(add-hook 'dired-mode-hook (lambda () (dired-toggle-mode -1)))
+  (when dired-hide-details-mode (dired-hide-details-mode -1))
+  (kill-buffer dired-toggle-buffer-name))
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
@@ -846,6 +842,7 @@ end tell"
 
 ;;; ------------------------------------------------------------
 ;; .poファイルを保存したらmsgfmt -oする
+
 (add-hook 'after-save-hook
           (lambda ()
             (when (string= (file-name-extension (buffer-file-name)) "po")
@@ -1489,14 +1486,14 @@ end tell"
 ;; 関数名の表示
 (which-function-mode 1)
 
-;; 何文字目にいるか表示
-(column-number-mode 1)
-
-;; フレーム情報
+;; フレーム情報は不要
 (setq-default mode-line-frame-identification "")
 
 ;; タブバーに出ているのでバッファ名は不要
 (setq-default mode-line-buffer-identification "")
+
+;; タブバーに出ているのでバッファの変更状態も不要
+(setq-default mode-line-modified "")
 
 ;; 現在行、総行、文字位置、選択範囲の文字数など
 (setq mode-line-position
@@ -1848,6 +1845,16 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 ;;; Elisp
 ;;; ------------------------------------------------------------
+
+;;; ------------------------------------------------------------
+;;; Elispのimenuをカスタマイズ
+
+(add-hook
+ 'emacs-lisp-mode-hook
+ '(lambda ()
+   (setq imenu-generic-expression
+         '(("defun" "^\\s-*(defun\\s-+\\([-A-Za-z0-9/+]+\\)" 1)
+           ("defadvice" "^\\s-*(defadvice\\s-+\\([-A-Za-z0-9/+]+\\)" 1)))))
 
 ;;; ------------------------------------------------------------
 ;;; 釣り合いのとれる括弧のハイライト

@@ -1,3 +1,14 @@
+;;; ------------------------------------------------------------
+;;; Elispのimenuで、Variablesは表示しない
+;; (add-hook
+;;   'elisp-mode-hook
+;;     (assq-delete-all
+;;       (car (assoc "Variables" imenu-generic-expression))
+;;       imenu-generic-expression))
+
+;; tramp-default-proxies-alistがおもしろそう
+;; http://qiita.com/j_shirota/items/b66edbadf13f15efc13b
+
 ;; ;; 選択範囲の文字数を表示
 ;; ;; thx http://d.hatena.ne.jp/sonota88/20110224/1298557375
 ;; (defun count-lines-and-chars ()
