@@ -496,6 +496,7 @@ buffer
 buffer-substring-no-properties
 button
 cache
+calculate
 calendar
 call
 call_user_func
