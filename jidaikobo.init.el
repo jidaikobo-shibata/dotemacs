@@ -573,6 +573,42 @@
 (global-set-key (kbd "<M-s-up>") (lambda () (interactive) (next-block "prev")))
 
 ;;; ------------------------------------------------------------
+;;; 前回１秒以上立ち止まった場所にジャンプするコマンド
+;; thx http://qiita.com/zk_phi/items/c145b7bd8077b8a0f537
+
+(require 'ring)
+(require 'edmacro)
+
+(defvar-local jump-back!--marker-ring nil)
+
+(defun jump-back!--ring-update ()
+  "Jump-back! ring-update."
+  (let ((marker (point-marker)))
+    (unless jump-back!--marker-ring
+      (setq jump-back!--marker-ring (make-ring 30)))
+    (ring-insert jump-back!--marker-ring marker)))
+
+(run-with-idle-timer 1 t 'jump-back!--ring-update)
+
+(defun jump-back! ()
+  "Jump back."
+  (interactive)
+  (if (ring-empty-p jump-back!--marker-ring)
+      (error "No further undo information")
+    (let ((marker (ring-ref jump-back!--marker-ring 0))
+          (repeat-key (vector last-input-event)))
+      (ring-remove jump-back!--marker-ring 0)
+      (if (= (point-marker) marker)
+          (jump-back!)
+        (goto-char marker)
+        (message "(Type %s to repeat)" (edmacro-format-keys repeat-key))
+        (set-temporary-overlay-map
+         (let ((km (make-sparse-keymap)))
+           (define-key km repeat-key 'jump-back!)
+           km))))))
+(global-set-key (kbd "C-z") 'jump-back!)
+
+;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い（やや偏執的……）
 
 (defun my-tab-dwim ()
