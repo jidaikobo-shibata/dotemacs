@@ -798,44 +798,38 @@ end tell"
 
 ;;; ------------------------------------------------------------
 ;;; ~/.ssh/configを情報源として、tramp接続
+;; thx rubikitch
 
 (defvar anything-c-source-my-hosts
   '((name . "hosts")
-    (candidates . (lambda () (anything-c-source-my-hosts-candidates)))
+    ;; (init . anything-c-source-my-hosts-candidates)
+    ;; (candidates-in-buffer)
+    (candidates . anything-c-source-my-hosts-candidates)
     (type . file)
-    (action . (("Tramp" . anything-tramp-open)))))
+    (action . find-file)))
 
 (defun anything-c-source-my-hosts-candidates ()
   "Tramp candidates."
-  (let ((source (split-string
-                 (with-temp-buffer
-                   (insert-file-contents "~/.ssh/config")
-                   (buffer-string))
-                 "\n"))
-        (hosts (list)))
-    ;; trim
-    (dolist (host source)
-      (when (string-match "[H\\|h]ost +\\(.+?\\)$" host)
-        (setq host (string-trim (substring host (match-beginning 1) (match-end 2))))
-        (unless (string= host "*")
-          (add-to-list
-           'hosts
-           (concat "/" tramp-default-method ":" host ":") t))))
-    hosts))
-
-(defun anything-tramp-open (path)
-  "Tramp open.  PATH is path."
-  (find-file path))
-
-;; (defun anything-tramp-close (path)
-;;   "Tramp close.  PATH is path."
-;;   (find-file path))
+      (let ((source (split-string
+                     (with-temp-buffer
+                       (insert-file-contents "~/.ssh/config")
+                       (buffer-string))
+                     "\n"))
+            (hosts (list)))
+        (dolist (host source)
+          (when (string-match "[H\\|h]ost +\\(.+?\\)$" host)
+            (setq host (string-trim (substring host (match-beginning 1) (match-end 2))))
+            (unless (string= host "*")
+              (add-to-list
+               'hosts
+               (concat "/" tramp-default-method ":" host ":") t))))
+        hosts))
 
 (defun my-anything-for-tramp ()
   "Anything command for .ssh/config."
   (interactive)
   (anything-other-buffer
-   '(anything-c-source-my-hosts)
+   'anything-c-source-my-hosts
    "*my-anything-for-tramp*"))
 
 (global-set-key (kbd "C-.") 'my-anything-for-tramp)
@@ -1495,11 +1489,24 @@ end tell"
 ;; タブバーに出ているのでバッファの変更状態も不要
 (setq-default mode-line-modified "")
 
+;;; 前に行番号、総行数、桁番号を表示
+;;; 総行数の計する%記法がないので遅延で計算させる
+;; thx rubikitch
+(defvar-local mode-line-last-line-number 0)
+(defvar-local clnaw-last-tick 0)
+(defun calculate-total-line-numbers ()
+  "Calculate total line numbers."
+  (unless (eq clnaw-last-tick (buffer-modified-tick))
+    (setq mode-line-last-line-number (line-number-at-pos (point-max)))
+    (setq clnaw-last-tick (buffer-modified-tick))
+    (force-mode-line-update)))
+(run-with-idle-timer 1 t 'calculate-total-line-numbers)
+
 ;; 現在行、総行、文字位置、選択範囲の文字数など
 (setq mode-line-position
       '(:eval (format "%d/%d %d/%d %s"
                       (line-number-at-pos)
-                      (count-lines (point-max) (point-min))
+                      mode-line-last-line-number
                       (point)
                       (point-max)
                       (if mark-active
@@ -1507,19 +1514,19 @@ end tell"
                         ""))))
 
 ;; Sitesのなかにいるとき、Anythingのgtagが相手にしているディレクトリを表示
+;; thx rubikitch
 (defun my-dirname-to-modeline ()
   "Sites name."
-  (let ((pwd (string-trim (shell-command-to-string "pwd"))))
-    (if (string-match "/Sites/\\(.+?\\)\\b" pwd)
-      (concat " [" (substring pwd (match-beginning 1) (match-end 1)) "]")
-      "")))
-;;(add-to-list 'default-mode-line-format '(:eval (my-dirname-to-modeline)))
+    (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
+      (concat " [" (substring default-directory (match-beginning 1) (match-end 1)) "]")
+      ""))
+(add-to-list 'default-mode-line-format '(:eval (my-dirname-to-modeline)))
 
 ;; 改行の種類表示の変更
 ;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
 (setq-default eol-mnemonic-unix "(LF)")
-(setq-default eol-mnemonic-dos "(CRLF)")
-(setq-default eol-mnemonic-mac "(CR)")
+(setq-default eol-mnemonic-dos  "(CRLF)")
+(setq-default eol-mnemonic-mac  "(CR)")
 
 
 ;;; ------------------------------------------------------------
