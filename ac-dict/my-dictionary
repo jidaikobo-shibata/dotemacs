@@ -1006,6 +1006,7 @@ module
 move
 move-to
 move_uploaded_file
+msgfmt
 multi
 multiple
 my
