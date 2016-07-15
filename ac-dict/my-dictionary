@@ -847,7 +847,6 @@ if (): else: endif;
 if (): elseif (): endif;
 if (): endif;
 if (){}
-ignore
 image
 ime-mode
 implode
