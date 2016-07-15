@@ -153,6 +153,7 @@
 (put 'dired-find-alternate-file 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
 (put 'delete-region 'disabled nil)
+;; delete-by-moving-to-trash t
 
 
 ;;; ------------------------------------------------------------
@@ -315,7 +316,7 @@
         ".recentf"
         "^/[^/:]+:" ; TRAMP
         ".+Fetch Temporary Folder.+"))
-(setq recentf-max-saved-items 1000)
+(setq recentf-max-saved-items 10000)
 
 
 ;;; ------------------------------------------------------------
@@ -887,33 +888,30 @@ end tell"
 ;;; ------------------------------------------------------------
 
 (require 'auto-complete)
-(require 'auto-complete-config)
 (global-auto-complete-mode t)
 (setq ac-dwim t)
 (setq ac-auto-start t)
 (setq ac-auto-show-menu 0.1)
+(setq ac-delay 0)
 (setq ac-auto-start 2)
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
 (setq ac-quick-help-delay 0.5)
+(setq ac-use-comphist nil)
 
 ;; ユーザ辞書設定
-(defvar ac-user-dict-dir (concat jidaikobo-dir "ac-dict/"))
-(defvar ac-my-dictionary (concat ac-user-dict-dir "my-dictionary"))
-(defvar ac-my-dictionary-cache (ac-file-dictionary ac-my-dictionary))
-(defvar ac-my-dictionary-dict '((candidates . ac-my-dictionary-cache)))
+(defvar ac-my-dictionary (concat jidaikobo-dir "ac-dict/my-dictionary"))
+(defvar ac-my-dictionary-dict '((candidates . (ac-file-dictionary ac-my-dictionary))))
 
 ;; 候補。自分で辞書を作ったほうが圧倒的に早いので一つだけにする
 (setq-default ac-sources '(ac-my-dictionary-dict))
 
 ;; 条件の追加
+;; global-auto-complete-modeで足されていないものたち
+(add-to-list 'ac-modes 'conf-mode)
 (add-to-list 'ac-modes 'text-mode)
 (add-to-list 'ac-modes 'fundamental-mode)
 (add-to-list 'ac-modes 'html-mode)
-(add-to-list 'ac-modes 'conf-mode)
-(add-to-list 'ac-modes 'lisp-mode)
-(add-to-list 'ac-modes 'emacs-lisp-mode)
-(add-to-list 'ac-modes 'web-mode)
 
 ;;; 辞書に文字列を足して、git commit
 (defun add-strings-to-ac-my-dictionary (dictionary-path)
@@ -935,7 +933,7 @@ end tell"
         (delete-duplicate-lines (point-min) (point-max))
         (write-file dictionary-path)
         (shell-command (concat "git commit " dictionary-path " -m \"dictionary update.\""))
-        (ac-clear-dictionary-cache)     ;即時反映うまくいかない
+        (ac-clear-dictionary-cache)
         (message (concat "Add \"" strings "\"and git commit."))))))
 
 ;;; 辞書から文字列を削除して、git commit
@@ -959,7 +957,7 @@ end tell"
                 (delete-duplicate-lines (point-min) (point-max))
                 (write-file dictionary-path)
                 (shell-command (concat "git commit " dictionary-path " -m \"dictionary update.\""))
-                (ac-clear-dictionary-cache)     ;即時反映うまくいかない
+                (ac-clear-dictionary-cache)
                 (message (concat "Remove \"" strings "\"and git commit.")))
             (message (concat "Did nothing with: " strings)))
         (message (concat "Not found: " strings))))))
@@ -975,13 +973,6 @@ end tell"
   (when (memq this-command '(newline))
     (delete-backward-char 1)
     (message "full string was matched with candidate.")))
-
-;; auto-complete の候補に日本語を含む単語が含まれないようにする
-;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
-(defadvice view-order-manuals (after remove-word-contain-japanese activate)
-  "Do not contain multi byte character in auto-complete candidates."
-  (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
-    (setq ad-return-value (remove-if contain-japanese ad-return-value))))
 
 ;; 日本語に続く文字列でもauto-completeする
 ;; thx https://github.com/lugecy/dot-emacs/blob/master/conf.d/050-auto-complete.el
@@ -1138,14 +1129,15 @@ end tell"
 (require 'anything-config)
 
 (defvar alist-anything-for-files
-  '((anything-c-source-emacs-commands
-     anything-c-source-gtags-select)
+  '(anything-c-source-find-by-gtags
+    anything-c-source-bookmarks
+    anything-c-source-recentf
+    ;; (anything-c-source-emacs-commands
+    ;;  anything-c-source-gtags-select)
     ;; anything-c-source-emacs-commands
     ;; anything-c-source-files-in-current-dir+
     ;; anything-c-source-buffers-list ;; *のバッファでAnythingを止めることがある
-    anything-c-source-find-by-gtags
-    anything-c-source-bookmarks
-    anything-c-source-recentf))
+    ))
 
 ;; key binds
 (define-key anything-map [escape] 'anything-keyboard-quit)
@@ -1166,8 +1158,17 @@ end tell"
 ;;; ------------------------------------------------------------
 ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
 
+(defun my-get-project-name (x)
+  "Project title for anything.  X."
+  (with-anything-current-buffer
+    (concat "gtags or ls: "
+    (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
+        (substring default-directory (match-beginning 1) (match-end 1))
+      (file-name-nondirectory (directory-file-name default-directory))))))
+
 (defvar anything-c-source-find-by-gtags
   '((name . "Find by gtags or ls")
+    (header-name . my-get-project-name)
     (candidates . (lambda ()
                     (let
                         ((default-directory
@@ -1549,14 +1550,21 @@ end tell"
                           (concat "[" (format "%s" (- (region-end) (region-beginning))) "]")
                         ""))))
 
-;; Sitesのなかにいるとき、Anythingのgtagが相手にしているディレクトリを表示
+;; internal directory
 ;; thx rubikitch
 (defun my-dirname-to-modeline ()
-  "Sites name."
-    (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
-      (concat " [" (substring default-directory (match-beginning 1) (match-end 1)) "]")
-      ""))
-(add-to-list 'default-mode-line-format '(:eval (my-dirname-to-modeline)))
+  "Parent directory name."
+  (concat
+   "["
+   ;; current buffer's directory
+   (file-name-nondirectory (directory-file-name (file-name-directory (buffer-file-name))))
+   " "
+   ;; working internal directory
+   (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
+       (substring default-directory (match-beginning 1) (match-end 1))
+     (file-name-nondirectory (directory-file-name default-directory)))
+  "]"))
+;; (add-to-list 'default-mode-line-format '(:eval (my-dirname-to-modeline)))
 
 ;; 改行の種類表示の変更
 ;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
@@ -2136,11 +2144,22 @@ If gist-id exists update gist.  BEG END."
 ;;; flycheck
 ;;; ------------------------------------------------------------
 
-(load "flycheck")
-(setq-default flycheck-emacs-lisp-load-path 'inherit)
-(global-set-key (kbd "<C-M-up>") 'flycheck-previous-error) ; previous error (M+up)
-(global-set-key (kbd "<C-M-down>") 'flycheck-next-error) ; next error (M+down)
+;; (load "flycheck")
+(require 'flycheck)
+(setq flycheck-emacs-lisp-load-path 'inherit)
 
+;; Flycheckのwindowは単独で表示
+(add-to-list 'same-window-buffer-names "*Flycheck errors*")
+
+;; キーバインド
+(global-set-key (kbd "C-M-c") 'flycheck-buffer)
+(global-set-key (kbd "C-M-l") 'flycheck-list-errors)
+(global-set-key (kbd "<C-M-up>") 'flycheck-previous-error)
+(global-set-key (kbd "<C-M-down>") 'flycheck-next-error)
+(define-key flycheck-error-list-mode-map (kbd "C-g") 'quit-window)
+(define-key flycheck-error-list-mode-map [escape] 'quit-window)
+
+;; enable
 (add-hook 'php-mode-hook 'flycheck-mode)
 (add-hook 'lisp-mode-hook 'flycheck-mode)
 (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
@@ -2233,10 +2252,10 @@ If gist-id exists update gist.  BEG END."
 
 ;; search-centerの履歴
 
-;; anything-c-source-occur
+;; 宝庫！ https://github.com/zk-phi/dotfiles/blob/master/emacs/init.el
+;; https://github.com/zk-phi/indent-guide ためしたい
 
-;; http://xyzzy.s53.xrea.com/reference/wiki.cgi?p=set%2Dsyntax%2Dstart%2Dmulti%2Dcomment
-;; (set-syntax-start-multi-comment *c-mode-syntax-table* "/*")
+;; anything-c-source-occur
 
 ;;; ------------------------------------------------------------
 ;;; experimental area

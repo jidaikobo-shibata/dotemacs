@@ -1,3 +1,43 @@
+;; 宝庫！ https://github.com/zk-phi/dotfiles/blob/master/emacs/init.el
+
+;; http://xyzzy.s53.xrea.com/reference/wiki.cgi?p=set%2Dsyntax%2Dstart%2Dmulti%2Dcomment
+;; (set-syntax-start-multi-comment *c-mode-syntax-table* "/*")
+
+;; ;; URL encode / decode region
+;; (defun my-url-decode-region (beg end)
+;;   "Decode region as hexified string."
+;;   (interactive "r")
+;;   (let ((str (buffer-substring beg end)))
+;;     (delete-region beg end)
+;;     (insert (url-unhex-string str))))
+;; (defun my-url-encode-region (beg end)
+;;   "Hexify region."
+;;   (interactive "r")
+;;   (let ((str (buffer-substring beg end)))
+;;     (delete-region beg end)
+;;     (insert (url-hexify-string str))))
+
+;; dont let the cursor go into minibuffer prompt
+;; reference | http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
+;; (setq minibuffer-prompt-properties
+;;       '(read-only t point-entered minibuffer-avoid-prompt
+;;                   face minibuffer-prompt))
+
+;; do not spell-check non-ascii characters
+  ;; (add-to-list 'ispell-skip-region-alist '("[^\000-\377]"))
+
+;; ;; ftp settings
+;; (setup-after "ange-ftp"
+;;   (when my-ftp-executable
+;;     (setq ange-ftp-ftp-program-name my-ftp-executable)))
+
+;; ;; auto-complete の候補に日本語を含む単語が含まれないようにする
+;; ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
+;; (defadvice view-order-manuals (after remove-word-contain-japanese activate)
+;;   "Do not contain multi byte character in auto-complete candidates."
+;;   (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
+;;     (setq ad-return-value (remove-if contain-japanese ad-return-value))))
+
 ;;; ------------------------------------------------------------
 ;;; Elispのimenuで、Variablesは表示しない
 ;; (add-hook
