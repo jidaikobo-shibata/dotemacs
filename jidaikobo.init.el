@@ -111,7 +111,7 @@
   (mac-auto-ascii-mode 1)
 
   ;; ヘルプは全角で操作しない
-  (global-set-key [f1] 'help-for-help-internal)
+  ;; (global-set-key [f1] 'help-for-help-internal)
   (defadvice help-for-help (before ascii-help-for-help activate)
     "Force ASCII when help."
     (mac-auto-ascii-select-input-source)))
@@ -239,7 +239,6 @@
       auto-async-byte-compile
       auto-complete
       cursor-chg
-      dired-toggle
       flycheck
       foreign-regexp
       google-translate
@@ -750,9 +749,15 @@ end tell"
 ;;; ファイラ (dired)
 
 (require 'dired)
+(require 'dired-aux)
+(require 'wdired)
+
+(define-key dired-mode-map (kbd "C-o") 'other-window)
 
 ;; diredでファイル編集（rで編集モードに）
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+(define-key wdired-mode-map (kbd "C-g") 'wdired-abort-changes)
+(define-key wdired-mode-map [escape] 'wdired-abort-changes)
 
 ;; C-x C-f で現在位置を開く
 (ffap-bindings)
@@ -771,52 +776,80 @@ end tell"
 (setq dired-recursive-copies 'always)
 
 ;; diredバッファでC-sした時にファイル名だけにマッチするように
-(setq-default dired-isearch-filenames t)
+(add-hook 'dired-mode-hook 'dired-isearch-filenames-mode)
 
 ;; ウィンドウ分割で左右に違うDiredを開いているときにRやCのデフォルト値がもう片方になる
 (setq dired-dwim-target t)
 
 ;; diredでタブを開きすぎないようにする
-;; thx http://nishikawasasaki.hatenablog.com/entry/20120222/1329932699
 (put 'dired-find-alternate-file 'disabled nil)
-(define-key dired-mode-map (kbd "RET") 'dired-open-in-accordance-with-situation)
-(define-key dired-mode-map (kbd "a") 'dired-find-file)
-(defun dired-open-in-accordance-with-situation ()
+(defun my-dired-open ()
   "Dired open in accordance with situation."
   (interactive)
-  (let ((file (dired-get-filename)))
-    (if (file-directory-p file)
-        (dired-find-alternate-file)
-      (dired-find-file))))
-(define-key dired-mode-map (kbd "C-o") 'other-window)
+  (let (p1 p2 file)
+    (save-excursion
+      (setq p1 (dired-move-to-filename))
+      (setq p2 (dired-move-to-end-of-filename)))
+    (when (and p1 p2) (setq file (buffer-substring p1 p2)))
+    (cond ((string= file ".")
+           (message "current directory."))
+          ((and (string= file "..") (not (memq last-input-event '(s-return))))
+           (find-alternate-file
+            (file-name-directory (directory-file-name (dired-current-directory)))))
+          ((and (file-directory-p file) (not (memq last-input-event '(s-return))))
+           (dired-find-alternate-file))
+          (t
+           (dired-find-file)))))
 
-;; anything in dired
-;; thx http://syohex.hatenablog.com/entry/20120105/1325770778
-(defun my/anything-dired ()
-  "Press p to into anything mode."
+;; diredでanythingしたらfindする
+(defvar anything-c-source-find-at-dired
+  '((name . "Find file")
+    (candidates . (lambda ()
+                    (with-current-buffer anything-current-buffer
+                      (let ((pwd (string-trim (shell-command-to-string "pwd"))))
+                        (split-string
+                         (shell-command-to-string
+                          (concat "find "
+                                  (replace-regexp-in-string "/$" "" pwd)
+                                  (replace-regexp-in-string "\n" " "
+                                                            "
+-type d -name \"logs\" -prune -o
+-type d -name \"cache\" -prune -o
+-type d -name \".git\" -prune -o
+-type f ! -name \"*.png\"
+! -name \"*.ico\"
+! -name \"*.gif\"
+! -name \"*.jpg\"
+! -name \".DS_Store\"")))
+                         "\n")))))
+    (type . file)))
+;;     (action . (("open Fetch" . my-anything-c-source-find-at-dired-action)))))
+
+;; (defun my-anything-c-source-find-at-dired-action (path)
+;;   "Open PATH."
+;;   (find-file ""))
+
+(defun my-anything-c-source-find-at-dired ()
+  "Anything command for find at dired."
   (interactive)
-  (let ((curbuf (current-buffer)))
-    (if (anything-other-buffer
-         '(anything-c-source-files-in-current-dir+)
-         "*anything-dired*")
-        (kill-buffer curbuf))))
-(define-key dired-mode-map (kbd "C-;") 'my/anything-dired)
+  (anything-other-buffer
+   '(anything-c-source-find-at-dired)
+   "*my-anything-c-source-find-at-dired*"))
+(define-key dired-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
 
-;; dired-toggle
-;; briefのDiredは使わない
-(require 'dired-toggle)
-(setq-default dired-toggle-window-size 40)
-(global-set-key (kbd "C-x C-d") 'dired-toggle)
-(define-key dired-toggle-mode-map (kbd "C-g") 'dired-toggle-action-quit)
+;; 確認用diredでの(dired-current-directory)を表示
+(define-key dired-mode-map (kbd "s-s") (lambda () (interactive) (message "%s" (dired-current-directory))))
 
-;; dired-toggleでは簡易表示
-(defadvice dired-toggle (after dired-toggle-advice activate)
-  "Into dired-hide-details-mode."
-  (dired-hide-details-mode t))
-(defadvice dired-toggle-action-quit (before dired-toggle-action-quit-advice activate)
-  "Do not leave dired-hide-details-mode."
-  (when dired-hide-details-mode (dired-hide-details-mode -1))
-  (kill-buffer dired-toggle-buffer-name))
+;; key-binds
+(define-key dired-mode-map (kbd "RET") 'my-dired-open)
+(define-key dired-mode-map (kbd "<s-return>") 'my-dired-open)
+(define-key dired-mode-map (kbd "a") 'dired-find-file)
+(define-key dired-mode-map (kbd "s-d") 'dired-do-copy)
+(define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
+(define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
+(global-set-key (kbd "s-n") (lambda () (interactive) (find-file "~/Desktop")))
+(global-set-key (kbd "s-N") (lambda () (interactive) (find-file "~/Sites")))
+(global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
@@ -839,8 +872,6 @@ end tell"
 
 (defvar anything-c-source-my-hosts
   '((name . "hosts")
-    ;; (init . anything-c-source-my-hosts-candidates)
-    ;; (candidates-in-buffer)
     (candidates . anything-c-source-my-hosts-candidates)
     (type . file)
     (action . find-file)))
@@ -1045,9 +1076,6 @@ end tell"
                                 (display-buffer "*Messages*")
                                 (auto-revert-mode 1)))
 
-
-
-
 ;; defadvice-indent-for-tab-command
 ;; gist-description: Emacs(Elisp): To integrate indent style, delete existing whitespaces before indent-for-tab-command. indent-for-tab-commandの前に存在する行頭ホワイトスペースを削除することでインデントスタイルを統一する
 ;; gist-id: 604173d11ff376036635fd4811df6abb
@@ -1217,42 +1245,6 @@ end tell"
     (shell-command (concat "open " app)))
 
   (add-to-list 'alist-anything-for-files 'anything-c-source-my-fetch t))
-
-;;; ------------------------------------------------------------
-;;; よく使うプロジェクトに対する操作
-
-(defun func-anything-c-source-cd-to-projects ()
-  "Anything source."
-  (let (ret)
-    (with-temp-buffer
-      (insert
-       (shell-command-to-string (concat "find " my-work-dir " -maxdepth 1 -type d")) "\n")
-      (ucs-normalize-NFC-region (point-min) (point-max))
-      (setq ret (split-string (buffer-string) "\n")))
-    ret))
-
-;; 結果がなければたさない
-(when (func-anything-c-source-cd-to-projects)
-  (defvar anything-c-source-cd-to-projects
-    '((name . "cd to project")
-      (candidates . (lambda () (func-anything-c-source-cd-to-projects)))
-      (action . (("Change internal directory" . anything-change-internal-directory)
-                 ("Dired" . anything-project-dired)
-                 ("Generate gtags at project" . anything-generate-gtags-at-project)))))
-
-  (defun anything-change-internal-directory (dir)
-    "Change internal directory at Sites.  DIR is path."
-    (cd dir))
-
-  (defun anything-project-dired (dir)
-    "Dired.  DIR is path."
-    (dired dir))
-
-  (defun anything-generate-gtags-at-project (dir)
-    "Generate gtags at project.  DIR is path."
-    (shell-command-to-string (concat "cd " dir " && gtags -v")))
-
-  (add-to-list 'alist-anything-for-files 'anything-c-source-cd-to-projects))
 
 ;;; ------------------------------------------------------------
 ;;; my-anything-for-files
@@ -1549,22 +1541,6 @@ end tell"
                       (if mark-active
                           (concat "[" (format "%s" (- (region-end) (region-beginning))) "]")
                         ""))))
-
-;; internal directory
-;; thx rubikitch
-(defun my-dirname-to-modeline ()
-  "Parent directory name."
-  (concat
-   "["
-   ;; current buffer's directory
-   (file-name-nondirectory (directory-file-name (file-name-directory (buffer-file-name))))
-   " "
-   ;; working internal directory
-   (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
-       (substring default-directory (match-beginning 1) (match-end 1))
-     (file-name-nondirectory (directory-file-name default-directory)))
-  "]"))
-;; (add-to-list 'default-mode-line-format '(:eval (my-dirname-to-modeline)))
 
 ;; 改行の種類表示の変更
 ;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
@@ -2238,6 +2214,47 @@ If gist-id exists update gist.  BEG END."
       "Rename eww browser's buffer so sites open in new page."
       (rename-buffer "eww" t))
     (add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
+
+
+;;; ------------------------------------------------------------
+;;; 起動時には最後に作業していたファイルを開く
+;;; ------------------------------------------------------------
+
+(defvar my-hist-dir (expand-file-name "~/.emacs.d/histories/"))
+(defvar my-hist-last-files (concat my-hist-dir "last-files"))
+
+(add-hook 'kill-emacs-hook
+          (lambda ()
+            (let (strings
+                  buf-path)
+              (with-temp-buffer
+                (dolist (buf (buffer-list))
+                  (save-current-buffer
+                    (setq buf-path (buffer-file-name buf))
+                    (when (and buf-path (file-exists-p buf-path))
+                      (set-buffer buf)
+                      (setq strings
+                            (concat strings "\n" buf-path ":" (number-to-string (point)))))))
+                (insert (string-trim strings))
+                (write-file my-hist-last-files)))))
+
+(when (file-exists-p my-hist-last-files)
+  (let (tmp
+        path
+        pt
+        (files (split-string
+                (with-temp-buffer
+                  (insert-file-contents my-hist-last-files)
+                  (buffer-string))
+                "\n")))
+    (when files
+      (dolist (file files)
+        (setq tmp (split-string file ":"))
+        (setq path (car tmp))
+        (setq pt (string-to-number(car (reverse tmp))))
+        (when (file-exists-p path)
+          (find-file path)
+          (goto-char  pt))))))
 
 
 ;;; ------------------------------------------------------------

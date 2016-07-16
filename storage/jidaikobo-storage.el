@@ -1,4 +1,76 @@
-;; 宝庫！ https://github.com/zk-phi/dotfiles/blob/master/emacs/init.el
+;; ;; anything in dired
+;; ;; thx http://syohex.hatenablog.com/entry/20120105/1325770778
+;; (defun my/anything-dired ()
+;;   "Press C-; to into anything mode."
+;;   (interactive)
+;;   (let ((curbuf (current-buffer)))
+;;     (if (anything-other-buffer
+;;          '(anything-c-source-files-in-current-dir+)
+;;          "*anything-dired*")
+;;         (kill-buffer curbuf))))
+;; ;; (define-key dired-mode-map (kbd "C-;") 'my/anything-dired)
+
+;; ;; internal directory
+;; ;; thx rubikitch
+;; (defun my-dirname-to-modeline ()
+;;   "Parent directory name."
+;;   (concat
+;;    "["
+;;    ;; current buffer's directory
+;;    (file-name-nondirectory (directory-file-name (file-name-directory (buffer-file-name))))
+;;    " "
+;;    ;; working internal directory
+;;    (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
+;;        (substring default-directory (match-beginning 1) (match-end 1))
+;;      (file-name-nondirectory (directory-file-name default-directory)))
+;;   "]"))
+;; ;; (add-to-list 'default-mode-line-format '(:eval (my-dirname-to-modeline)))
+
+;; ;;; ------------------------------------------------------------
+;; ;;; よく使うプロジェクトに対する操作
+;; (defun func-anything-c-source-cd-to-projects ()
+;;   "Anything source."
+;;   (let (ret)
+;;     (with-temp-buffer
+;;       (insert
+;;        (shell-command-to-string (concat "find " my-work-dir " -maxdepth 1 -type d")) "\n")
+;;       (ucs-normalize-NFC-region (point-min) (point-max))
+;;       (setq ret (split-string (buffer-string) "\n")))
+;;     ret))
+;; ;; 結果がなければたさない
+;; (when (func-anything-c-source-cd-to-projects)
+;;   (defvar anything-c-source-cd-to-projects
+;;     '((name . "cd to project")
+;;       (candidates . (lambda () (func-anything-c-source-cd-to-projects)))
+;;       (action . (("Change internal directory" . anything-change-internal-directory)
+;;                  ("Dired" . anything-project-dired)
+;;                  ("Generate gtags at project" . anything-generate-gtags-at-project)))))
+;;   (defun anything-change-internal-directory (dir)
+;;     "Change internal directory at Sites.  DIR is path."
+;;     (cd dir))
+;;   (defun anything-project-dired (dir)
+;;     "Dired.  DIR is path."
+;;     (dired dir))
+;;   (defun anything-generate-gtags-at-project (dir)
+;;     "Generate gtags at project.  DIR is path."
+;;     (shell-command-to-string (concat "cd " dir " && gtags -v")))
+;;   (add-to-list 'alist-anything-for-files 'anything-c-source-cd-to-projects))
+
+;; ;; dired-toggle
+;; ;; briefのDiredは使わない
+;; (require 'dired-toggle)
+;; (setq-default dired-toggle-window-size 40)
+;; ;; (global-set-key (kbd "C-x C-d") 'dired-toggle)
+;; (define-key dired-toggle-mode-map (kbd "C-g") 'dired-toggle-action-quit)
+
+;; ;; dired-toggleでは簡易表示
+;; (defadvice dired-toggle (after dired-toggle-advice activate)
+;;   "Into dired-hide-details-mode."
+;;   (dired-hide-details-mode t))
+;; (defadvice dired-toggle-action-quit (before dired-toggle-action-quit-advice activate)
+;;   "Do not leave dired-hide-details-mode."
+;;   (when dired-hide-details-mode (dired-hide-details-mode -1))
+;;   (kill-buffer dired-toggle-buffer-name))
 
 ;; http://xyzzy.s53.xrea.com/reference/wiki.cgi?p=set%2Dsyntax%2Dstart%2Dmulti%2Dcomment
 ;; (set-syntax-start-multi-comment *c-mode-syntax-table* "/*")
