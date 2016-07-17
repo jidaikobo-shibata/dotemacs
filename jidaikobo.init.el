@@ -27,7 +27,7 @@
 ;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
 ;; @ terminal
 ;; sudo port install global
-;; [e|E]macs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
+;; emacs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
 
 ;;; Code:
 
@@ -111,9 +111,26 @@
   (mac-auto-ascii-mode 1)
 
   ;; ヘルプは全角で操作しない
+  (require 'helper)
   (global-set-key [f1] (lambda () (interactive)
                          (mac-auto-ascii-select-input-source)
-                         (Helper-help))))
+                         (Helper-help)))
+  (define-key Helper-help-map "a" 'apropos-command)
+  (define-key Helper-help-map "b" 'describe-bindings)
+  (define-key Helper-help-map "c" 'describe-key-briefly)
+  (define-key Helper-help-map "d" 'apropos-documentation)
+  (define-key Helper-help-map "e" 'view-echo-area-messages)
+  (define-key Helper-help-map "f" 'describe-function)
+  (define-key Helper-help-map "k" 'describe-key)
+  (define-key Helper-help-map "m" 'describe-mode)
+  (define-key Helper-help-map "p" 'finder-by-keyword)
+  (define-key Helper-help-map "P" 'describe-package)
+  (define-key Helper-help-map "r" 'info-emacs-manual)
+  (define-key Helper-help-map "s" 'describe-syntax)
+  (define-key Helper-help-map "t" 'help-with-tutorial)
+  (define-key Helper-help-map "w" 'where-is)
+  (define-key Helper-help-map "v" 'describe-variable)
+  (define-key Helper-help-map "q" 'help-quit))
 
 ;; タブ幅
 (setq-default tab-width 2)
@@ -2100,7 +2117,6 @@ If gist-id exists update gist.  BEG END."
 ;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
 
 (require 'rainbow-mode)
-
 (add-hook 'fundamental-mode-hook 'rainbow-mode)
 (add-hook 'text-mode-hook 'rainbow-mode)
 (add-hook 'lisp-mode-hook 'rainbow-mode)
@@ -2114,7 +2130,6 @@ If gist-id exists update gist.  BEG END."
 ;;; flycheck
 ;;; ------------------------------------------------------------
 
-;; (load "flycheck")
 (require 'flycheck)
 (setq flycheck-emacs-lisp-load-path 'inherit)
 
@@ -2270,9 +2285,6 @@ If gist-id exists update gist.  BEG END."
 ;; https://github.com/zk-phi/indent-guide ためしたい
 
 ;; anything-c-source-occur
-
-;; trampでのfind-fileの挙動を治す
-;; 前回の状態は自慢する？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
