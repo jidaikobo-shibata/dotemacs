@@ -77,9 +77,6 @@
 ;; スクラッチメッセージを抑止
 (setq initial-scratch-message nil)
 
-;; オートインデント無効
-(when (functionp 'electric-indent-mode) (electric-indent-mode -1))
-
 ;; 警告音とフラッシュを無効
 (setq ring-bell-function 'ignore)
 
@@ -89,6 +86,9 @@
 ;; 自動保存を無効
 (setq auto-save-default nil)
 (setq delete-auto-save-files t)
+
+;; オートインデント無効
+(when (functionp 'electric-indent-mode) (electric-indent-mode -1))
 
 ;; whitespaceの可視化と自動クリーンアップ
 (global-whitespace-mode 1)
@@ -111,10 +111,9 @@
   (mac-auto-ascii-mode 1)
 
   ;; ヘルプは全角で操作しない
-  ;; (global-set-key [f1] 'help-for-help-internal)
-  (defadvice help-for-help (before ascii-help-for-help activate)
-    "Force ASCII when help."
-    (mac-auto-ascii-select-input-source)))
+  (global-set-key [f1] (lambda () (interactive)
+                         (mac-auto-ascii-select-input-source)
+                         (Helper-help))))
 
 ;; タブ幅
 (setq-default tab-width 2)
