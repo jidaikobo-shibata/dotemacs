@@ -750,27 +750,33 @@ end tell"
 
 (require 'dired)
 (require 'dired-aux)
+(require 'dired-explorer)
 (require 'wdired)
-
-(define-key dired-mode-map (kbd "C-o") 'other-window)
 
 ;; diredでファイル編集（rで編集モードに）
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 (define-key wdired-mode-map (kbd "C-g") 'wdired-abort-changes)
 (define-key wdired-mode-map [escape] 'wdired-abort-changes)
 
+;; diredの前後の行移動をshift対応に
+;; thx rubikitch
+(defun dired-next-line--shift-select (&rest them)
+  "Dired next line shift select.  THEM."
+  (interactive "^p")
+  (apply them))
+(advice-add 'dired-next-line :around 'dired-next-line--shift-select)
+(advice-add 'dired-previous-line :around 'dired-next-line--shift-select)
+
 ;; C-x C-f で現在位置を開く
 (ffap-bindings)
 
 ;; diredでマークをつけたファイルを開く（F）
-(eval-after-load "dired"
-  '(progn
-     (define-key dired-mode-map (kbd "F") 'my-dired-find-marked-files)
-     (defun my-dired-find-marked-files (&optional arg)
-       "Open each of the marked files."
-       (interactive "P")
-       (let* ((fn-list (dired-get-marked-files nil arg)))
-         (mapc 'find-file fn-list)))))
+(define-key dired-mode-map (kbd "F") 'my-dired-find-marked-files)
+(defun my-dired-find-marked-files (&optional arg)
+  "Open each of the marked files.  ARG."
+  (interactive "P")
+  (let* ((fn-list (dired-get-marked-files nil arg)))
+    (mapc 'find-file fn-list)))
 
 ;; ディレクトリ操作は再帰的に
 (setq dired-recursive-copies 'always)
@@ -781,25 +787,23 @@ end tell"
 ;; ウィンドウ分割で左右に違うDiredを開いているときにRやCのデフォルト値がもう片方になる
 (setq dired-dwim-target t)
 
-;; diredでタブを開きすぎないようにする
-(put 'dired-find-alternate-file 'disabled nil)
-(defun my-dired-open ()
-  "Dired open in accordance with situation."
-  (interactive)
-  (let (p1 p2 file)
-    (save-excursion
-      (setq p1 (dired-move-to-filename))
-      (setq p2 (dired-move-to-end-of-filename)))
-    (when (and p1 p2) (setq file (buffer-substring p1 p2)))
-    (cond ((string= file ".")
-           (message "current directory."))
-          ((and (string= file "..") (not (memq last-input-event '(s-return))))
-           (find-alternate-file
-            (file-name-directory (directory-file-name (dired-current-directory)))))
-          ((and (file-directory-p file) (not (memq last-input-event '(s-return))))
-           (dired-find-alternate-file))
-          (t
-           (dired-find-file)))))
+;; diredバッファにはいったら、自動的にdired-explorer-modeに
+(add-hook 'dired-mode-hook 'dired-explorer-mode)
+
+;; 確認用diredでの(dired-current-directory)を表示
+(define-key dired-mode-map (kbd "s-s") (lambda () (interactive) (message "%s" (dired-current-directory))))
+
+;; key-binds
+(define-key dired-mode-map (kbd "C-o") 'other-window)
+(define-key dired-mode-map (kbd "RET") 'dired-explorer-dired-open)
+(define-key dired-mode-map (kbd "<s-return>") 'dired-explorer-dired-open)
+(define-key dired-mode-map (kbd "a") 'dired-find-file)
+(define-key dired-mode-map (kbd "s-d") 'dired-do-copy)
+(define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
+(define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
+(global-set-key (kbd "s-n") (lambda () (interactive) (find-file "~/Desktop")))
+(global-set-key (kbd "s-N") (lambda () (interactive) (find-file "~/Sites")))
+(global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
 
 ;; diredでanythingしたらfindする
 (defvar anything-c-source-find-at-dired
@@ -836,20 +840,6 @@ end tell"
    '(anything-c-source-find-at-dired)
    "*my-anything-c-source-find-at-dired*"))
 (define-key dired-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
-
-;; 確認用diredでの(dired-current-directory)を表示
-(define-key dired-mode-map (kbd "s-s") (lambda () (interactive) (message "%s" (dired-current-directory))))
-
-;; key-binds
-(define-key dired-mode-map (kbd "RET") 'my-dired-open)
-(define-key dired-mode-map (kbd "<s-return>") 'my-dired-open)
-(define-key dired-mode-map (kbd "a") 'dired-find-file)
-(define-key dired-mode-map (kbd "s-d") 'dired-do-copy)
-(define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
-(define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
-(global-set-key (kbd "s-n") (lambda () (interactive) (find-file "~/Desktop")))
-(global-set-key (kbd "s-N") (lambda () (interactive) (find-file "~/Sites")))
-(global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
@@ -2273,6 +2263,9 @@ If gist-id exists update gist.  BEG END."
 ;; https://github.com/zk-phi/indent-guide ためしたい
 
 ;; anything-c-source-occur
+
+;; trampでのfind-fileの挙動を治す
+;; 前回の状態は自慢する？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
