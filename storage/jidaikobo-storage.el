@@ -1,3 +1,12 @@
+;; (defun my-anything-for-tramp ()
+;;   "Anything command for .ssh/config."
+;;   (interactive)
+;;   (anything-other-buffer
+;;    'anything-c-source-my-hosts
+;;    "*my-anything-for-tramp*"))
+
+;; (global-set-key (kbd "C-.") 'my-anything-for-tramp)
+
 ;; ;; anything in dired
 ;; ;; thx http://syohex.hatenablog.com/entry/20120105/1325770778
 ;; (defun my/anything-dired ()

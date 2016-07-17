@@ -810,13 +810,15 @@ end tell"
   '((name . "Find file")
     (candidates . (lambda ()
                     (with-current-buffer anything-current-buffer
-                      (let ((pwd (string-trim (shell-command-to-string "pwd"))))
-                        (split-string
-                         (shell-command-to-string
-                          (concat "find "
-                                  (replace-regexp-in-string "/$" "" pwd)
-                                  (replace-regexp-in-string "\n" " "
-                                                            "
+                      (let* ((pwd (string-trim (shell-command-to-string "pwd")))
+                             (tramp-host (file-remote-p dired-directory 'localhost))
+                             (tramp-results (list))
+                             (results (split-string
+                                       (shell-command-to-string
+                                        (concat "find "
+                                                (replace-regexp-in-string "/$" "" pwd)
+                                                (replace-regexp-in-string "\n" " "
+                                                                          "
 -type d -name \"logs\" -prune -o
 -type d -name \"cache\" -prune -o
 -type d -name \".git\" -prune -o
@@ -825,13 +827,14 @@ end tell"
 ! -name \"*.gif\"
 ! -name \"*.jpg\"
 ! -name \".DS_Store\"")))
-                         "\n")))))
+                                       "\n")))
+                        (if tramp-host
+                            (progn
+                              (dolist (result results)
+                                (add-to-list 'tramp-results (concat tramp-host result)))
+                              tramp-results)
+                          results)))))
     (type . file)))
-;;     (action . (("open Fetch" . my-anything-c-source-find-at-dired-action)))))
-
-;; (defun my-anything-c-source-find-at-dired-action (path)
-;;   "Open PATH."
-;;   (find-file ""))
 
 (defun my-anything-c-source-find-at-dired ()
   "Anything command for find at dired."
@@ -855,42 +858,6 @@ end tell"
 
 ;; sshで接続
 (setq tramp-default-method "ssh")
-
-;;; ------------------------------------------------------------
-;;; ~/.ssh/configを情報源として、tramp接続
-;; thx rubikitch
-
-(defvar anything-c-source-my-hosts
-  '((name . "hosts")
-    (candidates . anything-c-source-my-hosts-candidates)
-    (type . file)
-    (action . find-file)))
-
-(defun anything-c-source-my-hosts-candidates ()
-  "Tramp candidates."
-      (let ((source (split-string
-                     (with-temp-buffer
-                       (insert-file-contents "~/.ssh/config")
-                       (buffer-string))
-                     "\n"))
-            (hosts (list)))
-        (dolist (host source)
-          (when (string-match "[H\\|h]ost +\\(.+?\\)$" host)
-            (setq host (string-trim (substring host (match-beginning 1) (match-end 2))))
-            (unless (string= host "*")
-              (add-to-list
-               'hosts
-               (concat "/" tramp-default-method ":" host ":") t))))
-        hosts))
-
-(defun my-anything-for-tramp ()
-  "Anything command for .ssh/config."
-  (interactive)
-  (anything-other-buffer
-   'anything-c-source-my-hosts
-   "*my-anything-for-tramp*"))
-
-(global-set-key (kbd "C-.") 'my-anything-for-tramp)
 
 ;;; ------------------------------------------------------------
 ;; .poファイルを保存したらmsgfmt -oする
@@ -1207,6 +1174,35 @@ end tell"
                          (shell-command-to-string
                           (concat "ls -1 " (shell-command-to-string "pwd"))) "\n"))))))
     (type . file)))
+
+;;; ------------------------------------------------------------
+;;; ~/.ssh/configを情報源として、tramp接続
+;; thx rubikitch
+
+(defvar anything-c-source-my-hosts
+  '((name . "hosts")
+    (candidates . anything-c-source-my-hosts-candidates)
+    (type . file)
+    (action . find-file)))
+
+(defun anything-c-source-my-hosts-candidates ()
+  "Tramp candidates."
+      (let ((source (split-string
+                     (with-temp-buffer
+                       (insert-file-contents "~/.ssh/config")
+                       (buffer-string))
+                     "\n"))
+            (hosts (list)))
+        (dolist (host source)
+          (when (string-match "[H\\|h]ost +\\(.+?\\)$" host)
+            (setq host (string-trim (substring host (match-beginning 1) (match-end 2))))
+            (unless (string= host "*")
+              (add-to-list
+               'hosts
+               (concat "/" tramp-default-method ":" host ":") t))))
+        hosts))
+
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-hosts t)
 
 ;;; ------------------------------------------------------------
 ;;; FTP by Fetch
@@ -1554,7 +1550,6 @@ end tell"
 ;;; 編集支援
 ;;; ------------------------------------------------------------
 
-;;; ------------------------------------------------------------
 ;;; 行／選択範囲の複製 (cmd+d)
 ;; gist-description: Emacs(Elisp): duplicate region or line. 選択範囲がある場合は選択範囲を、選択範囲がない場合は、行を複製します。
 ;; gist-id: 297fe973cde66b384fa1
@@ -1863,9 +1858,7 @@ If gist-id exists update gist.  BEG END."
 ;;; Elisp
 ;;; ------------------------------------------------------------
 
-;;; ------------------------------------------------------------
 ;;; Elispのimenuをカスタマイズ
-
 (add-hook
  'emacs-lisp-mode-hook
  '(lambda ()
@@ -1873,32 +1866,39 @@ If gist-id exists update gist.  BEG END."
          '(("defun" "^\\s-*(defun\\s-+\\([-A-Za-z0-9/+]+\\)" 1)
            ("defadvice" "^\\s-*(defadvice\\s-+\\([-A-Za-z0-9/+]+\\)" 1)))))
 
-;;; ------------------------------------------------------------
 ;;; 釣り合いのとれる括弧のハイライト
 ;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
-
 (require 'mic-paren)
 (paren-activate)
 (setq paren-match-face 'underline paren-sexp-mode t)
 (setq paren-sexp-mode t)
 
-;;; ------------------------------------------------------------
 ;;; 自動バイトコンパイル
 ;; thx http://www.emacswiki.org/emacs/auto-async-byte-compile.el
-
 (require 'auto-async-byte-compile)
 (setq auto-async-byte-compile-exclude-files-regexp "init.el\\|wl.el")
 (add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode)
 
-;;; ------------------------------------------------------------
 ;;; s+RETでeval-bufferかeval-region
-
 (global-set-key (kbd "<s-return>")
                 (lambda () (interactive)
                   (if (region-active-p)
                       (eval-region (region-beginning) (region-end))
                     (eval-buffer))
                   (message "eval done.")))
+
+;;; Elispの関数名をコメント状態に
+(global-set-key (kbd "C-t")
+                (lambda () (interactive)
+                  (let* (
+                         (beg (when (region-active-p) (region-beginning)))
+                         (end (when (region-active-p) (region-end)))
+                         (str (when (region-active-p) (buffer-substring-no-properties beg end))))
+                    (when str
+                      (setq str (replace-regexp-in-string "-" " " str))
+                      (setq str (replace-regexp-in-string "$" "." str)))
+                    (delete-region beg end)
+                    (insert str))))
 
 
 ;;; ------------------------------------------------------------
@@ -2208,7 +2208,10 @@ If gist-id exists update gist.  BEG END."
 
 ;;; ------------------------------------------------------------
 ;;; 起動時には最後に作業していたファイルを開く
-;;; ------------------------------------------------------------
+;; gist-description: Emacs(Elisp): Preserve last buffers and its each point to reopen. 終了時のバッファとポイントを記憶して、起動時に同じ状態で開くelispです。
+;; gist-id: 35b4d739a149f70e86298f71e5b1f9e7
+;; gist-name: preserve-last-buffers-and-point.el
+;; gist-private: nil
 
 (defvar my-hist-dir (expand-file-name "~/.emacs.d/histories/"))
 (defvar my-hist-last-files (concat my-hist-dir "last-files"))
