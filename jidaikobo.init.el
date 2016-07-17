@@ -142,6 +142,11 @@
 ;; emacsclientを使う
 (server-start)
 
+;; emacsclientバッファを落とす時に出る確認を抑止
+(remove-hook
+ 'kill-buffer-query-functions
+ 'server-kill-buffer-query-function)
+
 ;; M-¥でバックスラッシュを入力
 (global-set-key (kbd "M-¥") "\\")
 
