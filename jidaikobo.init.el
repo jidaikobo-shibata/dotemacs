@@ -361,6 +361,8 @@
 (global-set-key (kbd "<s-down>") (lambda () (interactive "^") (goto-char (point-max))))
 (global-set-key (kbd "<s-left>") 'beginning-of-line)
 (global-set-key (kbd "<s-right>") 'end-of-line)
+(global-set-key (kbd "<prior>") 'backward-page)
+(global-set-key (kbd "<next>") 'forward-page)
 
 ;; M-g or cmd+opt+j で指定行へジャンプ
 (global-set-key (kbd "M-g") 'goto-line)
