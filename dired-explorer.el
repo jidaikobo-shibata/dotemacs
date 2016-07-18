@@ -23,6 +23,14 @@
 ;; このelispは、るびきちさんが彼のEmacs塾で、僕にURLを教えてくれましたが、
 ;; 僕にはオリジナルの作者が誰かわからなかったので、URLだけ明示しています。
 
+;;; Usage:
+;; just write below in your .init.
+;; (require 'dired-explorer)
+;; below are also useful.
+;; (define-key dired-mode-map (kbd "RET") 'dired-explorer-dired-open)
+;; (define-key dired-mode-map (kbd "<s-return>") 'dired-explorer-dired-open)
+;; toggle mode by ":".
+
 ;;; Code:
 
 (require 'dired)
