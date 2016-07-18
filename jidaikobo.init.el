@@ -190,6 +190,14 @@
  '(delete-by-moving-to-trash t)
  '(trash-directory "~/.Trash"))
 
+(setq append-path (list
+"/bin"
+"/usr/bin"
+"/usr/local/bin"
+"/sbin"
+"/usr/sbin"
+))
+
 
 ;;; ------------------------------------------------------------
 ;;; frame フレーム
@@ -217,35 +225,6 @@
 ;;; ------------------------------------------------------------
 
 ;;; ------------------------------------------------------------
-;;; 1日1回のチェック
-;; gist-description: Emacs(Elisp): return t once in a day. 1日一回tを返すelispです。
-;; gist-id: 33e072cea6aa96a19f58
-;; gist-name: is-once-in-a-day.el
-;; gist-private: nil
-
-(defun is-once-in-a-day ()
-  "Is once in a day."
-  (interactive)
-  (let* ((target-file (concat dotfiles-dir ".is-once-in-a-day"))
-         (target-update-at (if (file-exists-p target-file)
-                               (nth 5 (file-attributes target-file))
-                             (append-to-file "" nil target-file)))
-         (criteria-time (encode-time 0 0 0 (nth 3 (decode-time)) (nth 4 (decode-time)) (nth 5 (decode-time)) (nth 6 (decode-time)) (nth 7 (decode-time)) (nth 8 (decode-time))))
-         (ftime (if target-update-at
-                    (float-time (time-subtract criteria-time target-update-at))
-                  nil)))
-    (cond ((and target-update-at ftime (> ftime 0))
-           (delete-file target-file)
-           (append-to-file "." nil target-file)
-           t)
-          ((and target-update-at ftime (< ftime 0))
-           nil)
-          ((not target-update-at)
-           (delete-file target-file)
-           (append-to-file "." nil target-file)
-           t))))
-
-;;; ------------------------------------------------------------
 ;;; Load packages
 
 ;; load-pathの追加
@@ -266,7 +245,7 @@
   (package-initialize)
 
   ;; once-in-a-day
-  (when (or noninteractive (is-once-in-a-day)) (package-refresh-contents))
+  (when (noninteractive) (package-refresh-contents))
 
   ;; my-packages
   (defvar my-packages
@@ -842,7 +821,12 @@ end tell"
   '((name . "Find file")
     (candidates . (lambda ()
                     (with-current-buffer anything-current-buffer
-                      (let* ((pwd (string-trim (shell-command-to-string "pwd")))
+                      (let* ((shell-file-name (if (string-match
+                                                   "\.sakura"
+                                                   (file-remote-p dired-directory 'localhost))
+                                                  "/usr/local/bin/bash"
+                                                "/bin/bash"))
+                             (pwd (string-trim (shell-command-to-string "pwd")))
                              (tramp-host (file-remote-p dired-directory 'localhost))
                              (tramp-results (list))
                              (results (split-string
@@ -875,6 +859,7 @@ end tell"
    '(anything-c-source-find-at-dired)
    "*my-anything-c-source-find-at-dired*"))
 (define-key dired-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
+(define-key dired-explorer-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
