@@ -167,15 +167,16 @@
 (global-set-key (kbd "M-¥") "\\")
 
 ;; 日本語入力時にM-/で全角スラッシュを入力
-(global-set-key (kbd "M-/") (lambda () (interactive)
-                              (if (fboundp 'mac-input-source)
-                                  (let ((mac-input-source (mac-input-source)))
-                                    (if (string-match
-                                         "com.apple.inputmethod.Kotoeri.japanese"
-                                         mac-input-source)
-                                        (insert "／")
-                                      (dabbrev-expand nil)))
-                                (dabbrev-expand nil))))
+(global-set-key (kbd "M-/")
+                (lambda () (interactive)
+                  (if (fboundp 'mac-input-source)
+                      (let ((mac-input-source (mac-input-source)))
+                        (if (string-match
+                             "com.apple.inputmethod.Kotoeri.japanese"
+                             mac-input-source)
+                            (insert "／")
+                          (dabbrev-expand nil)))
+                    (dabbrev-expand nil))))
 
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
@@ -185,7 +186,9 @@
 (put 'dired-find-alternate-file 'disabled nil)
 (put 'narrow-to-page 'disabled nil)
 (put 'delete-region 'disabled nil)
-;; delete-by-moving-to-trash t
+(custom-set-variables
+ '(delete-by-moving-to-trash t)
+ '(trash-directory "~/.Trash"))
 
 
 ;;; ------------------------------------------------------------
