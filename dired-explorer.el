@@ -161,8 +161,9 @@
           '(lambda ()
              (dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789_.-+~#")))
 (add-hook 'dired-mode-hook
-          '(lambda ()
-             (define-key dired-mode-map ":" (dired-explorer-mode))))
+          (lambda ()
+            (define-key dired-mode-map ":" 'dired-explorer-mode)
+            (dired-explorer-mode)))
 
 (put 'dired-find-alternate-file 'disabled nil)
 (defun dired-explorer-dired-open ()

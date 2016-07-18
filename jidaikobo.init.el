@@ -808,9 +808,6 @@ end tell"
 ;; ウィンドウ分割で左右に違うDiredを開いているときにRやCのデフォルト値がもう片方になる
 (setq dired-dwim-target t)
 
-;; diredバッファにはいったら、自動的にdired-explorer-modeに
-(add-hook 'dired-mode-hook 'dired-explorer-mode)
-
 ;; 確認用diredでの(dired-current-directory)を表示
 (define-key dired-mode-map (kbd "s-s") (lambda () (interactive) (message "%s" (dired-current-directory))))
 
@@ -877,8 +874,8 @@ end tell"
 ;; FTPではパッシブモードでの接続を試みる（使わないけど）
 (setq-default ange-ftp-try-passive-mode t)
 
-;; sshで接続
-(setq tramp-default-method "ssh")
+;; scpで接続
+(setq tramp-default-method "scp")
 
 ;;; ------------------------------------------------------------
 ;; .poファイルを保存したらmsgfmt -oする
@@ -1909,7 +1906,7 @@ If gist-id exists update gist.  BEG END."
                   (message "eval done.")))
 
 ;;; Elispの関数名をコメント状態に
-(global-set-key (kbd "C-t")
+(global-set-key (kbd "C-.")
                 (lambda () (interactive)
                   (let* (
                          (beg (when (region-active-p) (region-beginning)))
@@ -2285,6 +2282,8 @@ If gist-id exists update gist.  BEG END."
 ;; https://github.com/zk-phi/indent-guide ためしたい
 
 ;; anything-c-source-occur
+
+;; tramp+さくらのときshell-file-nameを/bin/bashから/usr/local/bin/bashに書き換える
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
