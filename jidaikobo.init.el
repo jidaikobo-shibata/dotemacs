@@ -27,7 +27,6 @@
 ;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
 ;; @ terminal
 ;; sudo port install global
-;; emacs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
 
 ;;; Code:
 
@@ -132,6 +131,12 @@
   (define-key Helper-help-map "v" 'describe-variable)
   (define-key Helper-help-map "q" 'help-quit))
 
+;; dont let the cursor go into minibuffer prompt
+;; reference | http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
+(setq minibuffer-prompt-properties
+      '(read-only t point-entered minibuffer-avoid-prompt
+                  face minibuffer-prompt))
+
 ;; タブ幅
 (setq-default tab-width 2)
 
@@ -149,6 +154,7 @@
 (setq help-window-select t)
 (add-to-list 'same-window-buffer-names "*Help*")
 
+;; grepバッファは、ウィンドウを分割しない
 (add-to-list 'same-window-buffer-names "*grep*")
 
 ;; tabbar使いなので、ほとんどの場合、window分割はしない
@@ -238,8 +244,8 @@
   (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/") t)
   (package-initialize)
 
-  ;; once-in-a-day
-  (when noninteractive (package-refresh-contents))
+  ;; package-refresh-contents
+	(unless (package-installed-p 'anything) (package-refresh-contents))
 
   ;; my-packages
   (defvar my-packages
@@ -811,58 +817,14 @@ end tell"
 (global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
 
 ;; download-to-desktop
-(defun download-to-desktop () (interactive)
-       "Download to desktop."
-       (dired-copy-file-recursive
-        (dired-get-filename) "~/Desktop" t dired-copy-preserve-time t 'always)
-       (message "Download to desktop."))
+(defun download-to-desktop ()
+  "Download to desktop."
+  (interactive)
+  (dired-copy-file-recursive
+   (dired-get-filename) "~/Desktop" t dired-copy-preserve-time t 'always)
+  (message "Download to desktop."))
 (define-key dired-mode-map (kbd "C-d") 'download-to-desktop)
 (define-key dired-explorer-mode-map (kbd "C-d") 'download-to-desktop)
-
-;; diredでanythingしたらfindする
-(defvar anything-c-source-find-at-dired
-  '((name . "Find file")
-    (candidates . (lambda ()
-                    (with-current-buffer anything-current-buffer
-                      (let* ((shell-file-name (if (string-match
-                                                   "\.sakura"
-                                                   (file-remote-p dired-directory 'localhost))
-                                                  "/usr/local/bin/bash"
-                                                "/bin/bash"))
-                             (pwd (string-trim (shell-command-to-string "pwd")))
-                             (tramp-host (file-remote-p dired-directory 'localhost))
-                             (tramp-results (list))
-                             (results (split-string
-                                       (shell-command-to-string
-                                        (concat "find "
-                                                (replace-regexp-in-string "/$" "" pwd)
-                                                (replace-regexp-in-string "\n" " "
-                                                                          "
--type d -name \"logs\" -prune -o
--type d -name \"cache\" -prune -o
--type d -name \".git\" -prune -o
--type f ! -name \"*.png\"
-! -name \"*.ico\"
-! -name \"*.gif\"
-! -name \"*.jpg\"
-! -name \".DS_Store\"")))
-                                       "\n")))
-                        (if tramp-host
-                            (progn
-                              (dolist (result results)
-                                (add-to-list 'tramp-results (concat tramp-host result)))
-                              tramp-results)
-                          results)))))
-    (type . file)))
-
-(defun my-anything-c-source-find-at-dired ()
-  "Anything command for find at dired."
-  (interactive)
-  (anything-other-buffer
-   '(anything-c-source-find-at-dired)
-   "*my-anything-c-source-find-at-dired*"))
-(define-key dired-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
-(define-key dired-explorer-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
@@ -1166,7 +1128,7 @@ end tell"
 (defun my-get-project-name (x)
   "Project title for anything.  X."
   (with-anything-current-buffer
-    (concat "gtags or ls: "
+    (concat (if (gtags-get-rootpath) "gtags" "ls") ": "
             (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
                 (substring default-directory (match-beginning 1) (match-end 1))
               (file-name-nondirectory (directory-file-name default-directory))))))
@@ -1262,6 +1224,51 @@ end tell"
    alist-anything-for-files
    "*my-anything-for-files*"))
 (global-set-key (kbd "C-;") 'my-anything-for-files)
+
+;; diredでanythingしたらfindする
+(defvar anything-c-source-find-at-dired
+  '((name . "Find file")
+    (candidates . (lambda ()
+                    (with-current-buffer anything-current-buffer
+                      (let* ((host (file-remote-p dired-directory 'localhost))
+                             (shell-file-name (if (and host (string-match "\.sakura" host))
+                                                  "/usr/local/bin/bash"
+                                                "/bin/bash"))
+                             (pwd (string-trim (shell-command-to-string "pwd")))
+                             (tramp-host (file-remote-p dired-directory 'localhost))
+                             (tramp-results (list))
+                             (results (split-string
+                                       (shell-command-to-string
+                                        (concat "find "
+                                                (replace-regexp-in-string "/$" "" pwd)
+                                                (replace-regexp-in-string "\n" " "
+                                                                          "
+-type d -name \"logs\" -prune -o
+-type d -name \"cache\" -prune -o
+-type d -name \".git\" -prune -o
+-type f ! -name \"*.png\"
+! -name \"*.ico\"
+! -name \"*.gif\"
+! -name \"*.jpg\"
+! -name \".DS_Store\"")))
+                                       "\n")))
+                        (if tramp-host
+                            (progn
+                              (dolist (result results)
+                                (add-to-list 'tramp-results (concat tramp-host result)))
+                              tramp-results)
+                          results)))))
+    (type . file)))
+
+(defun my-anything-c-source-find-at-dired ()
+  "Anything command for find at dired."
+  (interactive)
+  (anything-other-buffer
+   '(anything-c-source-find-at-dired
+     anything-c-source-my-hosts)
+   "*my-anything-c-source-find-at-dired*"))
+(define-key dired-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
+(define-key dired-explorer-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
 
 ;;; ------------------------------------------------------------
 ;;; Anything - Encode and Line folding
@@ -2176,21 +2183,6 @@ If gist-id exists update gist.  BEG END."
 (require 'ps-mule)
 (defalias 'ps-mule-header-string-charsets 'ignore)
 
-;; 印刷プレビュー
-(when (require 'pdf-preview)
-  (defvar pdf-preview-preview-command "open -a Preview.app")
-  (global-set-key
-   (kbd "s-P")
-   (lambda ()
-     (interactive)
-     (when (and
-            (yes-or-no-p "Show current buffer by Preview.app?")
-            (or
-             (<= (length (buffer-string)) 10000)
-             (and (> (length (buffer-string)) 10000)
-                  (yes-or-no-p "Large buffer. Preview takes quite time. Preview this?"))))
-       (pdf-preview-buffer)))))
-
 
 ;;; ------------------------------------------------------------
 ;;; Mew
@@ -2296,10 +2288,6 @@ If gist-id exists update gist.  BEG END."
 
 ;; 宝庫！ https://github.com/zk-phi/dotfiles/blob/master/emacs/init.el
 ;; https://github.com/zk-phi/indent-guide ためしたい
-
-;; anything-c-source-occur
-
-;; tramp+さくらのときshell-file-nameを/bin/bashから/usr/local/bin/bashに書き換える
 
 ;;; ------------------------------------------------------------
 ;;; experimental area

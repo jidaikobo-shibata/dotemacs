@@ -1,3 +1,19 @@
+;; 印刷プレビュー
+;; /bin/bash xpdf not found?
+;; (when (require 'pdf-preview)
+;;   (defvar pdf-preview-preview-command "open -a Preview.app")
+;;   (global-set-key
+;;    (kbd "s-P")
+;;    (lambda ()
+;;      (interactive)
+;;      (when (and
+;;             (yes-or-no-p "Show current buffer by Preview.app?")
+;;             (or
+;;              (<= (length (buffer-string)) 10000)
+;;              (and (> (length (buffer-string)) 10000)
+;;                   (yes-or-no-p "Large buffer. Preview takes quite time. Preview this?"))))
+;;        (pdf-preview-buffer)))))
+
 ;; (defun my-anything-for-tramp ()
 ;;   "Anything command for .ssh/config."
 ;;   (interactive)
