@@ -1657,6 +1657,8 @@ end tell"
 (put-char-code-property ?、 'ascii nil)
 (put-char-code-property ?。 'ascii nil)
 (put-char-code-property ?＆ 'ascii nil)
+(put-char-code-property ?？ 'ascii nil)
+(put-char-code-property ?！ 'ascii nil)
 
 (global-set-key (kbd "s-u") 'normalize-chars)
 
@@ -2291,6 +2293,8 @@ If gist-id exists update gist.  BEG END."
 
 ;; 宝庫！ https://github.com/zk-phi/dotfiles/blob/master/emacs/init.el
 ;; https://github.com/zk-phi/indent-guide ためしたい
+
+;; diredのバッファを選択するanythingがあると便利？
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
