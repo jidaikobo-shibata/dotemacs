@@ -1233,7 +1233,7 @@ end tell"
     (candidates . (lambda ()
                     (with-current-buffer anything-current-buffer
                       (let* ((host (file-remote-p dired-directory 'localhost))
-                             (shell-file-name (if (and host (string-match "\.sakura" host))
+                             (shell-file-name (if (and host (string-match "\\.sakura" host))
                                                   "/usr/local/bin/bash"
                                                 "/bin/bash"))
                              (pwd (string-trim (shell-command-to-string "pwd")))
