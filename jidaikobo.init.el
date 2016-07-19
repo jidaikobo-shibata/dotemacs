@@ -749,6 +749,7 @@ end tell"
                  (local-set-key (kbd "RET") 'gtags-select-tag)))
 
 (add-hook 'php-mode-hook '(lambda () (gtags-mode 1)))
+(add-hook 'web-mode-hook '(lambda () (gtags-mode 1)))
 
 ;; update gtags
 ;; thx http://qiita.com/hayamiz/items/8e8c7fca64b4810d8e78
