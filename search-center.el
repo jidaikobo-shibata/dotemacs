@@ -746,15 +746,9 @@
 (require 'gtags)
 (setq gtags-path-style 'relative)
 
-;; ignore directories
-;; 除外ディレクトリ
-;; 将来的には入力できるようにする
-(add-to-list 'grep-find-ignored-directories "logs")
-(add-to-list 'grep-find-ignored-directories "caches")
-
 ;; sc/grep
-(defun sc/grep (string ext pwd)
-  "It asks STRING and EXT for grep command line and PWD for current directory."
+(defun sc/grep (string ext ignore pwd)
+  "It asks STRING and EXT for grep command line and IGNORE are for grep-find-ignored-directories and PWD for current directory."
   (interactive
    (progn
      (let ((default (sc/get-strings "search"))
@@ -766,8 +760,13 @@
        (grep-compute-defaults)
        (list (read-from-minibuffer "Search: " default nil nil 'grep-history (if current-prefix-arg nil default))
              (read-from-minibuffer "Extension (plural available): " target-ext)
+             (read-from-minibuffer "ignored-directories: " "logs caches")
              (read-directory-name "Directory: " target-dir target-dir t)))))
+  (when ignore
+    (dolist (ignore-dir (split-string ignore " "))
+      (add-to-list 'grep-find-ignored-directories ignore-dir)))
   (rgrep string ext pwd nil))
+
 
 ;; defadvice rgrep
 ;; thx http://d.hatena.ne.jp/kitokitoki/20101009/p6
