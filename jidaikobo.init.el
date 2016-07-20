@@ -1025,7 +1025,7 @@ end tell"
       popwin:special-display-config)
 
 ;; auto-async-byte-compile buffer
-(push '(" *auto-async-byte-compile*" :height 10 :noselect t)
+(push '(" *auto-async-byte-compile*" :height 10)
       popwin:special-display-config)
 
 ;; key-binds
