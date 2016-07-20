@@ -760,13 +760,12 @@
        (grep-compute-defaults)
        (list (read-from-minibuffer "Search: " default nil nil 'grep-history (if current-prefix-arg nil default))
              (read-from-minibuffer "Extension (plural available): " target-ext)
-             (read-from-minibuffer "ignored-directories: " "logs caches")
+             (read-from-minibuffer "Ignored Directories: " "logs caches")
              (read-directory-name "Directory: " target-dir target-dir t)))))
   (when ignore
     (dolist (ignore-dir (split-string ignore " "))
       (add-to-list 'grep-find-ignored-directories ignore-dir)))
   (rgrep string ext pwd nil))
-
 
 ;; defadvice rgrep
 ;; thx http://d.hatena.ne.jp/kitokitoki/20101009/p6

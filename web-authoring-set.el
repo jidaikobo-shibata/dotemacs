@@ -418,105 +418,113 @@
   "Add h6."
   (interactive)
   (any-html-tag "h6"))
-(global-set-key (kbd "s-M-1") 'h1-tag) ; opt+cmd+1
-(global-set-key (kbd "s-M-2") 'h2-tag) ; opt+cmd+2
-(global-set-key (kbd "s-M-3") 'h3-tag) ; opt+cmd+3
-(global-set-key (kbd "s-M-4") 'h4-tag) ; opt+cmd+4
-(global-set-key (kbd "s-M-5") 'h5-tag) ; opt+cmd+5
-(global-set-key (kbd "s-M-6") 'h6-tag) ; opt+cmd+6
-(global-set-key [M-s-kp-1] 'h1-tag) ; opt+cmd+1
-(global-set-key [M-s-kp-2] 'h2-tag) ; opt+cmd+2
-(global-set-key [M-s-kp-3] 'h3-tag) ; opt+cmd+3
-(global-set-key [M-s-kp-4] 'h4-tag) ; opt+cmd+4
-(global-set-key [M-s-kp-5] 'h5-tag) ; opt+cmd+5
-(global-set-key [M-s-kp-6] 'h6-tag) ; opt+cmd+6
+(global-set-key (kbd "s-M-1") 'h1-tag)
+(global-set-key (kbd "s-M-2") 'h2-tag)
+(global-set-key (kbd "s-M-3") 'h3-tag)
+(global-set-key (kbd "s-M-4") 'h4-tag)
+(global-set-key (kbd "s-M-5") 'h5-tag)
+(global-set-key (kbd "s-M-6") 'h6-tag)
+(global-set-key [M-s-kp-1] 'h1-tag)
+(global-set-key [M-s-kp-2] 'h2-tag)
+(global-set-key [M-s-kp-3] 'h3-tag)
+(global-set-key [M-s-kp-4] 'h4-tag)
+(global-set-key [M-s-kp-5] 'h5-tag)
+(global-set-key [M-s-kp-6] 'h6-tag)
 
 ;;; a
 (global-set-key (kbd "s-M-a")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "a"))) ; opt+cmd+a
+                   (any-html-tag "a")))
 
 ;;; a-url
 (global-set-key (kbd "s-M-A")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "a-url"))) ; opt+cmd+shif+a
+                   (any-html-tag "a-url")))
+
 ;;; comment-out
 (global-set-key (kbd "s-M-c")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "comment-out"))) ; opt+cmd+c
+                   (any-html-tag "comment-out")))
+
 ;;; dl-dt-dd
 (global-set-key (kbd "s-M-d")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "dl-dt-dd"))) ; opt+cmd+d
+                   (any-html-tag "dl-dt-dd")))
+
+;;; img
+(global-set-key (kbd "s-M-i")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "img")))
 
 ;;; em
 (global-set-key (kbd "s-M-e")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "em"))) ; opt+cmd+e
+                   (any-html-tag "em")))
 
 ;;; strong
 (global-set-key (kbd "s-M-g")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "strong"))) ; opt+cmd+g
+                   (any-html-tag "strong")))
 
 ;;; li-each
 (global-set-key (kbd "s-M-l")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "li-each"))) ; opt+cmd+l
+                   (any-html-tag "li-each")))
 
 ;;; ol-li
 (global-set-key (kbd "s-M-o")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "ol-li"))) ; opt+cmd+o
+                   (any-html-tag "ol-li")))
 
 ;;; p-each
 (global-set-key (kbd "s-M-p")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "p-each"))) ; opt+cmd+p
+                   (any-html-tag "p-each")))
 
 ;;; p
 (global-set-key (kbd "s-M-P")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "p"))) ; opt+cmd+P
+                   (any-html-tag "p")))
 
 ;;; blockquote
 (global-set-key (kbd "s-M-q")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "blockquote"))) ; opt+cmd+q
+                   (any-html-tag "blockquote")))
 
 ;;; span
 (global-set-key (kbd "s-M-s")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "span"))) ; opt+cmd+s
+                   (any-html-tag "span")))
 ;;; table
 (global-set-key (kbd "s-M-t")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "table"))) ; opt+cmd+t
+                   (any-html-tag "table")))
 
 ;;; ul-li
 (global-set-key (kbd "s-M-u")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "ul-li"))) ; opt+cmd+u
+                   (any-html-tag "ul-li")))
 
 ;;; ruby
 (global-set-key (kbd "s-M-y")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "ruby"))) ; opt+cmd+y
+                   (any-html-tag "ruby")))
 
 ;;; remove-html-tags
 (defun remove-html-tags (tag)
