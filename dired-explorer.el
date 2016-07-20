@@ -92,6 +92,7 @@
   (define-key dired-explorer-mode-map "\M-x" 'dired-do-flagged-delete)
   (define-key dired-explorer-mode-map "\M-y" 'dired-show-file-type)
   (define-key dired-explorer-mode-map "\M-+" 'dired-create-directory)
+  (define-key dired-explorer-mode-map "+" 'dired-create-directory)
   (define-key dired-explorer-mode-map "$" 'dired-hide-subdir)
   (define-key dired-explorer-mode-map "\M-$" 'dired-hide-all)
   (define-key dired-explorer-mode-map [down] 'dired-next-line)
