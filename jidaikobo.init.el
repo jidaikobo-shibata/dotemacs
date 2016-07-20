@@ -856,7 +856,7 @@ end tell"
 (add-to-list 'backup-directory-alist
              (cons tramp-file-name-regexp nil))
 
-;; FTPではパッシブモードでの接続を試みる（使わないけど）
+;; FTPではパッシブモードでの接続を試みる
 (setq-default ange-ftp-try-passive-mode t)
 
 ;; scpで接続
@@ -905,8 +905,8 @@ end tell"
 (add-to-list 'ac-modes 'html-mode)
 
 ;;; 辞書に文字列を足して、git commit
-(defun add-strings-to-ac-my-dictionary (dictionary-path)
-  "Add strings to ac my dictionary.  DICTIONARY-PATH."
+(defun add-strings-to-ac-my-dictionary (dict-path)
+  "Add strings to ac my dictionary.  DICT-PATH."
   (interactive)
   (let* ((beg (if mark-active (region-beginning) nil))
          (end (if mark-active (region-end) nil))
@@ -914,7 +914,7 @@ end tell"
                       (buffer-substring-no-properties beg end)
                     (read-string " String: " ""))))
     (with-temp-buffer
-      (insert-file-contents dictionary-path)
+      (insert-file-contents dict-path)
       (goto-char (point-min))
       (if (re-search-forward (concat "^" strings "$") nil t)
           (message (concat "strings was already exists: " strings))
@@ -922,14 +922,14 @@ end tell"
         (insert (concat "\n" strings))
         (sort-lines nil (point-min) (point-max))
         (delete-duplicate-lines (point-min) (point-max))
-        (write-file dictionary-path)
-        (shell-command (concat "git commit " dictionary-path " -m \"dictionary update.\""))
+        (write-file dict-path)
+        (shell-command (concat "git commit " dict-path " -m \"dictionary update.\""))
         (ac-clear-dictionary-cache)
         (message (concat "Add \"" strings "\"and git commit."))))))
 
 ;;; 辞書から文字列を削除して、git commit
-(defun remove-strings-from-ac-my-dictionary (dictionary-path)
-  "Remove strings from ac my dictionary.  DICTIONARY-PATH."
+(defun remove-strings-from-ac-my-dictionary (dict-path)
+  "Remove strings from ac my dictionary.  DICT-PATH."
   (interactive)
   (let* ((beg (if mark-active (region-beginning) nil))
          (end (if mark-active (region-end) nil))
@@ -937,7 +937,7 @@ end tell"
                       (buffer-substring-no-properties beg end)
                     (read-string " String: " ""))))
     (with-temp-buffer
-      (insert-file-contents dictionary-path)
+      (insert-file-contents dict-path)
       (goto-char (point-min))
       (if (re-search-forward (concat "^" strings "$") nil t)
           (if (yes-or-no-p (concat "Remove?:" strings))
@@ -946,8 +946,8 @@ end tell"
                 (kill-whole-line)
                 (sort-lines nil (point-min) (point-max))
                 (delete-duplicate-lines (point-min) (point-max))
-                (write-file dictionary-path)
-                (shell-command (concat "git commit " dictionary-path " -m \"dictionary update.\""))
+                (write-file dict-path)
+                (shell-command (concat "git commit " dict-path " -m \"dictionary update.\""))
                 (ac-clear-dictionary-cache)
                 (message (concat "Remove \"" strings "\"and git commit.")))
             (message (concat "Did nothing with: " strings)))
@@ -1005,9 +1005,11 @@ end tell"
 (popwin-mode 1)
 (setq-default display-buffer-function 'popwin:display-buffer)
 
-;; *Help*バッファはpopwinで管理しない。僕は別ウィンドウでじっくり読みたいので。
+;; *Help* *grep* はpopwinで管理しない
 (setq popwin:special-display-config
       (delete 'help-mode popwin:special-display-config))
+(setq popwin:special-display-config
+      (delete (assoc 'grep-mode popwin:special-display-config) popwin:special-display-config))
 
 ;; anything
 (setq-default anything-samewindow nil)
@@ -1025,10 +1027,6 @@ end tell"
 ;; auto-async-byte-compile buffer
 (push '(" *auto-async-byte-compile*" :height 10 :noselect t)
       popwin:special-display-config)
-
-;; grep/rgrep buffer
-;; (push '("*grep*" :height 10 :stick t :position bottom :noselect nil)
-;;       popwin:special-display-config)
 
 ;; key-binds
 (global-set-key (kbd "M-p p") 'popwin:display-last-buffer)
@@ -1467,12 +1465,12 @@ end tell"
   ;; 幾つかのウィンドウでは、タブ移動しない
   (defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
     "Do not forward at specified baffers."
-    (if (member (buffer-name) '("*RE-Builder*" "*Messages*" "*grep*"))
+    (if (member (buffer-name) '("*RE-Builder*" "*Messages*"))
         nil
       ad-do-it))
   (defadvice tabbar-backward-tab (around advise-tabbar-backward-tab activate)
     "Do not backward at specified baffers."
-    (if (member (buffer-name) '("*RE-Builder*" "*Messages*" "*grep*"))
+    (if (member (buffer-name) '("*RE-Builder*" "*Messages*"))
         nil
       ad-do-it)))
 
