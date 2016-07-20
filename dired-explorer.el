@@ -180,7 +180,11 @@
 (defun dired-explorer-dired-open ()
   "Dired open in accordance with situation."
   (interactive)
-  (let (p1 p2 file)
+  (let (p1
+        p2
+        (file "")
+        (path (dired-file-name-at-point))
+        (is-explorer (eq major-mode 'dired-explorer-mode)))
     (save-excursion
       (setq p1 (dired-move-to-filename))
       (setq p2 (dired-move-to-end-of-filename)))
@@ -193,15 +197,17 @@
             (memq last-input-event '(94)) ; means "^"
             (and (string= file "..") (not (memq last-input-event '(s-return S-return)))))
            (find-alternate-file
-            (file-name-directory (directory-file-name (dired-current-directory))))
-           (when (eq major-mode 'dired-explorer-mode) (dired-explorer-mode)))
+            (file-name-directory (directory-file-name (dired-current-directory)))))
           ;; find file/directory at same buffer
-          ((and (file-directory-p file) (not (memq last-input-event '(s-return S-return))))
-           (dired-find-alternate-file)
-           (when (and (file-directory-p file) (eq major-mode 'dired-explorer-mode))))
+          ((and (file-directory-p path) (not (memq last-input-event '(s-return S-return))))
+           (dired-find-alternate-file))
           ;; find file/directory at new buffer when S-RET / s-RET
           (t
-           (dired-find-file)))))
+           (dired-find-file)))
+    ;; keep explorer-mode
+    (when (or (and (file-directory-p path) is-explorer)
+              (and (string= file "..") is-explorer))
+      (unless (eq major-mode 'dired-explorer-mode) (dired-explorer-mode)))))
 
 (defun dired-explorer-mark-toggle ()
   "Dired explorer mark toggle."
@@ -211,7 +217,7 @@
       (beginning-of-line)
       (if (not (eobp))
           (or (dired-between-files)
-              (looking-at dired-re-dot)
+                (looking-at dired-re-dot)
               (apply 'subst-char-in-region
                      (point) (1+ (point))
                      (if (eq ?\040 (following-char)) ; SPC

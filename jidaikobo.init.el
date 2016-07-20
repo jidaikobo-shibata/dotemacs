@@ -1229,6 +1229,7 @@ end tell"
 (global-set-key (kbd "C-;") 'my-anything-for-files)
 
 ;; diredでanythingしたらfindする
+;; dired-directory?サーバでどう？
 (defvar anything-c-source-find-at-dired
   '((name . "Find file")
     (candidates . (lambda ()
@@ -1825,7 +1826,6 @@ It defaults to a comma."
 
 (defun yagist-region-create-or-update (beg end)
   "Post the current region as a create or update at gist.github.com.
-After create copies the URL into the kill ring.
 If gist-id exists update gist.  BEG END."
   (interactive "r")
   (let* ((raw (buffer-substring-no-properties beg end))
@@ -2285,16 +2285,17 @@ If gist-id exists update gist.  BEG END."
 
 ;; doctypeを見てのbrやタグの挿入
 
-;; 複数の検索置換セット
-
 ;; portのEmacsを試してみる？
 
-;; search-centerの履歴
+;; search-centerの履歴？ でもあまり必要性を感じない……。むしろ検索セットか。
+;; 複数の検索置換セット
 
 ;; 宝庫！ https://github.com/zk-phi/dotfiles/blob/master/emacs/init.el
 ;; https://github.com/zk-phi/indent-guide ためしたい
 
 ;; diredのバッファを選択するanythingがあると便利？
+;; (dired-subdir-min)でサブディレクトリの先頭を取れるみたい！
+;; dired-explorerで..をenterするとdired-explorer-modeを抜けてしまうんじゃなくて、ディレクトリ移動の前にモードを確認しておくこと。それで維持判定を行う
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
