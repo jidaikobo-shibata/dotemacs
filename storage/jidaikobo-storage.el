@@ -1,3 +1,27 @@
+;; ;;; ------------------------------------------------------------
+;; ;;; FTP by Fetch
+;; (defun func-anything-c-source-my-fetch ()
+;;   "Anything source."
+;;   (let (ret)
+;;     (with-temp-buffer
+;;       (insert
+;;        (shell-command-to-string
+;;         (concat "find " my-fetch-app-dir " -name \"*_NON_*\" -prune -o -name \"*.app\"")))
+;;       (ucs-normalize-NFC-region (point-min) (point-max))
+;;       (setq ret (split-string (buffer-string) "\n")))
+;;     ret))
+;; ;; 結果がなければたさない
+;; (when (func-anything-c-source-my-fetch)
+;;   (defvar anything-c-source-my-fetch
+;;     '((name . "open Fetch.app")
+;;       (candidates . (lambda () (func-anything-c-source-my-fetch)))
+;;       (type . file)
+;;       (action . (("open Fetch" . anything-fetch-open)))))
+;;   (defun anything-fetch-open (app)
+;;     "Fetch open.  APP is path."
+;;     (shell-command (concat "open " app)))
+;;   (add-to-list 'alist-anything-for-files 'anything-c-source-my-fetch t))
+
 ;; ;; diredでanythingしたらfindする
 ;; (defvar anything-c-source-find-at-dired
 ;;   '((name . "Find file")

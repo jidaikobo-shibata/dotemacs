@@ -120,6 +120,7 @@
   (define-key Helper-help-map "d" 'apropos-documentation)
   (define-key Helper-help-map "e" 'view-echo-area-messages)
   (define-key Helper-help-map "f" 'describe-function)
+  (define-key Helper-help-map "i" (lambda () (interactive) (info "(emacs245-ja)Top")))
   (define-key Helper-help-map "k" 'describe-key)
   (define-key Helper-help-map "m" 'describe-mode)
   (define-key Helper-help-map "p" 'finder-by-keyword)
@@ -197,6 +198,20 @@
 (custom-set-variables
  '(delete-by-moving-to-trash t)
  '(trash-directory "~/.Trash"))
+
+;;; infoを日本語で
+;; thx https://ayatakesi.github.io
+;; thx http://rubikitch.com/2016/07/06/emacs245-manual-ja/
+(when (file-directory-p "~/.emacs.d/info/")
+  (require 'info)
+  (add-to-list 'Info-directory-list "~/.emacs.d/info/")
+  (defun Info-find-node--info-ja (orig-fn filename &rest args)
+    (apply orig-fn
+           (pcase filename
+             ("emacs" "emacs245-ja")
+             (t filename))
+           args))
+  (advice-add 'Info-find-node :around 'Info-find-node--info-ja))
 
 
 ;;; ------------------------------------------------------------
@@ -1161,7 +1176,7 @@ end tell"
 ;; thx rubikitch
 
 (defvar anything-c-source-my-hosts
-  '((name . "hosts")
+  '((name . "SSH hosts")
     (candidates . anything-c-source-my-hosts-candidates)
     (type . file)
     (action . find-file)))
@@ -1186,32 +1201,46 @@ end tell"
 (add-to-list 'alist-anything-for-files 'anything-c-source-my-hosts t)
 
 ;;; ------------------------------------------------------------
-;;; FTP by Fetch
+;;; ~/.ftp/configを情報源として、tramp接続
 
-(defun func-anything-c-source-my-fetch ()
-  "Anything source."
-  (let (ret)
-    (with-temp-buffer
-      (insert
-       (shell-command-to-string
-        (concat "find " my-fetch-app-dir " -name \"*_NON_*\" -prune -o -name \"*.app\"")))
-      (ucs-normalize-NFC-region (point-min) (point-max))
-      (setq ret (split-string (buffer-string) "\n")))
-    ret))
+(defvar anything-c-source-my-ftp-hosts
+  '((name . "FTP hosts")
+    (candidates . anything-c-source-my-ftp-hosts-candidates)
+    (type . file)
+    (action . (("FTP" . anything-tramp-ftp-open)))))
 
-;; 結果がなければたさない
-(when (func-anything-c-source-my-fetch)
-  (defvar anything-c-source-my-fetch
-    '((name . "open Fetch.app")
-      (candidates . (lambda () (func-anything-c-source-my-fetch)))
-      (type . file)
-      (action . (("open Fetch" . anything-fetch-open)))))
+(defun anything-c-source-my-ftp-hosts-candidates ()
+  "Tramp candidates."
+  (let (alias
+        path
+        password
+        (source (split-string
+                 (with-temp-buffer
+                   (insert-file-contents "~/.ftp/config")
+                   (buffer-string))
+                 "Alias"))
+        (hosts (list)))
+    (dolist (lines source)
+      (dolist (line (split-string lines "\n"))
+        (cond ((string-match "[P\\|p]ath +\\(.+?\\)$" line)
+               (setq path (string-trim (substring line (match-beginning 1) (match-end 2)))))
+              ((string-match "[P\\|p]assword +\\(.+?\\)$" line)
+               (setq password (string-trim (substring line (match-beginning 1) (match-end 2)))))
+              ((not (string= "" line))
+               (setq alias (string-trim (string-trim line))))
+))
+      (when path (add-to-list 'hosts (concat alias "  " path "  " password))))
+      hosts))
 
-  (defun anything-fetch-open (app)
-    "Fetch open.  APP is path."
-    (shell-command (concat "open " app)))
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-ftp-hosts t)
 
-  (add-to-list 'alist-anything-for-files 'anything-c-source-my-fetch t))
+(defun anything-tramp-ftp-open (str)
+  "Tramp FTP open.  STR is path and password."
+  (let* ((strs (split-string str "  "))
+         (path (car (cdr strs)))
+         (password (car (reverse strs))))
+    (kill-new password)
+    (find-file path)))
 
 ;;; ------------------------------------------------------------
 ;;; my-anything-for-files
