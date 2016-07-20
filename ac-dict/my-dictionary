@@ -4046,6 +4046,7 @@ strictly
 strike
 striking
 string
+string-match "" var
 strip
 strip_tags
 stripcslashes
