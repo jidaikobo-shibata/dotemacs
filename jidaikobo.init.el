@@ -1229,16 +1229,20 @@ end tell"
 (global-set-key (kbd "C-;") 'my-anything-for-files)
 
 ;; diredでanythingしたらfindする
-;; dired-directory?サーバでどう？
 (defvar anything-c-source-find-at-dired
   '((name . "Find file")
     (candidates . (lambda ()
                     (with-current-buffer anything-current-buffer
-                      (let* ((host (file-remote-p dired-directory 'localhost))
-                             (shell-file-name (if (and host (string-match "\\.sakura" host))
-                                                  "/usr/local/bin/bash"
-                                                "/bin/bash"))
-                             (pwd (string-trim (shell-command-to-string "pwd")))
+                      (let* ((shell-file-name
+                              (if (string-match
+                                   "\\.sakura"
+                                   (or (file-remote-p dired-directory 'localhost) ""))
+                                  "/usr/local/bin/bash"
+                                "/bin/bash"))
+                             (current-dir (dired-current-directory))
+                             (sep-point (string-match ":/" current-dir))
+                             (pwd (if sep-point (substring current-dir (+ (match-beginning 0) 1))
+                                    current-dir))
                              (tramp-host (file-remote-p dired-directory 'localhost))
                              (tramp-results (list))
                              (results (split-string

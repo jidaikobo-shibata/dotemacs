@@ -1,3 +1,38 @@
+;; ;; diredでanythingしたらfindする
+;; (defvar anything-c-source-find-at-dired
+;;   '((name . "Find file")
+;;     (candidates . (lambda ()
+;;                     (with-current-buffer anything-current-buffer
+;;                       (let* ((host (file-remote-p dired-directory 'localhost))
+;;                              (shell-file-name (if (and host (string-match "\\.sakura" host))
+;;                                                   "/usr/local/bin/bash"
+;;                                                 "/bin/bash"))
+;;                              (pwd (string-trim (shell-command-to-string "pwd")))
+;;                              (tramp-host (file-remote-p dired-directory 'localhost))
+;;                              (tramp-results (list))
+;;                              (results (split-string
+;;                                        (shell-command-to-string
+;;                                         (concat "find "
+;;                                                 (replace-regexp-in-string "/$" "" pwd)
+;;                                                 (replace-regexp-in-string "\n" " "
+;;                                                                           "
+;; -type d -name \"logs\" -prune -o
+;; -type d -name \"cache\" -prune -o
+;; -type d -name \".git\" -prune -o
+;; -type f ! -name \"*.png\"
+;; ! -name \"*.ico\"
+;; ! -name \"*.gif\"
+;; ! -name \"*.jpg\"
+;; ! -name \".DS_Store\"")))
+;;                                        "\n")))
+;;                         (if tramp-host
+;;                             (progn
+;;                               (dolist (result results)
+;;                                 (add-to-list 'tramp-results (concat tramp-host result)))
+;;                               tramp-results)
+;;                           results)))))
+;;     (type . file)))
+
 ;; 印刷プレビュー
 ;; /bin/bash xpdf not found?
 ;; (when (require 'pdf-preview)
