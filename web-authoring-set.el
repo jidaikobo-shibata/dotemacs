@@ -74,12 +74,12 @@
     (when (string= word "") (setq word "$vals"))
     (cond
      ;; php
-     ((string-equal type "php")
+     ((string= type "php")
       (setq ret (concat "echo '<textarea style=\"width:100%;height:200px;background-color:#fff;color:#111;font-size:90%;font-family:monospace;position:relative;z-index:9999\">';\nvar_dump(" word ");\necho '</textarea>';\ndie();")
             cursor 35)))
 
     ;; ip
-    (if (string-equal ip "") nil
+    (if (string= ip "") nil
       (setq ret (concat "if( $_SERVER['REMOTE_ADDR'] == '" ip "' ){\n" ret "\n}")
             cursor 37))
 
@@ -134,6 +134,15 @@
 (global-set-key (kbd "s-M-h") 'put-php-opener-closer) ; cmd+shift+h
 
 ;;; ------------------------------------------------------------
+;;; 編集中の文書がXHTMLかどうかを判定する
+(defun is-xhtml ()
+  "Is xhtml."
+  (interactive)
+  (string-match
+   "\\(DTD XHTML\\|/>\\)"
+   (buffer-substring-no-properties (point-min) (point-max))))
+
+;;; ------------------------------------------------------------
 ;;; 任意のタグ
 ;;; ミニバッファにタグを入れると基本的には選択範囲を囲むタグを生成する
 ;;; タグに応じて、いくらか振る舞いが変わる
@@ -148,6 +157,7 @@
          (word (if (region-active-p) (buffer-substring-no-properties beg end) ""))
          (cursor- 0)
          (cursor+ 0)
+         (close-tag (if (is-xhtml) " />" ">"))
          cursor
          url
          ruby
@@ -179,13 +189,13 @@
 
     (cond
      ;; anchor
-     ((string-equal tag "a")
+     ((string= tag "a")
       (setq url (read-string "url: " nil)
             tag (concat "<a href=\"" url "\">" word "</a>")
             cursor- -4))
 
      ;; anchor-url
-     ((string-equal tag "a-url")
+     ((string= tag "a-url")
       (if (string-match "@" word)
           (setq tag (concat "<a href=\"mailto:" word "\">" word "</a>")
                 cursor- -4)
@@ -193,35 +203,44 @@
               cursor- -4)))
 
      ;; input
-     ((string-equal tag "input")
+     ((string= tag "input")
       (setq type (read-number "type (1:text, 2:hidden, 3:radio, 4:checkbox, 5:submit, 6:password, 7:image, 8:file): " nil)
             cursor- -4)
       (cond
        ((eq type 1)
-        (setq tag "<input type=\"text\" name=\"str\" id=\"str\" size=\"20\" value=\"\" />"))
+        (setq tag (concat "<input type=\"text\" name=\"str\" id=\"str\" size=\"20\" value=\"\""
+                          close-tag)))
        ((eq type 2)
-        (setq tag "<input type=\"hidden\" name=\"str\" id=\"str\" value=\"\" />"))
+        (setq tag (concat "<input type=\"hidden\" name=\"str\" id=\"str\" value=\"\""
+                          close-tag)))
        ((eq type 3)
-        (setq tag "<input type=\"radio\" name=\"str\" id=\"str\" value=\"\" />"))
+        (setq tag (concat "<input type=\"radio\" name=\"str\" id=\"str\" value=\"\""
+                          close-tag)))
        ((eq type 4)
-        (setq tag "<input type=\"checkbox\" name=\"str\" id=\"str\" value=\"\" />"))
+        (setq tag (concat "<input type=\"checkbox\" name=\"str\" id=\"str\" value=\"\""
+                          close-tag)))
        ((eq type 5)
-        (setq tag "<input type=\"submit\" name=\"str\" id=\"str\" value=\"\" />"))
+        (setq tag (concat "<input type=\"submit\" name=\"str\" id=\"str\" value=\"\""
+                          close-tag)))
        ((eq type 6)
-        (setq tag "<input type=\"password\" name=\"str\" id=\"str\" value=\"\" />"))
+        (setq tag (concat "<input type=\"password\" name=\"str\" id=\"str\" value=\"\""
+                          close-tag)))
        ((eq type 7)
-        (setq tag "<input type=\"image\" name=\"str\" id=\"str\" value=\"\" />"))
+        (setq tag (concat "<input type=\"image\" name=\"str\" id=\"str\" value=\"\""
+                          close-tag)))
        ((eq type 8)
-        (setq tag "<input type=\"file\" name=\"str\" id=\"str\" value=\"\" />"))))
+        (setq tag "<input type=\"file\" name=\"str\" id=\"str\" value=\"\""
+                          close-tag))))
 
      ;; singular tag - hr, br
      ((find tag '("hr" "br") :test #'string=)
-      (setq tag (concat "<" tag " />")))
+      (setq tag (concat "<" tag close-tag)))
 
      ;; singular tag - img
-     ((string-equal tag "img")
-      (setq tag (concat "<img src=\"" word "\" alt=\"\" />")
-            cursor- -4))
+     ((string= tag "img")
+      (message "%s" close-tag)
+      (setq tag (concat "<img src=\"" word "\" alt=\"\"" close-tag)
+            cursor- (if (is-xhtml) -4 -2)))
 
      ;; ul-li, ol-li
      ((find tag '("ul-li" "ol-li") :test #'string=)
@@ -229,26 +248,26 @@
             lines (split-string word "\n")
             cursor+ 3)
       (while lines
-        (if (string-equal (car lines) "") nil
+        (if (string= (car lines) "") nil
           (progn (setq html (concat html "\t<li>" (car lines) "</li>\n"))))
         (setq lines (cdr lines)))
-      (if (string-equal tag "ul-li")
+      (if (string= tag "ul-li")
           (setq tag (concat "<ul>\n" html "</ul>"))
         (setq tag (concat "<ol>\n" html "</ol>"))))
 
      ;; select
-     ((string-equal tag "select")
+     ((string= tag "select")
       (setq html ""
             lines (split-string word "\n")
             cursor+ 7)
       (while lines
-        (if (string-equal (car lines) "") nil
+        (if (string= (car lines) "") nil
           (progn (setq html (concat html "\t<option>" (car lines) "</option>\n"))))
         (setq lines (cdr lines)))
       (setq tag (concat "<select name=\"nameStr\" id=\"idStr\">\n" html "</select>")))
 
      ;; p-each
-     ((string-equal tag "p-each")
+     ((string= tag "p-each")
       ;; <br>が含まれていたらeachしない
       (if (string-match
            "<br>\\|<br />\\|<br/>"
@@ -260,31 +279,31 @@
         (setq html ""
               lines (split-string word "\n"))
         (while lines
-          (if (string-equal (car lines) "") nil
+          (if (string= (car lines) "") nil
             (progn (setq html (concat html "<p>" (car lines) "</p>\n"))))
           (setq lines (cdr lines)))
         (replace-regexp-in-string "\n+$" "" html)
         (setq tag html)))
 
      ;; li-each
-     ((string-equal tag "li-each")
+     ((string= tag "li-each")
       (setq html ""
             lines (split-string word "\n"))
       (while lines
-        (if (string-equal (car lines) "") nil
+        (if (string= (car lines) "") nil
           (progn (setq html (concat html "<li>" (car lines) "</li>\n"))))
         (setq lines (cdr lines)))
       (setq tag html))
 
      ;; table
-     ((string-equal tag "table")
+     ((string= tag "table")
       (setq type (read-string "type (1:th, 2:thead, 3:th and thead, 4:no headers): " nil))
       (setq html ""
             cnt 1
             lines (split-string word "\n")
             cursor+ 6)
       (while lines
-        (if (string-equal (car lines) "") nil
+        (if (string= (car lines) "") nil
           (progn
             (defun convert-to-th (each-line) (concat "<thead>\n<tr>\n\t<th>" (replace-regexp-in-string "\t" "</th>\n\t<th>" each-line) "</th>\n</tr>\n</thead>\n"))
             (defun convert-to-td (each-line) (concat "<tr>\n\t<td>" (replace-regexp-in-string "\t" "</td>\n\t<td>" each-line) "</td>\n</tr>\n"))
@@ -302,11 +321,11 @@
           (setq tag (replace-regexp-in-string "<tr>\n\t<td>\\(.+?\\)</td>" "<tr>\n\t<th>\\1</th>" tag))))
 
      ;; dl
-     ((string-equal tag "dl-dt-dd")
+     ((string= tag "dl-dt-dd")
       (setq lines (split-string word "\n")
             cursor+ 3)
       (while lines
-        (if (string-equal (car lines) "") nil
+        (if (string= (car lines) "") nil
           (progn
             (if (string-match "\t" word)
                 (setq line (concat "<dt>" (replace-regexp-in-string "\t" "</dt>\n\t<dd>" (car lines)) "</dd>\n"))
@@ -316,43 +335,43 @@
       (setq tag (concat "<dl>\n" html "</dl>")))
 
      ;; comment out
-     ((string-equal tag "comment-out")
+     ((string= tag "comment-out")
       (setq tag (concat "<!-- " word " -->")
             cursor+ 5))
 
      ;; ruby
-     ((string-equal tag "ruby")
+     ((string= tag "ruby")
       (setq ruby (read-string "ruby: " nil)
             tag (concat "<ruby><rb>" word "</rb><rt>" ruby "</rt></ruby>")
             cursor+ 10))
 
      ;; script
-     ((string-equal tag "script")
+     ((string= tag "script")
       (setq tag (concat "<script type=\"text/javascript\">\n<!--\n" word "\n// -->\n</script>")
             cursor- -18))
 
      ;; style
-     ((string-equal tag "style")
+     ((string= tag "style")
       (setq tag (concat "<style type=\"text/css\">\n" word "\n</style>")
             cursor- -10))
 
      ;; form
-     ((string-equal tag "form")
+     ((string= tag "form")
       (setq tag (concat "<form action=\"str\" method=\"POST\" enctype=\"multipart/form-data\">\n" word "\n</form>")
             cursor+ 5))
 
      ;; textarea
-     ((string-equal tag "textarea")
+     ((string= tag "textarea")
       (setq tag (concat "<textarea name=\"str\" id=\"str\" cols=\"35\" rows=\"7\">\n" word "\n</textarea>")
             cursor+ 9))
 
      ;; label
-     ((string-equal tag "label")
+     ((string= tag "label")
       (setq tag (concat "<label for=\"str\">" word "</label>")
             cursor+ 13))
 
      ;; specify tag
-     (t (when (string-equal tag "") (setq tag "div"))
+     (t (when (string= tag "") (setq tag "div"))
         (setq cursor+ (if (region-active-p) (+ 1 (length tag)) (+ 2 (length tag))))
         (setq tag (concat "<" tag ">" word "</" tag ">"))))
 
@@ -505,17 +524,17 @@
   (interactive "sTag (1:all, 2:famous block, 3:form not text, 4:img not text, 5:ruby, 6:unhtmlize, tag:specify tag): ")
   (cond
    ;; all
-   ((string-equal tag "1") (progn
+   ((string= tag "1") (progn
                              (replace-strings-in-region-by-list
                               '(("<.+?>" . "")))
                              (message "remove all tags")))
    ;; famous block tags
-   ((string-equal tag "2") (progn
+   ((string= tag "2") (progn
                              (replace-strings-in-region-by-list
                               '(("</*p.*?>\\|</*h[1-6].*?>\\|</*ul.*?>\\|</*ol.*?>\\|</*li.*?>\\|</*pre.*?>\\|</*dl.*?>\\|</*dt.*?>\\|</*dd.*?>\\|</*div.*?>\\|</*center.*?>\\|</*blockquote.*?>\\|</*address.*?>\\|</*table.*?>\\|</*tr.*?>\\|</*td.*?>\\|</*th.*?>\\|</*thead.*?>\\|</*section.*?>\\|</*header.*?>\\|</*footer.*?>\\|</*article.*?>" . "")))
                              (message "remove famous block tags")))
    ;; form elements tag except for text
-   ((string-equal tag "3") (progn
+   ((string= tag "3") (progn
                              (replace-strings-in-region-by-list
                               '(("<label.*?>\\(.+?\\)</label>" . "\\1")))
                              (replace-strings-in-region-by-list
@@ -526,18 +545,18 @@
                               '(("<textarea.*?>\\(.+?\\)</textarea>" . "\\1")))
                              (message "remove form elements tag except for text")))
    ;; img tag except for alt
-   ((string-equal tag "4") (progn
+   ((string= tag "4") (progn
                              (replace-strings-in-region-by-list
                               '(("<img.*?alt=\"\\(.+?\\)\".*?>" . "\\1")))
                              (message "remove form elements tag except for text")))
    ;; ruby tag and ruby text
    ;; "<ruby>(?:<rb>)*(.*?)(?:</rb>)*(?:<rp>.*?</rp>)*<rt>.+?</rt>(?:<rp>.*?</rp>)*</ruby>"
-   ((string-equal tag "5") (progn
+   ((string= tag "5") (progn
                              (replace-strings-in-region-by-list
                               '(("<ruby>\\(.+?\\)<rt>.+?<rt></ruby>" . "\\1")))
                              (message "remove ruby tag and ruby text")))
    ;; unhtmlize
-   ((string-equal tag "6") (progn
+   ((string= tag "6") (progn
                              (replace-strings-in-region-by-list
                               '(("<" . "&lt;")(">" . "&gt;")))
                              (message "remove ruby tag and ruby text")))
@@ -556,7 +575,7 @@
 
 ;;; ------------------------------------------------------------
 ;;; Shift+Returnで<br />を入力
-(global-set-key [S-return] "<br />")
+(global-set-key [S-return] (lambda () (interactive) (insert (if (is-xhtml) "<br />" "<br>"))))
 
 ;;; ------------------------------------------------------------
 ;;; HTML:タグとタグの間、またはタグ内を一気に選択
