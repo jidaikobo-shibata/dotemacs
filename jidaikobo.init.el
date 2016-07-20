@@ -1102,10 +1102,6 @@ end tell"
   '(anything-c-source-find-by-gtags
     anything-c-source-bookmarks
     anything-c-source-recentf
-    ;; (anything-c-source-emacs-commands
-    ;;  anything-c-source-gtags-select)
-    ;; anything-c-source-emacs-commands
-    ;; anything-c-source-files-in-current-dir+
     ;; anything-c-source-buffers-list ;; *のバッファでAnythingを止めることがある
     ))
 
@@ -1228,6 +1224,7 @@ end tell"
    "*my-anything-for-files*"))
 (global-set-key (kbd "C-;") 'my-anything-for-files)
 
+;;; ------------------------------------------------------------
 ;; diredでanythingしたらfindする
 (defvar anything-c-source-find-at-dired
   '((name . "Find file")
@@ -1273,7 +1270,9 @@ end tell"
   (interactive)
   (anything-other-buffer
    '(anything-c-source-find-at-dired
-     anything-c-source-my-hosts)
+     anything-c-source-my-hosts
+    anything-c-source-bookmarks
+    anything-c-source-recentf)
    "*my-anything-c-source-find-at-dired*"))
 (define-key dired-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
 (define-key dired-explorer-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
