@@ -68,13 +68,13 @@
 ;;; ------------------------------------------------------------
 ;;; cursor
   ;; thx http://keisanbutsuriya.hateblo.jp/entry/2016/04/10/115945
-
   (if (fboundp 'mac-input-source)
       (progn
         (defun my-mac-selected-keyboard-input-source-chage-function ()
           (let ((mac-input-source (mac-input-source)))
             (set-cursor-color
-             (if (string-match "com.apple.inputmethod.Kotoeri.Roman" mac-input-source)
+             (if (or (string-match "com.apple.inputmethod.Kotoeri.Roman" mac-input-source)
+                     (string-match "com.apple.keylayout.US" mac-input-source))
                  "white" "Red"))))
         ;; hook for cursor
         (add-hook 'mac-selected-keyboard-input-source-change-hook
