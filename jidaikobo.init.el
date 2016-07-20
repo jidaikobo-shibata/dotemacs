@@ -53,9 +53,6 @@
 ;; font-lock-mode
 (global-font-lock-mode t)
 
-;; C-kで行全体を対象にする
-(setq kill-whole-line t)
-
 ;; スクロールを一行ずつにする
 (setq scroll-step 1)
 
@@ -382,6 +379,12 @@
 ;; M-g or cmd+opt+j で指定行へジャンプ
 (global-set-key (kbd "M-g") 'goto-line)
 (global-set-key (kbd "M-s-j") 'goto-line)
+
+;; kill-lineがkill ringをnewするのでdelete-lineにする
+(global-set-key (kbd "C-k")
+                (lambda ()
+                  (interactive)
+                  (delete-char (- (save-excursion (end-of-line) (point)) (point)))))
 
 ;; window操作
 (global-set-key (kbd "C-o") (lambda () (interactive) (other-window 1)))
@@ -2321,10 +2324,6 @@ If gist-id exists update gist.  BEG END."
 
 ;; 宝庫！ https://github.com/zk-phi/dotfiles/blob/master/emacs/init.el
 ;; https://github.com/zk-phi/indent-guide ためしたい
-
-;; diredのバッファを選択するanythingがあると便利？
-;; (dired-subdir-min)でサブディレクトリの先頭を取れるみたい！
-;; dired-explorerで..をenterするとdired-explorer-modeを抜けてしまうんじゃなくて、ディレクトリ移動の前にモードを確認しておくこと。それで維持判定を行う
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
