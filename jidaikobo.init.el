@@ -1513,13 +1513,10 @@ end tell"
   (setq-default linum-delay t)
   (defadvice linum-schedule (around my-linum-schedule () activate)
     (run-with-idle-timer 0.2 nil #'linum-update-current))
-  (global-linum-mode t)
+  ;; (global-linum-mode t)
   (setq-default linum-format "%5d: "))
-(show-line-number)
-
-(add-hook 'text-mode-hook (lambda () (linum-mode -1)))
-(add-hook 'fundamental-mode-hook (lambda () (linum-mode -1)))
-(add-hook 'kontiki-mode-hook (lambda () (linum-mode -1)))
+(add-hook 'emacs-lisp-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'web-mode-hook (lambda () (show-line-number) (linum-mode t)))
 
 
 ;;; ------------------------------------------------------------
