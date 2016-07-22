@@ -837,15 +837,15 @@ end tell"
 (global-set-key (kbd "s-N") (lambda () (interactive) (find-file "~/Sites")))
 (global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
 
-;; download-to-desktop
-(defun download-to-desktop ()
+;; dired-download-to-desktop
+(defun dired-download-to-desktop ()
   "Download to desktop."
   (interactive)
   (dired-copy-file-recursive
    (dired-get-filename) "~/Desktop" t dired-copy-preserve-time t 'always)
   (message "Download to desktop."))
-(define-key dired-mode-map (kbd "C-d") 'download-to-desktop)
-(define-key dired-explorer-mode-map (kbd "C-d") 'download-to-desktop)
+(define-key dired-mode-map (kbd "C-d") 'dired-download-to-desktop)
+(define-key dired-explorer-mode-map (kbd "C-d") 'dired-download-to-desktop)
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
@@ -1263,14 +1263,14 @@ end tell"
                       (let* ((shell-file-name
                               (if (string-match
                                    "\\.sakura"
-                                   (or (file-remote-p dired-directory 'localhost) ""))
+                                   (or (file-remote-p dired-directory t) ""))
                                   "/usr/local/bin/bash"
                                 "/bin/bash"))
                              (current-dir (dired-current-directory))
                              (sep-point (string-match ":/" current-dir))
                              (pwd (if sep-point (substring current-dir (+ (match-beginning 0) 1))
                                     current-dir))
-                             (tramp-host (file-remote-p dired-directory 'localhost))
+                             (tramp-host (file-remote-p dired-directory t))
                              (tramp-results (list))
                              (results (split-string
                                        (shell-command-to-string
