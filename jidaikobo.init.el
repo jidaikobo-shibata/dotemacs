@@ -1482,8 +1482,8 @@ end tell"
   "Contexual delete windows."
   (interactive)
   (cond
-   ;; ウィンドウ構成が多ければまず他のウィンドウを消してから、ウィンドウを消す
-   ((not (one-window-p)) (delete-other-windows) (my-delete-windows))
+   ;; ウィンドウ構成が多ければまずウィンドウを消す
+   ((not (one-window-p)) (delete-window))
    ;; ウィンドウ構成がひとつでバッファに変更があれば破棄を確認する
    ((or (and (buffer-modified-p)
              ;; read-onlyなら無視

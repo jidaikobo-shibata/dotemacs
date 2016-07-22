@@ -191,21 +191,29 @@
     (cond ((string= file ".")
            (message "current directory."))
           ;; up directory at same buffer
-          ((or
-            (memq last-input-event '(94)) ; means "^"
-            (and (string= file "..") (not (memq last-input-event '(s-return S-return)))))
+          ((and
+            (one-window-p)
+            (or
+             (memq last-input-event '(94)) ; means "^"
+             (and (string= file "..") (not (memq last-input-event '(s-return S-return))))))
+           ;; (message "up")
            (find-alternate-file
             (file-name-directory (directory-file-name (dired-current-directory)))))
           ;; find file/directory at same buffer
-          ((and (file-directory-p path) (not (memq last-input-event '(s-return S-return))))
+          ((and
+            (one-window-p)
+            (or
+             (and (file-directory-p path) (not (memq last-input-event '(s-return S-return))))))
+           ;; (message "move")
            (dired-find-alternate-file))
           ;; find file/directory at new buffer when S-RET / s-RET
           (t
+           ;; (message "etc")
            (dired-find-file)))
     ;; keep explorer-mode
     (when (or (and (file-directory-p path) is-explorer)
               (and (string= file "..") is-explorer))
-      (unless (eq major-mode 'dired-explorer-mode) (dired-explorer-mode t)))))
+      (unless dired-explorer-mode (dired-explorer-mode t)))))
 
 (defun dired-explorer-mark-toggle ()
   "Dired explorer mark toggle."
