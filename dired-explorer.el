@@ -1,4 +1,4 @@
-;;; dired-explorer.init.el --- Explorer like select file at dired.
+;;; dired-explorer.init.el --- minor-mode provides Explorer like select file at dired.
 ;; Original: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
 ;; Introduce: rubikitch
 ;; Maintainer: jidaikobo-shibata
@@ -9,7 +9,7 @@
 ;; This mode provides "Windows / Macintosh (Mac OS X) like file selection" for dired's buffer.
 ;; Move cursor by just pressing alphabet or number key.
 ;; And also it prohibits dired from opening many buffers.
-;; of course, at this mode, cannot use dired's default keybind like "C".
+;; of course, at this mode, cannot use dired's default keybind like "c".
 ;; toggle mode by ":".
 ;; rubikitch told me about this elisp's url at his school.
 ;; but I couldn't know who made this originally.
@@ -19,7 +19,7 @@
 ;; 英数字のキーを打鍵するだけで、diredでファイル／ディレクトリを選択します。
 ;; また、diredeがたくさんのバッファを開きすぎることを抑止しています。
 ;; 当然ながら、このモードを有効にするとデフォルトのdiredのキーバインドが使えません。
-;; モードの切り替えは:で行ってください。
+;; モードの切り替えは":"で行ってください。
 ;; このelispは、るびきちさんが彼のEmacs塾で、僕にURLを教えてくれましたが、
 ;; 僕にはオリジナルの作者が誰かわからなかったので、URLだけ明示しています。
 
@@ -43,101 +43,50 @@
 (defvar dired-explorer-isearch-return    "\C-g")
 (defvar dired-explorer-isearch-returnkey "\C-m")
 (defvar dired-explorer-isearch-word      "")
+(defvar dired-explorer-mode-hook         nil)
+(defvar dired-mode-old-local-map)
 
 (if dired-explorer-mode-map ()
   (setq dired-explorer-mode-map (make-sparse-keymap))
+  (set-keymap-parent dired-explorer-mode-map dired-mode-map)
   (define-key dired-explorer-mode-map ":" 'dired-explorer-mode)
   (define-key dired-explorer-mode-map "\C-m" 'dired-explorer-dired-open)
   (define-key dired-explorer-mode-map (kbd "<return>") 'dired-explorer-dired-open)
   (define-key dired-explorer-mode-map "^" 'dired-explorer-dired-open)
-  (define-key dired-explorer-mode-map "A" 'dired-do-search)
-  (define-key dired-explorer-mode-map "C" 'dired-do-copy)
-  (define-key dired-explorer-mode-map "B" 'dired-do-byte-compile)
-  (define-key dired-explorer-mode-map "D" 'dired-do-delete)
-  (define-key dired-explorer-mode-map "G" 'dired-do-chgrp)
-  (define-key dired-explorer-mode-map "H" 'dired-do-hardlink)
-  (define-key dired-explorer-mode-map "I" 'dired-kill-subdir) ;; added
-  (define-key dired-explorer-mode-map "\M-I" 'dired-kill-subdir) ;; added
-  (define-key dired-explorer-mode-map "L" 'dired-do-load)
-  (define-key dired-explorer-mode-map "M" 'dired-do-chmod)
-  (define-key dired-explorer-mode-map "O" 'dired-do-chown)
-  (define-key dired-explorer-mode-map "P" 'dired-do-print)
-  (define-key dired-explorer-mode-map "Q" 'dired-do-query-replace-regexp)
-  (define-key dired-explorer-mode-map "R" 'dired-do-rename)
-  (define-key dired-explorer-mode-map "S" 'dired-do-symlink)
-  (define-key dired-explorer-mode-map "T" 'dired-do-touch)
-  (define-key dired-explorer-mode-map "X" 'dired-do-shell-command)
-  (define-key dired-explorer-mode-map "Z" 'dired-do-compress)
-  (define-key dired-explorer-mode-map "!" 'dired-do-shell-command)
-  (define-key dired-explorer-mode-map "\M-&" 'dired-do-async-shell-command)
-  (define-key dired-explorer-mode-map "\M-a" 'dired-explorer-dired-open)
-  (define-key dired-explorer-mode-map "\M-d" 'dired-flag-file-deletion)
-  (define-key dired-explorer-mode-map "\M-e" 'dired-find-file)
-  (define-key dired-explorer-mode-map "\M-f" 'dired-find-file)
-  (define-key dired-explorer-mode-map "\M-\C-m" 'dired-find-file)
-  (define-key dired-explorer-mode-map "\M-g" 'revert-buffer)
-  (define-key dired-explorer-mode-map "\M-i" 'dired-maybe-insert-subdir)
-  (define-key dired-explorer-mode-map "\M-j" 'dired-goto-file)
-  (define-key dired-explorer-mode-map "\M-k" 'dired-do-kill-lines)
-  (define-key dired-explorer-mode-map "\M-l" 'dired-do-redisplay)
-  (define-key dired-explorer-mode-map "\M-m" 'dired-mark)
-  (define-key dired-explorer-mode-map "\M-n" 'dired-next-line)
-  (define-key dired-explorer-mode-map "\M-o" 'dired-find-file-other-window)
-  (define-key dired-explorer-mode-map "\M-\C-o" 'dired-display-file)
-  (define-key dired-explorer-mode-map "\M-p" 'dired-previous-line)
-  (define-key dired-explorer-mode-map "\M-s" 'dired-sort-toggle-or-edit)
-  (define-key dired-explorer-mode-map "\M-t" 'dired-toggle-marks)
-  (define-key dired-explorer-mode-map "\M-u" 'dired-unmark)
-  (define-key dired-explorer-mode-map "\M-v" 'dired-view-file)
-  (define-key dired-explorer-mode-map "\M-w" 'dired-copy-filename-as-kill)
-  (define-key dired-explorer-mode-map "\M-x" 'dired-do-flagged-delete)
-  (define-key dired-explorer-mode-map "\M-y" 'dired-show-file-type)
-  (define-key dired-explorer-mode-map "\M-+" 'dired-create-directory)
-  (define-key dired-explorer-mode-map "+" 'dired-create-directory)
-  (define-key dired-explorer-mode-map "$" 'dired-hide-subdir)
-  (define-key dired-explorer-mode-map "\M-$" 'dired-hide-all)
-  (define-key dired-explorer-mode-map [down] 'dired-next-line)
-  (define-key dired-explorer-mode-map [up] 'dired-previous-line)
-  ;; Tree Dired commands
-  (define-key dired-explorer-mode-map "\M-\C-?" 'dired-unmark-all-files)
-  (define-key dired-explorer-mode-map "\M-\C-d" 'dired-tree-down)
-  (define-key dired-explorer-mode-map "\M-\C-u" 'dired-tree-up)
-  (define-key dired-explorer-mode-map "\M-\C-n" 'dired-next-subdir)
-  (define-key dired-explorer-mode-map "\M-\C-p" 'dired-prev-subdir)
-  (define-key dired-explorer-mode-map "*" 'dired-explorer-mark)
-  (define-key dired-explorer-mode-map "\C-_" 'dired-undo)
-  (define-key dired-explorer-mode-map "\C-xu" 'dired-undo))
+  (define-key dired-explorer-mode-map "I" 'dired-kill-subdir))
 
-(defvar dired-mode-old-major-mode)
-(defvar dired-mode-old-mode-name)
-(defvar dired-mode-old-local-map)
-(defvar dired-explorer-mode-hook nil)
+(defvar dired-explorer-mode nil)
 
-(defun dired-explorer-mode ()
-  "Dired explorer mode."
+(defun dired-explorer-mode (&optional arg)
+  "Minor-mode dired-explorer-mode.  ARG."
   (interactive)
-  (if (eq major-mode 'dired-explorer-mode)
+  (cond
+   ((< (prefix-numeric-value arg) 0)
+    (setq dired-explorer-mode nil))
+   ((and arg (eq major-mode 'dired-mode))
+    (setq dired-explorer-mode t))
+   ((eq major-mode 'dired-mode)
+    (setq dired-explorer-mode (not dired-explorer-mode))))
+  (if dired-explorer-mode
       (progn
-        (dired-move-to-filename)
-        (use-local-map dired-mode-old-local-map)
-        (setq mode-name dired-mode-old-mode-name)
-        (setq major-mode dired-mode-old-major-mode)
-        (force-mode-line-update))
-    (setq dired-mode-old-local-map (current-local-map))
-    (setq dired-mode-old-mode-name mode-name)
-    (setq dired-mode-old-major-mode major-mode)
-    (use-local-map dired-explorer-mode-map)
-    (setq major-mode 'dired-explorer-mode)
-    (setq mode-name "Explorer")
-    (force-mode-line-update)
-    (run-hooks 'dired-explorer-mode-hook)))
+        (run-hooks 'dired-explorer-mode-hook)
+        (setq dired-mode-old-local-map (current-local-map))
+        (use-local-map dired-explorer-mode-map)
+        (when (not (assq 'dired-explorer-mode minor-mode-alist))
+          (setq minor-mode-alist
+                (cons '(dired-explorer-mode " Expr")
+                      minor-mode-alist))))
+    (use-local-map dired-mode-old-local-map)))
 
-(defun dired-explorer-do-isearch (REGEX1 REGEX2 FUNC1 FUNC2 RPT)
-  "Dired explorer isearch.  REGEX1 REGEX2 FUNC1 FUNC2 RPT."
+  (defun dired-explorer-do-isearch (REGEX1 REGEX2 FUNC1 FUNC2 RPT)
+    "Dired explorer isearch.  REGEX1 REGEX2 FUNC1 FUNC2 RPT."
   (interactive)
   (let ((input last-command-event)
         (inhibit-quit t)
-        (oldpoint (point)) regx str (n 1))
+        (oldpoint (point))
+        regx
+        str
+        (n 1))
     (save-match-data
       (catch 'END
         (while t
@@ -165,6 +114,7 @@
                   (goto-char (point-min))
                   (re-search-forward regx nil t nil)))
             (setq dired-explorer-isearch-word str))
+
            ;; backspace
            ((and (integerp input)
                  (or (eq 'backspace input)
@@ -173,33 +123,40 @@
             (setq regx (concat REGEX1 str REGEX2))
             (goto-char oldpoint)
             (re-search-forward regx nil t nil))
+
            ;; next
            ((and (integerp input) (= input (string-to-char dired-explorer-isearch-next)))
             (re-search-forward regx nil t RPT))
+
            ;; previous
            ((and (integerp input) (= input (string-to-char dired-explorer-isearch-prev)))
             (re-search-backward regx nil t nil))
+
            ;; return
            ((and (integerp input) (= input (string-to-char dired-explorer-isearch-return)))
             (goto-char oldpoint)
             (message "return")
             (throw 'END nil))
+
            ;; other command
            (t
             (setq unread-command-events (append (list input) unread-command-events))
             (throw 'END nil)))
+
           (funcall FUNC2)
-          ;;(highline-highlight-current-line)
-          (message str)
+          ;; (highline-highlight-current-line)
+          ;; (message str)
           (setq input (read-event)))))))
 
 (defun dired-explorer-isearch()
   (interactive)
-  (dired-explorer-do-isearch "[0-9] " "[^ \n]+$"
-                 (lambda()
-                   (if (not (= (point-min) (point)))
-                       (backward-char 3)))
-                 'dired-move-to-filename 2))
+  (dired-explorer-do-isearch
+   "[0-9] "                                                        ; REGEX1
+   "[^ \n]+$"                                                      ; REGEX2
+   (lambda() (if (not (= (point-min) (point))) (backward-char 3))) ; FUNC1
+   'dired-move-to-filename                                         ; FUNC2
+   2                                                               ; RPT
+   ))
 
 (defun dired-explorer-isearch-define-key (str)
   "Dired explorer isearch define key.  STR."
@@ -210,11 +167,12 @@
 
 (add-hook 'dired-explorer-mode-hook
           '(lambda ()
-             (dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789_.-+~#")))
+;;             (dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789_.-+~#")
+             (dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789")))
 (add-hook 'dired-mode-hook
           (lambda ()
-            (define-key dired-mode-map ":" 'dired-explorer-mode)
-            (dired-explorer-mode)))
+            (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
+            (dired-explorer-mode t)))
 
 (put 'dired-find-alternate-file 'disabled nil)
 (defun dired-explorer-dired-open ()
@@ -247,7 +205,7 @@
     ;; keep explorer-mode
     (when (or (and (file-directory-p path) is-explorer)
               (and (string= file "..") is-explorer))
-      (unless (eq major-mode 'dired-explorer-mode) (dired-explorer-mode)))))
+      (unless (eq major-mode 'dired-explorer-mode) (dired-explorer-mode t)))))
 
 (defun dired-explorer-mark-toggle ()
   "Dired explorer mark toggle."
