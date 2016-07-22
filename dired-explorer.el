@@ -49,6 +49,29 @@
 (if dired-explorer-mode-map ()
   (setq dired-explorer-mode-map (make-sparse-keymap))
   (set-keymap-parent dired-explorer-mode-map dired-mode-map)
+
+  (define-key dired-explorer-mode-map "\M-a" 'dired-find-alternate-file)
+  (define-key dired-explorer-mode-map "\M-d" 'dired-flag-file-deletion)
+  (define-key dired-explorer-mode-map "\M-e" 'dired-find-file)
+  (define-key dired-explorer-mode-map "\M-f" 'dired-find-file)
+  (define-key dired-explorer-mode-map "\M-\C-m" 'dired-find-file)
+  (define-key dired-explorer-mode-map "\M-g" 'revert-buffer)
+  (define-key dired-explorer-mode-map "\M-i" 'dired-maybe-insert-subdir)
+  (define-key dired-explorer-mode-map "\M-j" 'dired-goto-file)
+  (define-key dired-explorer-mode-map "\M-k" 'dired-do-kill-lines)
+  (define-key dired-explorer-mode-map "\M-l" 'dired-do-redisplay)
+  (define-key dired-explorer-mode-map "\M-m" 'dired-mark)
+  (define-key dired-explorer-mode-map "\M-n" 'dired-next-line)
+  (define-key dired-explorer-mode-map "\M-o" 'dired-find-file-other-window)
+  (define-key dired-explorer-mode-map "\M-p" 'dired-previous-line)
+  (define-key dired-explorer-mode-map "\M-s" 'dired-sort-toggle-or-edit)
+  (define-key dired-explorer-mode-map "\M-t" 'dired-toggle-marks)
+  (define-key dired-explorer-mode-map "\M-u" 'dired-unmark)
+  (define-key dired-explorer-mode-map "\M-v" 'dired-view-file)
+  (define-key dired-explorer-mode-map "\M-w" 'dired-copy-filename-as-kill)
+  (define-key dired-explorer-mode-map "\M-x" 'dired-do-flagged-delete)
+  (define-key dired-explorer-mode-map "\M-y" 'dired-show-file-type)
+
   (define-key dired-explorer-mode-map ":" 'dired-explorer-mode)
   (define-key dired-explorer-mode-map "\C-m" 'dired-explorer-dired-open)
   (define-key dired-explorer-mode-map (kbd "<return>") 'dired-explorer-dired-open)
@@ -214,28 +237,6 @@
     (when (or (and (file-directory-p path) is-explorer)
               (and (string= file "..") is-explorer))
       (unless dired-explorer-mode (dired-explorer-mode t)))))
-
-(defun dired-explorer-mark-toggle ()
-  "Dired explorer mark toggle."
-  (interactive)
-  (save-excursion
-    (let (buffer-read-only)
-      (beginning-of-line)
-      (if (not (eobp))
-          (or (dired-between-files)
-                (looking-at dired-re-dot)
-              (apply 'subst-char-in-region
-                     (point) (1+ (point))
-                     (if (eq ?\040 (following-char)) ; SPC
-                         (list ?\040 dired-marker-char)
-                       (list dired-marker-char ?\040))))
-        (forward-line 1)))))
-
-(defun dired-explorer-mark ()
-  "Dired explorer mark."
-  (interactive)
-  (dired-explorer-mark-toggle)
-  (dired-next-line 1))
 
 ;;; ------------------------------------------------------------
 ;;; Provide

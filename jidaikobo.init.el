@@ -830,11 +830,10 @@ end tell"
 (define-key dired-mode-map (kbd "RET") 'dired-explorer-dired-open)
 (define-key dired-mode-map (kbd "<s-return>") 'dired-explorer-dired-open)
 (define-key dired-mode-map (kbd "a") 'dired-find-file)
-(define-key dired-mode-map (kbd "s-d") 'dired-do-copy)
 (define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
 (define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
+(define-key dired-mode-map (kbd "s-d") (lambda () (interactive) (find-file "~/Desktop")))
 (global-set-key (kbd "s-n") (lambda () (interactive) (find-file "~/")))
-(global-set-key (kbd "s-d") (lambda () (interactive) (find-file "~/Desktop")))
 (global-set-key (kbd "s-N") (lambda () (interactive) (find-file "~/Sites")))
 (global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
 
