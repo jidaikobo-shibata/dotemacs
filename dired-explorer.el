@@ -1,5 +1,6 @@
 ;;; dired-explorer.init.el --- minor-mode provides Explorer like select file at dired.
-;; Original: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
+;; Original: http://homepage1.nifty.com/blankspace/emacs/dired.html
+;; Original2: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
 ;; Introduce: rubikitch
 ;; Maintainer: jidaikobo-shibata
 ;; for Emacs 24.5.1
@@ -59,6 +60,7 @@
   (define-key dired-explorer-mode-map "\M-\C-m" 'dired-find-file)
   (define-key dired-explorer-mode-map "\M-g" 'revert-buffer)
   (define-key dired-explorer-mode-map "\M-i" 'dired-maybe-insert-subdir)
+  (define-key dired-explorer-mode-map "\M-I" 'dired-kill-subdir)
   (define-key dired-explorer-mode-map "\M-j" 'dired-goto-file)
   (define-key dired-explorer-mode-map "\M-k" 'dired-do-kill-lines)
   (define-key dired-explorer-mode-map "\M-l" 'dired-do-redisplay)

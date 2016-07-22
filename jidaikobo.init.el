@@ -552,7 +552,6 @@
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択 - multiple-cursors and smartrep
-
 (require 'multiple-cursors)
 (require 'smartrep)
 
@@ -2277,7 +2276,7 @@ If gist-id exists update gist.  BEG END."
 
 (add-hook 'kill-emacs-hook
           (lambda ()
-            (let (strings
+            (let ((strings "")
                   buf-path)
               (with-temp-buffer
                 (dolist (buf (buffer-list))
