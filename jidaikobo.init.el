@@ -785,6 +785,7 @@ end tell"
 
 ;; diredでファイル編集（rで編集モードに）
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+(define-key dired-explorer-mode-map "\M-r" 'wdired-change-to-wdired-mode)
 (define-key wdired-mode-map (kbd "C-g") 'wdired-abort-changes)
 (define-key wdired-mode-map [escape] 'wdired-abort-changes)
 
@@ -816,9 +817,6 @@ end tell"
 
 ;; ウィンドウ分割で左右に違うDiredを開いているときにRやCのデフォルト値がもう片方になる
 (setq dired-dwim-target t)
-
-;; 確認用diredでの(dired-current-directory)を表示
-(define-key dired-mode-map (kbd "s-s") (lambda () (interactive) (message "%s" (dired-current-directory))))
 
 ;; key-binds
 (define-key dired-mode-map (kbd "C-o") 'other-window)
@@ -1944,7 +1942,7 @@ If gist-id exists update gist.  BEG END."
                     (eval-buffer))
                   (message "eval done.")))
 
-;;; Elispの関数名をコメント状態に
+;;; Elispの関数名をコメント状態に（ものぐさ……）
 (global-set-key (kbd "C-.")
                 (lambda () (interactive)
                   (let* (
@@ -1992,9 +1990,6 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 ;;; text-mode
 
-;; テキストモードでもすこしカラーリングする
-;; thx http://lioon.net/how-to-customize-face-emacs
-;; M-x list-faces-display
 (add-hook 'text-mode-hook
           '(lambda()
              (font-lock-add-keywords nil '(("^# .+" . font-lock-comment-face)))
@@ -2007,9 +2002,7 @@ If gist-id exists update gist.  BEG END."
              (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
 
 ;;; ------------------------------------------------------------
-;;; kontiki-mode
-
-;; ワイアフレームモード
+;;; kontiki-mode - ワイアフレームモード
 (easy-mmode-define-minor-mode kontiki-mode
                               "This is a Mode for Kontiki-Draft."
                               nil
@@ -2026,7 +2019,6 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 ;;; mail-mode
 
-;; メールモード（mail-mode）のカラーリング
 (add-hook 'mail-mode-hook
           '(lambda()
              (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
@@ -2081,6 +2073,7 @@ If gist-id exists update gist.  BEG END."
              (flycheck-mode t)
              (setq js-indent-level 2)
              (setq indent-tabs-mode t)))
+
 ;;; ------------------------------------------------------------
 ;;; php-mode
 
@@ -2097,9 +2090,10 @@ If gist-id exists update gist.  BEG END."
 
 (add-hook 'php-mode-hook
           '(lambda()
+             (font-lock-add-keywords nil '(("<!--.+?-->" . font-lock-comment-face)))
              (setq tab-width 2)
              (setq c-basic-offset 2)
-             (setq indent-tabs-mode t)
+             ;; (setq indent-tabs-mode t)
              (setq php-speedbar-config nil)
              (setq php-template-compatibility nil)
              (setq php-mode-warn-if-mumamo-off nil)
@@ -2143,6 +2137,7 @@ If gist-id exists update gist.  BEG END."
 
 ;; enable
 (add-hook 'php-mode-hook 'flycheck-mode)
+(add-hook 'html-mode-hook 'flycheck-mode)
 (add-hook 'lisp-mode-hook 'flycheck-mode)
 (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
 
@@ -2158,52 +2153,6 @@ If gist-id exists update gist.  BEG END."
 (defvar ps-multibyte-buffer 'non-latin-printer)
 (require 'ps-mule)
 (defalias 'ps-mule-header-string-charsets 'ignore)
-
-
-;;; ------------------------------------------------------------
-;;; Mew
-;;; ------------------------------------------------------------
-
-(autoload 'mew "mew" nil t)
-(autoload 'mew-send "mew" nil t)
-
-;; Optional setup (Read Mail menu):
-(setq read-mail-command 'mew)
-
-;; Optional setup (e.g. C-x m for sending a message):
-(autoload 'mew-user-agent-compose "mew" nil t)
-(if (boundp 'mail-user-agent)
-    (setq mail-user-agent 'mew-user-agent))
-(if (fboundp 'define-mail-user-agent)
-    (define-mail-user-agent
-      'mew-user-agent
-      'mew-user-agent-compose
-      'mew-draft-send-message
-      'mew-draft-kill
-      'mew-send-hook))
-
-
-;;; ------------------------------------------------------------
-;;; eww
-;;; ------------------------------------------------------------
-
-(require 'eww)
-
-(define-key eww-mode-map (kbd "<backtab>") 'shr-previous-link)
-(define-key eww-mode-map "r" 'eww-reload)
-(define-key eww-mode-map "c 0" 'eww-copy-page-url)
-(define-key eww-mode-map "p" 'scroll-down)
-(define-key eww-mode-map "n" 'scroll-up)
-(setq eww-search-prefix "http://www.google.co.jp/search?q=")
-(setq eww-download-directory "~/Desktop")
-
-;; ewwを複数開く
-(when (fboundp 'eww)
-  (progn
-    (defun xah-rename-eww-hook ()
-      "Rename eww browser's buffer so sites open in new page."
-      (rename-buffer "eww" t))
-    (add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
 
 
 ;;; ------------------------------------------------------------
@@ -2254,12 +2203,12 @@ If gist-id exists update gist.  BEG END."
 ;;; Todo:
 ;;; ------------------------------------------------------------
 
-;; doctypeを見てのbrやタグの挿入
-
 ;; portのEmacsを試してみる？
 
 ;; search-centerの履歴？ でもあまり必要性を感じない……。むしろ検索セットか。
-;; 複数の検索置換セット
+
+;; thx http://lioon.net/how-to-customize-face-emacs
+;; M-x list-faces-display
 
 ;; 宝庫！ https://github.com/zk-phi/dotfiles/blob/master/emacs/init.el
 ;; https://github.com/zk-phi/indent-guide ためしたい

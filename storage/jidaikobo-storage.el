@@ -1,3 +1,49 @@
+;; 
+;; ;;; ------------------------------------------------------------
+;; ;;; Mew
+;; ;;; ------------------------------------------------------------
+
+;; (autoload 'mew "mew" nil t)
+;; (autoload 'mew-send "mew" nil t)
+
+;; ;; Optional setup (Read Mail menu):
+;; (setq read-mail-command 'mew)
+
+;; ;; Optional setup (e.g. C-x m for sending a message):
+;; (autoload 'mew-user-agent-compose "mew" nil t)
+;; (if (boundp 'mail-user-agent)
+;;     (setq mail-user-agent 'mew-user-agent))
+;; (if (fboundp 'define-mail-user-agent)
+;;     (define-mail-user-agent
+;;       'mew-user-agent
+;;       'mew-user-agent-compose
+;;       'mew-draft-send-message
+;;       'mew-draft-kill
+;;       'mew-send-hook))
+
+;; 
+;; ;;; ------------------------------------------------------------
+;; ;;; eww
+;; ;;; ------------------------------------------------------------
+
+;; (require 'eww)
+
+;; (define-key eww-mode-map (kbd "<backtab>") 'shr-previous-link)
+;; (define-key eww-mode-map "r" 'eww-reload)
+;; (define-key eww-mode-map "c 0" 'eww-copy-page-url)
+;; (define-key eww-mode-map "p" 'scroll-down)
+;; (define-key eww-mode-map "n" 'scroll-up)
+;; (setq eww-search-prefix "http://www.google.co.jp/search?q=")
+;; (setq eww-download-directory "~/Desktop")
+
+;; ;; ewwを複数開く
+;; (when (fboundp 'eww)
+;;   (progn
+;;     (defun xah-rename-eww-hook ()
+;;       "Rename eww browser's buffer so sites open in new page."
+;;       (rename-buffer "eww" t))
+;;     (add-hook 'eww-mode-hook 'xah-rename-eww-hook)))
+
 ;;; ------------------------------------------------------------
 ;;; web-mode
 
