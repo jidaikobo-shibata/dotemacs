@@ -283,6 +283,9 @@
             (progn (setq html (concat html "<p>" (car lines) "</p>\n"))))
           (setq lines (cdr lines)))
         (replace-regexp-in-string "\n+$" "" html)
+        (when (string= html "")
+          (setq html "<p></p>"
+                cursor+ 3))
         (setq tag html)))
 
      ;; li-each
@@ -490,12 +493,6 @@
                 '(lambda ()
                    (interactive)
                    (any-html-tag "p-each")))
-
-;;; p
-(global-set-key (kbd "s-M-P")
-                '(lambda ()
-                   (interactive)
-                   (any-html-tag "p")))
 
 ;;; blockquote
 (global-set-key (kbd "s-M-q")

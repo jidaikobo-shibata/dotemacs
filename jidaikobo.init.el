@@ -281,7 +281,6 @@
       undo-tree
       undohist
       web-beautify
-      web-mode
       yagist
       zlc))
 
@@ -594,8 +593,6 @@
       (setq target "^;;; -+$"))
      ((string= major-mode "php-mode")
       (setq target "^\t*function\\|^\t*class\\|^\t*private\\|^\t*public"))
-     ((string= major-mode "web-mode")
-      (setq target "^\t*<h"))
      (t
       (setq target "^;;; -+$\\|^■\\|^///")))
     (if (string= direction "prev")
@@ -766,7 +763,6 @@ end tell"
                  (local-set-key (kbd "RET") 'gtags-select-tag)))
 
 (add-hook 'php-mode-hook '(lambda () (gtags-mode 1)))
-(add-hook 'web-mode-hook '(lambda () (gtags-mode 1)))
 
 ;; update gtags
 ;; thx http://qiita.com/hayamiz/items/8e8c7fca64b4810d8e78
@@ -1101,7 +1097,6 @@ end tell"
 
 (add-hook 'emacs-lisp-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'php-mode-hook #'my-set-indent-tabs-mode)
-(add-hook 'web-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'conf-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'sh-script-mode-hook #'my-set-indent-tabs-mode)
 
@@ -1545,7 +1540,8 @@ end tell"
   ;; (global-linum-mode t)
   (setq-default linum-format "%5d: "))
 (add-hook 'emacs-lisp-mode-hook (lambda () (show-line-number) (linum-mode t)))
-(add-hook 'web-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'php-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'css-mode-hook (lambda () (show-line-number) (linum-mode t)))
 
 
 ;;; ------------------------------------------------------------
@@ -2048,123 +2044,73 @@ If gist-id exists update gist.  BEG END."
                (lambda () (interactive) (other-window -1)))))
 
 ;;; ------------------------------------------------------------
-;;; web-mode
-
-(require 'web-mode)
-(require 'php-mode)
-
-(add-to-list 'auto-mode-alist '("\\.html?$" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.css$" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.php$" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.js$" . web-mode))
-(add-to-list 'web-mode-imenu-regexp-list
-             '("\\(function\\|class\\) +?\\(.+?\\) *?(" 1 2 " "))
-(setq-default web-mode-engines-alist '(("php" . "\\.html?$")))
-(setq-default web-mode-enable-auto-pairing nil)
-(setq-default web-mode-enable-auto-closing nil)
-(setq-default web-mode-enable-auto-opening nil)
-(setq-default web-mode-enable-auto-quoting nil)
-(setq-default web-mode-enable-auto-indentation nil)
-(setq-default web-mode-enable-html-entities-fontification t)
-(setq-default web-mode-enable-element-tag-fontification t)
-(setq-default web-mode-enable-part-face t)
-(setq-default web-mode-ignore-ac-start-advice t)
-
-;; thx http://yanmoo.blogspot.jp/2013/06/html5web-mode.html
-(add-hook 'web-mode-hook
-          '(lambda()
-             (setq web-mode-markup-indent-offset 2)
-             (setq web-mode-css-indent-offset    2)
-             (setq web-mode-code-indent-offset   2) ; script indent(js,php,etc..)
-             (define-key web-mode-map "/" 'self-insert-command)))
-
-;;; ------------------------------------------------------------
 ;;; html-mode
 
-;;(defun xoops-smarty-comment-setting ()
-;;  (make-local-variable 'comment-start)
-;;  (setq comment-start "<{*")
-;;  (make-local-variable 'comment-end)
-;;  (setq comment-end "*}>")
-;;  (make-local-variable 'comment-multi-line)
-;;  (setq comment-multi-line t))
-;;(add-hook 'html-mode-hook 'xoops-smarty-comment-setting)
+(defun xoops-smarty-comment-setting ()
+ (make-local-variable 'comment-start)
+ (setq comment-start "<{*")
+ (make-local-variable 'comment-end)
+ (setq comment-end "*}>")
+ (make-local-variable 'comment-multi-line)
+ (setq comment-multi-line t))
+(add-hook 'html-mode-hook 'xoops-smarty-comment-setting)
 
-;; (add-hook 'html-mode-hook
-;;           '(lambda()
-;;              ;; (font-lock-add-keywords nil '(("<{\\*\\([^^J]\\|^J\\)+?\\*}>" . font-lock-comment-face)))
-;;              (define-key html-mode-map "/" 'self-insert-command)))
+(add-hook 'html-mode-hook
+          '(lambda()
+             ;; (font-lock-add-keywords nil '(("<{\\*\\([^^J]\\|^J\\)+?\\*}>" . font-lock-comment-face)))
+             (define-key html-mode-map "/" 'self-insert-command)))
 
-;; ;;; ------------------------------------------------------------
-;; ;;; css-mode
+;;; ------------------------------------------------------------
+;;; css-mode
 
-;; (require 'css-mode)
-;; (setq auto-mode-alist
-;;       (cons '("\\.css$" . css-mode) auto-mode-alist))
+(require 'css-mode)
+(setq auto-mode-alist
+      (cons '("\\.css$" . css-mode) auto-mode-alist))
 
-;; ;; (defvar cssm-indent-function)
-;; (add-hook 'css-mode-hook
-;;           (lambda ()
-;;             (setq css-indent-offset 2)
-;;             (setq cssm-indent-function #'cssm-c-style-indenter)))
+;; (defvar cssm-indent-function)
+(add-hook 'css-mode-hook
+          (lambda ()
+            (setq css-indent-offset 2)
+            (setq cssm-indent-function #'cssm-c-style-indenter)))
 
-;; ;;; ------------------------------------------------------------
-;; ;;; js-mode
+;;; ------------------------------------------------------------
+;;; js-mode
 
-;; (add-hook 'js-mode-hook
-;;           '(lambda ()
-;;              (flycheck-mode t)
-;;              (setq js-indent-level 2)
-;;              (setq indent-tabs-mode t)))
+(add-hook 'js-mode-hook
+          '(lambda ()
+             (flycheck-mode t)
+             (setq js-indent-level 2)
+             (setq indent-tabs-mode t)))
 ;;; ------------------------------------------------------------
 ;;; php-mode
 
-;; (require 'php-mode)
-
+;; (require 'my-php-mode)
 ;; (setq auto-mode-alist
-;;        (append '(("\\.php$" . php-mode))
+;;        (append '(("\\.php$" . my-php-mode))
 ;;            auto-mode-alist))
 
-;; ;; (add-hook 'php-mode-hook
-;;           '(lambda()
-;;              (setq tab-width 2)
-;;              (setq c-basic-offset 2)
-;;              (setq indent-tabs-mode t)
-;;              (setq php-manual-url "http://jp2.php.net/manual/ja/")
-;;              (define-key php-mode-map ")" 'self-insert-command)
-;;              (define-key php-mode-map "(" 'self-insert-command)
-;;              (define-key php-mode-map "{" 'self-insert-command)
-;;              (define-key php-mode-map "}" 'self-insert-command)
-;;              (define-key php-mode-map "/" 'self-insert-command)
-;;              (define-key php-mode-map "#" 'self-insert-command)))
+(require 'php-mode)
 
-;;; ------------------------------------------------------------
-;;; PHPのimenuの一覧から'All Methods'を取り除く
-;; thx http://qiita.com/osamu2001/items/511b558e5280dbf2b218
+(setq auto-mode-alist
+       (append '(("\\.php$" . php-mode))
+           auto-mode-alist))
 
-;; (add-hook
-;;   'php-mode-hook
-;;     (assq-delete-all
-;;       (car (assoc "All Methods" php-imenu-generic-expression))
-;;       php-imenu-generic-expression))
-
-;; php-modeにalign-rulesを
-;; thx http://d.hatena.ne.jp/Tetsujin/20070614/1181757931
-;; (require 'align)
-;; (add-to-list 'align-rules-list
-;;              '(php-assignment
-;;                (regexp . "[^-=!^&*+<>/.| \t\n]\\(\\s-*[.-=!^&*+<>/|]*\\)=>?\\(\\s-*\\)\\([^= \t\n]\\|$\\)")
-;;                (justify .t)
-;;                (tab-stop . nil)
-;;                (modes . '(php-mode))))
-;; (add-to-list 'align-dq-string-modes 'php-mode)
-;; (add-to-list 'align-sq-string-modes 'php-mode)
-;; (add-to-list 'align-open-comment-modes 'php-mode)
-;; (setq align-region-separate (concat "\\(^\\s-*$\\)\\|"
-;;                                     "\\([({}\\(/\*\\)]$\\)\\|"
-;;                                     "\\(^\\s-*[)}\\(\*/\\)][,;]?$\\)\\|"
-;;                                     "\\(^\\s-*\\(}\\|for\\|while\\|if\\|else\\|"
-;;                                     "switch\\|case\\|break\\|continue\\|do\\)[ ;]\\)"))
+(add-hook 'php-mode-hook
+          '(lambda()
+             (setq tab-width 2)
+             (setq c-basic-offset 2)
+             (setq indent-tabs-mode t)
+             (setq php-speedbar-config nil)
+             (setq php-template-compatibility nil)
+             (setq php-mode-warn-if-mumamo-off nil)
+             (setq php-mode-coding-style 'default)
+             (setq php-manual-url "http://jp2.php.net/manual/ja/")
+             (define-key php-mode-map ")" 'self-insert-command)
+             (define-key php-mode-map "(" 'self-insert-command)
+             (define-key php-mode-map "{" 'self-insert-command)
+             (define-key php-mode-map "}" 'self-insert-command)
+             (define-key php-mode-map "/" 'self-insert-command)
+             (define-key php-mode-map "#" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
 ;;; rainbow-mode
@@ -2175,9 +2121,6 @@ If gist-id exists update gist.  BEG END."
 (add-hook 'text-mode-hook 'rainbow-mode)
 (add-hook 'lisp-mode-hook 'rainbow-mode)
 (add-hook 'css-mode-hook 'rainbow-mode)
-(add-hook 'web-mode-hook 'rainbow-mode)
-(add-hook 'php-mode-hook 'rainbow-mode)
-(add-hook 'html-mode-hook 'rainbow-mode)
 
 
 ;;; ------------------------------------------------------------
@@ -2202,7 +2145,6 @@ If gist-id exists update gist.  BEG END."
 (add-hook 'php-mode-hook 'flycheck-mode)
 (add-hook 'lisp-mode-hook 'flycheck-mode)
 (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
-(add-hook 'web-mode-hook 'flycheck-mode)
 
 ;;; ------------------------------------------------------------
 ;; 印刷設定

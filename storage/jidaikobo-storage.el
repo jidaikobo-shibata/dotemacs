@@ -1,3 +1,62 @@
+;;; ------------------------------------------------------------
+;;; web-mode
+
+;; (require 'web-mode)
+;; (require 'php-mode)
+
+;; (add-to-list 'auto-mode-alist '("\\.html?$" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.css$" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.php$" . web-mode))
+;; (add-to-list 'auto-mode-alist '("\\.js$" . web-mode))
+;; (add-to-list 'web-mode-imenu-regexp-list
+;;              '("\\(function\\|class\\) +?\\(.+?\\) *?(" 1 2 " "))
+;; (setq-default web-mode-engines-alist '(("php" . "\\.html?$")))
+;; (setq-default web-mode-enable-auto-pairing nil)
+;; (setq-default web-mode-enable-auto-closing nil)
+;; (setq-default web-mode-enable-auto-opening nil)
+;; (setq-default web-mode-enable-auto-quoting nil)
+;; (setq-default web-mode-enable-auto-indentation nil)
+;; (setq-default web-mode-enable-html-entities-fontification t)
+;; (setq-default web-mode-enable-element-tag-fontification t)
+;; (setq-default web-mode-enable-part-face t)
+;; (setq-default web-mode-ignore-ac-start-advice t)
+
+;; ;; thx http://yanmoo.blogspot.jp/2013/06/html5web-mode.html
+;; (add-hook 'web-mode-hook
+;;           '(lambda()
+;;              (setq web-mode-markup-indent-offset 2)
+;;              (setq web-mode-css-indent-offset    2)
+;;              (setq web-mode-code-indent-offset   2) ; script indent(js,php,etc..)
+;;              (define-key web-mode-map "/" 'self-insert-command)))
+
+;;; ------------------------------------------------------------
+;;; PHPのimenuの一覧から'All Methods'を取り除く
+;; thx http://qiita.com/osamu2001/items/511b558e5280dbf2b218
+
+;; (add-hook
+;;   'php-mode-hook
+;;     (assq-delete-all
+;;       (car (assoc "All Methods" php-imenu-generic-expression))
+;;       php-imenu-generic-expression))
+
+;; php-modeにalign-rulesを
+;; thx http://d.hatena.ne.jp/Tetsujin/20070614/1181757931
+;; (require 'align)
+;; (add-to-list 'align-rules-list
+;;              '(php-assignment
+;;                (regexp . "[^-=!^&*+<>/.| \t\n]\\(\\s-*[.-=!^&*+<>/|]*\\)=>?\\(\\s-*\\)\\([^= \t\n]\\|$\\)")
+;;                (justify .t)
+;;                (tab-stop . nil)
+;;                (modes . '(php-mode))))
+;; (add-to-list 'align-dq-string-modes 'php-mode)
+;; (add-to-list 'align-sq-string-modes 'php-mode)
+;; (add-to-list 'align-open-comment-modes 'php-mode)
+;; (setq align-region-separate (concat "\\(^\\s-*$\\)\\|"
+;;                                     "\\([({}\\(/\*\\)]$\\)\\|"
+;;                                     "\\(^\\s-*[)}\\(\*/\\)][,;]?$\\)\\|"
+;;                                     "\\(^\\s-*\\(}\\|for\\|while\\|if\\|else\\|"
+;;                                     "switch\\|case\\|break\\|continue\\|do\\)[ ;]\\)"))
+
 ;; ;;; ------------------------------------------------------------
 ;; ;;; FTP by Fetch
 ;; (defun func-anything-c-source-my-fetch ()
