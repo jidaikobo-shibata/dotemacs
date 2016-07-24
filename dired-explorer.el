@@ -114,7 +114,7 @@
            ;;_.-+~#
            ((and (integerp input)
                  (or (and (>= input ?a) (<= input ?z))
-                     (and (>= input ?A) (<= input ?Z))
+                     ;; (and (>= input ?A) (<= input ?Z)) ; ignore to use command like "C"
                      (and (>= input ?0) (<= input ?9))))
             (setq str (char-to-string input))
             (if (string= dired-explorer-isearch-word str)
