@@ -82,27 +82,13 @@
   (define-key dired-explorer-mode-map "^" 'dired-explorer-dired-open)
   (define-key dired-explorer-mode-map "I" 'dired-kill-subdir))
 
-(defvar dired-explorer-mode nil)
-
-(defun dired-explorer-mode (&optional arg)
-  "Minor-mode dired-explorer-mode.  ARG."
-  (interactive)
-  (cond
-   ((< (prefix-numeric-value arg) 0)
-    (setq dired-explorer-mode nil))
-   ((and arg (eq major-mode 'dired-mode))
-    (setq dired-explorer-mode t))
-   ((eq major-mode 'dired-mode)
-    (setq dired-explorer-mode (not dired-explorer-mode))))
-  (if dired-explorer-mode
+(define-minor-mode dired-explorer-mode
+"Minor-mode dired-explorer-mode."
+:lighter " Expr"
+(if dired-explorer-mode
       (progn
-        (run-hooks 'dired-explorer-mode-hook)
         (setq dired-mode-old-local-map (current-local-map))
-        (use-local-map dired-explorer-mode-map)
-        (when (not (assq 'dired-explorer-mode minor-mode-alist))
-          (setq minor-mode-alist
-                (cons '(dired-explorer-mode " Expr")
-                      minor-mode-alist))))
+        (use-local-map dired-explorer-mode-map))
     (use-local-map dired-mode-old-local-map)))
 
   (defun dired-explorer-do-isearch (REGEX1 REGEX2 FUNC1 FUNC2 RPT)
