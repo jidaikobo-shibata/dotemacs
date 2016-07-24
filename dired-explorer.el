@@ -1,7 +1,7 @@
 ;;; dired-explorer.init.el --- minor-mode provides Explorer like select file at dired.
 ;; Original: http://homepage1.nifty.com/blankspace/emacs/dired.html
 ;; Original2: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
-;; Introduce: rubikitch
+;; Introduce and Advice: rubikitch
 ;; Maintainer: jidaikobo-shibata
 ;; for Emacs 24.5.1
 
@@ -87,9 +87,9 @@
 :lighter " Expr"
 (if dired-explorer-mode
       (progn
-        (setq dired-mode-old-local-map (current-local-map))
+        ;; (setq dired-mode-old-local-map (current-local-map))
         (use-local-map dired-explorer-mode-map))
-    (use-local-map dired-mode-old-local-map)))
+    (use-local-map dired-mode-map)))
 
   (defun dired-explorer-do-isearch (REGEX1 REGEX2 FUNC1 FUNC2 RPT)
     "Dired explorer isearch.  REGEX1 REGEX2 FUNC1 FUNC2 RPT."
