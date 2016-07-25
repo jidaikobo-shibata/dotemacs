@@ -2038,18 +2038,11 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 ;;; html-mode
 
-(defun xoops-smarty-comment-setting ()
- (make-local-variable 'comment-start)
- (setq comment-start "<{*")
- (make-local-variable 'comment-end)
- (setq comment-end "*}>")
- (make-local-variable 'comment-multi-line)
- (setq comment-multi-line t))
-(add-hook 'html-mode-hook 'xoops-smarty-comment-setting)
-
 (add-hook 'html-mode-hook
           '(lambda()
-             ;; (font-lock-add-keywords nil '(("<{\\*\\([^^J]\\|^J\\)+?\\*}>" . font-lock-comment-face)))
+             (font-lock-add-keywords
+              nil
+              '(("<{\\*\\(?:.\\|\n\\)+?\\*}>" . font-lock-comment-face)))
              (define-key html-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
@@ -2090,7 +2083,7 @@ If gist-id exists update gist.  BEG END."
 
 (add-hook 'php-mode-hook
           '(lambda()
-             (font-lock-add-keywords nil '(("<!--.+?-->" . font-lock-comment-face)))
+             (font-lock-add-keywords nil '(("<!--\\(?:.\\|\n\\)+?-->" . font-lock-comment-face)))
              (setq tab-width 2)
              (setq c-basic-offset 2)
              ;; (setq indent-tabs-mode t)
