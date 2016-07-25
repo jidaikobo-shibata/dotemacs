@@ -1,7 +1,7 @@
 ;;; dired-explorer.init.el --- minor-mode provides Explorer like select file at dired.
 ;; Original: http://homepage1.nifty.com/blankspace/emacs/dired.html
 ;; Original2: http://www.bookshelf.jp/soft/meadow_25.html#SEC286
-;; Introduce and Advice: rubikitch
+;; Introduce and Supervise: rubikitch
 ;; Maintainer: jidaikobo-shibata
 ;; for Emacs 24.5.1
 
