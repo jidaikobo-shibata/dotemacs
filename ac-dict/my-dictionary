@@ -4201,7 +4201,6 @@ territory
 test
 text
 text-align
-text-align-last
 text-align: center;
 text-align: left;
 text-align: right;
