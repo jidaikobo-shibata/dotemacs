@@ -271,7 +271,6 @@
       gtags
       mic-paren
       multiple-cursors
-      open-junk-file
       php-mode
       popwin
       rainbow-mode
@@ -701,10 +700,6 @@
 ;;; ------------------------------------------------------------
 ;;; ファイル操作
 ;;; ------------------------------------------------------------
-
-;; open-junk-file
-(require 'open-junk-file)
-(setq-default open-junk-file-format "~/Desktop/tmp/%Y%m%d-%H%M%S.txt")
 
 ;; find-fileをzshライクに
 ;; thx http://d.hatena.ne.jp/mooz/20101003/p1
@@ -1474,8 +1469,14 @@ end tell"
   ;; キーバインド
   (global-set-key (kbd "M-s-<right>") 'tabbar-forward-tab)
   (global-set-key (kbd "M-s-<left>") 'tabbar-backward-tab)
-  (global-set-key (kbd "s-t") 'open-junk-file)
   (global-set-key (kbd "C-s-t") 'move-current-tab-to-top)
+
+  ;; thx open-junk-file by rubikitch
+  (global-set-key (kbd "s-t")
+                  (lambda ()
+                    (interactive)
+                    (find-file-other-window
+                     (format-time-string "~/Desktop/tmp/%Y%m%d-%H%M%S.txt" (current-time)))))
 
   ;; 幾つかのウィンドウでは、タブ移動しない
   (defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
@@ -2103,6 +2104,9 @@ If gist-id exists update gist.  BEG END."
 (setq auto-mode-alist
        (append '(("\\.php$" . php-mode))
            auto-mode-alist))
+
+
+
 
 (add-hook 'php-mode-hook
           '(lambda()
