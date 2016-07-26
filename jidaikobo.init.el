@@ -450,39 +450,62 @@
 (global-set-key (kbd "<M-down>") 'move-to-next-blank-line)
 
 ;;; ------------------------------------------------------------
-;;; 次/前のwordbreakへ
-;; gist-description: Emacs(Elisp): forward/backward-wordだと、移動距離が微妙に大きいので、単語境界でひっかかるように。
+;;; 自分好みのカーソル移動
+;; gist-description: Emacs(Elisp): forward/backward-wordだと、移動距離が微妙に大きい。単語境界も微妙だった。ので、ちょっと変質的にカーソル移動をカスタマイズ。
 ;; gist-id: 467f4302c002049bfb95511bd21cdbe7
-;; gist-name: move-to-next(previous)-word-break.el
+;; gist-name: skip-chars-(forward|backward)-dwim.el
 ;; gist-private: nil
-;; thx http://d.hatena.ne.jp/h1mesuke/20070803/p1
 
-(defun move-to-next-word-break (&optional arg)
-  "Move point forward ARG word breaks (backward if ARG is negative)."
-  (interactive "^P")
-  (setq arg (if arg (prefix-numeric-value arg) 1))
-  (if (< arg 0)
-      (move-to-previous-word-break (- arg))
-    (while (and (> arg 0)
-                (< (point) (point-max))
-                (progn (forward-char)
-                       (re-search-forward "\\b" nil t)))
-      (setq arg (1- arg)))))
+(defun skip-chars-forward-dwim ()
+  "Skip chars forward dwim."
+  (interactive "^")
+  (let ((start (point)))
+    (if (eq last-command this-command)
+        (skip-chars-forward "a-zA-Z0-9_-")
+      (skip-chars-forward "a-zA-Z0-9_"))
+    (when (eq start (point))
+      (skip-syntax-forward " "))
+    (when (eq start (point))
+      (skip-syntax-forward "()"))
+    (when (eq start (point))
+      (skip-syntax-forward "<>"))
+    (when (eq start (point))
+      (skip-chars-forward "-"))
+    (when (eq start (point))
+      (skip-chars-forward "ぁ-んー"))
+    (when (eq start (point))
+      (skip-chars-forward "ァ-ヶー"))
+    (when (eq start (point))
+      (skip-chars-forward "亜-黑ー"))
+    (when (eq start (point))
+      (goto-char (+ (point) 1)))))
 
-(defun move-to-previous-word-break (&optional arg)
-  "Move point backward ARG word breaks (forward if ARG is negative)."
-  (interactive "^P")
-  (setq arg (if arg (prefix-numeric-value arg) 1))
-  (if (< arg 0)
-      (move-to-next-word-break (- arg))
-    (while (and (> arg 0)
-                (> (point) (point-min))
-                (progn (backward-char)
-                       (re-search-backward "\\b" nil t)))
-      (setq arg (1- arg)))))
+(defun skip-chars-backward-dwim ()
+  "Skip chars backward dwim."
+  (interactive "^")
+  (let ((start (point)))
+    (if (eq last-command this-command)
+        (skip-chars-backward "a-zA-Z0-9_-")
+      (skip-chars-backward "a-zA-Z0-9_"))
+    (when (eq start (point))
+      (skip-syntax-backward " "))
+    (when (eq start (point))
+      (skip-syntax-backward "()"))
+    (when (eq start (point))
+      (skip-syntax-backward "<>"))
+    (when (eq start (point))
+      (skip-chars-backward "-"))
+    (when (eq start (point))
+      (skip-chars-backward "ぁ-んー"))
+    (when (eq start (point))
+      (skip-chars-backward "ァ-ヶー"))
+    (when (eq start (point))
+      (skip-chars-backward "亜-黑ー"))
+    (when (eq start (point))
+      (goto-char (- (point) 1)))))
 
-(global-set-key (kbd "<M-left>") 'move-to-previous-word-break)
-(global-set-key (kbd "<M-right>") 'move-to-next-word-break)
+(global-set-key (kbd "<M-left>") 'skip-chars-backward-dwim)
+(global-set-key (kbd "<M-right>") 'skip-chars-forward-dwim)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
@@ -876,8 +899,8 @@ end tell"
 (setq ac-dwim t)
 (setq ac-auto-start t)
 (setq ac-auto-show-menu 0.1)
-(setq ac-delay 0)
-(setq ac-auto-start 2)
+(setq ac-delay 0.2)
+(setq ac-auto-start 3)
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
 (setq ac-quick-help-delay 0.5)
