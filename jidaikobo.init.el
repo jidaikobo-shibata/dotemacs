@@ -892,10 +892,9 @@ end tell"
 (require 'auto-complete)
 (global-auto-complete-mode t)
 (setq ac-dwim t)
-(setq ac-auto-start t)
 (setq ac-auto-show-menu 0.1)
 (setq ac-delay 0.2)
-(setq ac-auto-start 3)
+(setq ac-auto-start 2)
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
 (setq ac-quick-help-delay 0.5)
@@ -904,9 +903,9 @@ end tell"
 ;; ユーザ辞書設定
 (defvar ac-my-dictionary (concat jidaikobo-dir "ac-dict/my-dictionary"))
 (defvar ac-my-dictionary-dict '((candidates . (ac-file-dictionary ac-my-dictionary))))
-
-;; 候補。自分で辞書を作ったほうが圧倒的に早いので一つだけにする
-(setq-default ac-sources '(ac-my-dictionary-dict))
+(setq-default ac-sources '(ac-my-dictionary-dict
+                           ac-source-words-in-same-mode-buffers))
+;; (setq-default ac-sources '(ac-my-dictionary-dict))
 
 ;; 条件の追加
 ;; global-auto-complete-modeで足されていないものたち
