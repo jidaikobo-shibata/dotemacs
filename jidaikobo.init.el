@@ -2014,16 +2014,16 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 ;;; text-mode
 
-;; (add-hook 'text-mode-hook
-;;           '(lambda()
-;;              (font-lock-add-keywords nil '(("^# .+" . font-lock-comment-face)))
-;;              (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
-;;              (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))
-;;              (font-lock-add-keywords nil '(("^●.+" . font-lock-builtin-face)))
-;;              (font-lock-add-keywords nil '(("^○.+" . font-lock-keyword-face)))
-;;              (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
-;;              (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
-;;              (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
+(add-hook 'text-mode-hook
+          '(lambda()
+             (font-lock-add-keywords nil '(("^# .+" . font-lock-comment-face)))
+             (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
+             (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))
+             (font-lock-add-keywords nil '(("^●.+" . font-lock-builtin-face)))
+             (font-lock-add-keywords nil '(("^○.+" . font-lock-keyword-face)))
+             (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
+             (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
+             (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; kontiki-mode - ワイアフレームモード
