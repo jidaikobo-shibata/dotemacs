@@ -2014,16 +2014,16 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 ;;; text-mode
 
-(add-hook 'text-mode-hook
-          '(lambda()
-             (font-lock-add-keywords nil '(("^# .+" . font-lock-comment-face)))
-             (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
-             (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))
-             (font-lock-add-keywords nil '(("^●.+" . font-lock-builtin-face)))
-             (font-lock-add-keywords nil '(("^○.+" . font-lock-keyword-face)))
-             (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
-             (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
-             (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
+;; (add-hook 'text-mode-hook
+;;           '(lambda()
+;;              (font-lock-add-keywords nil '(("^# .+" . font-lock-comment-face)))
+;;              (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
+;;              (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))
+;;              (font-lock-add-keywords nil '(("^●.+" . font-lock-builtin-face)))
+;;              (font-lock-add-keywords nil '(("^○.+" . font-lock-keyword-face)))
+;;              (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
+;;              (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
+;;              (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
 
 ;;; ------------------------------------------------------------
 ;;; kontiki-mode - ワイアフレームモード
@@ -2064,9 +2064,15 @@ If gist-id exists update gist.  BEG END."
 
 (add-hook 'html-mode-hook
           '(lambda()
+             (setq-local syntax-propertize-function
+                         (syntax-propertize-rules
+                          ;; xoops smarty comment-out
+                          ("\\(<\\){\\*" (1 "< c"))
+                          ("\\*}\\(>\\)" (1 "> c"))))
+             ;; xoops smarty
              (font-lock-add-keywords
               nil
-              '(("<{\\*\\(?:.\\|\n\\)+?\\*}>" . font-lock-comment-face)))
+              '(("<{\\(?:.\\)+?}>" . font-lock-keyword-face)))
              (define-key html-mode-map "/" 'self-insert-command)))
 
 ;;; ------------------------------------------------------------
@@ -2105,12 +2111,15 @@ If gist-id exists update gist.  BEG END."
        (append '(("\\.php$" . php-mode))
            auto-mode-alist))
 
-
-
-
 (add-hook 'php-mode-hook
           '(lambda()
-             (font-lock-add-keywords nil '(("<!--\\(?:.\\|\n\\)+?-->" . font-lock-comment-face)))
+
+             (setq-local syntax-propertize-function
+                         (syntax-propertize-rules
+                          ;; html
+                          ("\\(<\\)!--" (1 "< c"))
+                          ("--[ \t\n]*\\(>\\)" (1 "> c"))))
+
              (setq tab-width 2)
              (setq c-basic-offset 2)
              ;; (setq indent-tabs-mode t)
