@@ -47,9 +47,6 @@
 ;; リージョンを上書きできるようにする
 (delete-selection-mode t)
 
-;; visual linesで移動する
-(setq line-move-visual t)
-
 ;; 選択範囲を可視化
 (setq transient-mark-mode t)
 
@@ -547,21 +544,6 @@
       (deactivate-mark))))
 
 ;;; ------------------------------------------------------------
-;;; 一行目と最終行での上下キーの振る舞い（行末と行頭へ）
-
-(defvar prev-line-num (line-number-at-pos))
-(add-hook 'post-command-hook 'my-goto-the-edge)
-(defun my-goto-the-edge ()
-  "Go to the edge of the line."
-  ;; (message "this-event: %s\nthis-command: %s" last-input-event this-command)
-  (when (and (eq prev-line-num 1) (memq last-input-event '(up S-up)))
-    (beginning-of-line))
-  (when (and (eq prev-line-num (count-lines 1 (point-max)))
-             (memq last-input-event '(down S-down)))
-    (end-of-line))
-  (setq prev-line-num (line-number-at-pos)))
-
-;;; ------------------------------------------------------------
 ;;; 対になるパーレンに移動
 ;; thx https://gist.github.com/donghee/3937661
 
@@ -973,7 +955,7 @@ end tell"
 
 ;; auto-complete の候補に日本語を含む単語が含まれないようにする
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
-(defadvice view-order-manuals (after remove-word-contain-japanese activate)
+(defadvice ac-candidate-words-in-buffer (after remove-word-contain-japanese activate)
   "Do not contain multi byte character in auto-complete candidates."
   (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
     (setq ad-return-value (remove-if contain-japanese ad-return-value))))
@@ -2242,6 +2224,7 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 
 ;; portのEmacsを試してみる？
+;; 自動クリーンアップをendlineのwhitespacesのみにする
 
 ;; search-centerの履歴？ でもあまり必要性を感じない……。むしろ検索セットか。
 
