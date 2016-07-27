@@ -897,7 +897,7 @@ end tell"
 (setq ac-auto-start 2)
 (setq ac-ignore-case t)
 (setq ac-disable-faces nil)
-(setq ac-quick-help-delay 0.5)
+(setq ac-quick-help-delay 1)
 (setq ac-use-comphist nil)
 
 ;; ユーザ辞書設定
@@ -1475,7 +1475,7 @@ end tell"
                   (lambda ()
                     (interactive)
                     (find-file-other-window
-                     (format-time-string "~/Desktop/tmp/%Y%m%d-%H%M%S.txt" (current-time)))))
+                     (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time)))))
 
   ;; 幾つかのウィンドウでは、タブ移動しない
   (defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
