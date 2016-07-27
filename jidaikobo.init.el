@@ -968,6 +968,13 @@ end tell"
 (global-set-key (kbd "C-c r") (lambda () (interactive)
                                 (remove-strings-from-ac-my-dictionary ac-my-dictionary)))
 
+;; auto-complete の候補に日本語を含む単語が含まれないようにする
+;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
+(defadvice view-order-manuals (after remove-word-contain-japanese activate)
+  "Do not contain multi byte character in auto-complete candidates."
+  (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
+    (setq ad-return-value (remove-if contain-japanese ad-return-value))))
+
 ;; 候補と入力文字が完全に一致している時にRETでac-completeするとnewlineしてしまうので抑止
 (defadvice ac-complete (after advice-ac-complete activate)
   "Inhibit newline when full string was matched with candidate."

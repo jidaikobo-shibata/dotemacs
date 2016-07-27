@@ -292,13 +292,6 @@
 ;;   (when my-ftp-executable
 ;;     (setq ange-ftp-ftp-program-name my-ftp-executable)))
 
-;; ;; auto-complete の候補に日本語を含む単語が含まれないようにする
-;; ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
-;; (defadvice view-order-manuals (after remove-word-contain-japanese activate)
-;;   "Do not contain multi byte character in auto-complete candidates."
-;;   (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
-;;     (setq ad-return-value (remove-if contain-japanese ad-return-value))))
-
 ;;; ------------------------------------------------------------
 ;;; Elispのimenuで、Variablesは表示しない
 ;; (add-hook
