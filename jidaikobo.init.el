@@ -47,6 +47,9 @@
 ;; リージョンを上書きできるようにする
 (delete-selection-mode t)
 
+;; visual linesで移動する
+(setq line-move-visual t)
+
 ;; 選択範囲を可視化
 (setq transient-mark-mode t)
 
