@@ -1,412 +1,3 @@
-ALTER TABLE TABLE_NAME ADD `is_bool` INTEGER NOT NULL DEFAULT 0 AFTER `foo`
-ALTER TABLE TABLE_NAME CHANGE `COLUMN` `COLUMN` INTEGER NOT NULL DEFAULT 0
-ALTER TABLE TABLE_NAME auto_increment=1;
-ASC
-ASCII
-AUTO_INCREMENT
-Accessibility
-ActiveX
-Adobe
-All rights reserved.
-Anarchism
-Android
-Apache
-Apollo
-Apple
-April
-Arr::assoc_to_keyval()
-Arr::average()
-Arr::delete()
-Arr::filter_keys()
-Arr::flatten()
-Arr::flatten_assoc()
-Arr::get()
-Arr::in_array_recursive()
-Arr::insert()
-Arr::is_assoc()
-Arr::is_multi()
-Arr::merge()
-Arr::merge_assoc()
-Arr::multisort()
-Arr::search()
-Arr::set()
-Arr::sort()
-Arr::sum()
-Arr::to_assoc()
-Arr::unique()
-Asset
-Asset::add_path()
-Asset::css()
-Asset::find_file()
-Asset::get_file()
-Asset::img()
-Asset::js()
-Asset::remove_path()
-Asset::render()
-Atom
-August
-Auth::check()
-Auth::login()
-Basic English
-Bluetooth
-Bulletproof
-CD-ROM
-CERN
-CPU
-CREATE TABLE TABLE_NAME (id INTEGER PRIMARY KEY, body TEXT NOT NULL DEFAULT '');
-CSS
-CSV
-CUI
-CVS
-Cache::call()
-Cache::delete()
-Cache::delete_all()
-Cache::get()
-Cache::set()
-Cancel
-Capitalism
-CentOS
-China
-Chinese
-Christmas
-Chrome
-Config::delete()
-Config::get()
-Config::load()
-Config::save()
-Config::set()
-Cookie::delete()
-Cookie::get()
-Cookie::set()
-Copyright
-Cosmic
-Curl
-DB::commit_transaction()
-DB::count_last_query()
-DB::count_records()
-DB::datatype()
-DB::delete()
-DB::error_info()
-DB::escape()
-DB::expr()
-DB::in_transaction()
-DB::insert()
-DB::last_query()
-DB::list_columns()
-DB::list_tables()
-DB::query()
-DB::quote()
-DB::quote_identifier()
-DB::quote_table()
-DB::rollback_transaction()
-DB::select()
-DB::select_array()
-DB::set_charset()
-DB::start_transaction()
-DB::table_prefix()
-DB::update()
-DBUtil::add_fields()
-DBUtil::add_foregin_key()
-DBUtil::analyze_table()
-DBUtil::check_table()
-DBUtil::create_database()
-DBUtil::create_index()
-DBUtil::create_table()
-DBUtil::drop_database()
-DBUtil::drop_fields()
-DBUtil::drop_foreign_key()
-DBUtil::drop_index()
-DBUtil::drop_table()
-DBUtil::field_exists()
-DBUtil::modify_fields()
-DBUtil::optimize_table()
-DBUtil::rename_table()
-DBUtil::repair_table()
-DBUtil::table_exists()
-DBUtil::truncate_table()
-DELETE FROM TABLE_NAME WHERE
-DESC
-DISTINCT
-DVD
-Database
-Debug
-December
-Desktop
-Digital
-Download
-Edge
-Edy
-Emacs
-English
-Esc
-Excel
-Exception
-FALSE
-FTP
-Facebook
-February
-Fieldset
-File
-Finder
-Firefox
-FocusTalk
-Form
-FreeBSD
-French
-Frickr
-Friday
-FuelPHP
-GET
-GNU
-GNU Library Public License
-Galaxy
-Gmail
-Google
-Google Analytics
-Google Apps
-Google Chrome
-Google Earth
-Google Map
-Google Sitemap
-GyazMail
-HTML
-HTTP
-Historical Event Markup and Linking
-HyperText Markup Language
-I
-IBM
-IBM Homepage Reader
-IBM Homepage builder
-INSERT INTO TABLE_NAME (field_name1, field_name2) VALUES ('value1', 'value2');
-INTEGER
-IPv4
-IPv6
-ISO 14001
-ISO 27001
-ISO 9001
-IT
-Illustrator
-Image
-InDesign
-Industory
-Inflector
-Information Technology
-Input::all()
-Input::cookie()
-Input::delete()
-Input::extension()
-Input::file()
-Input::get()
-Input::headers()
-Input::ip()
-Input::is_ajax()
-Input::json()
-Input::method()
-Input::param()
-Input::patch()
-Input::post()
-Input::protocol()
-Input::put()
-Input::real_ip()
-Input::referrer()
-Input::server()
-Input::uri()
-Input::user_agent()
-Input::xml()
-Internet
-Internet Explorer
-JAWS
-JIS
-JIS Q 15001
-JIS X 8341-3
-JIS X 8341-3:2016
-JIS X 8341-3:2016「高齢者・障害者等配慮設計指針 - 情報通信における機器、ソフトウェア及びサービス−第三部: ウェブコンテンツ」
-January
-Japan
-Japanese
-Java
-JavaScript
-Jedit X
-July
-June
-KNOPPIX
-Keyboard
-Keyboard Maestro
-Konqueror
-Kyoto
-LAN
-Lang
-Libertarian
-LibreOffice
-Linux
-Log::debug()
-Log::error()
-Log::info()
-Log::warning()
-Log::write()
-MECE (Mutually Exclusive collectively Exhaustive)
-Mac
-Mac OS X
-MacBook
-MacBook Air
-Macintosh
-March
-Markdown
-May
-Microsoft
-Microsoft Edge
-Module::exists()
-Module::load()
-Module::loaded()
-Module::unload()
-Monday
-Movable Type
-Mozilla
-MySQL
-NS
-NULL
-Netscape
-Netscape Navigator
-November
-Nucleus
-Num
-OK
-October
-OpenOffice
-OpenType
-Opera
-PC
-PC Talker
-PDF
-PDO('mysql:host=localhost;dbname=database', 'user', 'password'); //  $pdo->query();
-POP before SMTP
-POST
-Package::load()
-Package::loaded()
-Package::unload()
-PageRank
-Pagination
-PayPal
-Perl
-Photoshop
-Photoshop Elements
-Picasa
-Podcast
-PostgreSQL
-PowerBook
-PowerPC
-QUERY_STRING
-QuickTime
-RAID
-RDF
-RDF - Resource Description Framework
-RSS
-RSS - RDF Site Summary
-RSS - Really Simple Syndication
-RSS - Rich Site Summary
-Redirect permanent /test http://www.example.com/test.html
-Redirect temp /test http://www.example.com/test.html
-Referer
-Request::active()
-Request::main()
-Response::get_header()
-Response::redirect()
-Router
-Ruby
-Ruby on Rails
-SELECT * FROM TABLE_NAME WHERE `foo` = '1';
-SERVER
-SESSION
-SORT_ASC
-SORT_DESC
-SQL
-SQL injection
-SSL
-STAR WARS
-SVN
-SaaS
-SaaS - Software as a Service
-Safari
-Samba
-Saturday
-Security
-September
-Session
-Shift_JIS
-SimpleText
-Skype
-Socialism
-SourceForge
-SpamAssassin
-StuffIt Expander
-Sublime Text
-Sunday
-TRUE
-TWAIN
-TeX
-Technical Term
-Techniques for WCAG 2.0
-The quick brown fox jumps over the lazy dog
-Thunderbird
-Thursday
-Time Machine
-Tiny MCE
-Transitional
-TrueType
-Tuesday
-Twitter
-UML
-UML - Unified Modeling Language
-UNIX
-UPDATE TABLE_NAME SET `column` = REPLACE(column, 'Foo', 'FooBar') ;
-UPDATE TABLE_NAME SET `field_name1` = 'value1',`field_name2` = 'value2' WHERE `id` = ?;
-UPDATE sqlite_sequence SET `seq` = 1 WHERE `name` = 'TABLE_NAME';
-UTF-8
-Understanding WCAG2.0
-Unicode
-Uri::base()
-Uri::build_query_string()
-Uri::create()
-Uri::current()
-Uri::main()
-Uri::segment()
-Uri::segment_replace()
-Uri::segments()
-Uri::string()
-Uri::to_assoc()
-Uri::update_query_string()
-User Agent
-VALUE DOMAIN
-Validation
-Vi
-Vim
-Visual Basic
-VoIP
-Vodafone
-VoiceOver
-Voyager
-W3C
-W3C - World Wide Web Consortium
-WAI
-WAI-ARIA
-WCAG
-WYSIWYG - What You See Is What You Get
-Web Accessibility Initiative
-Web Content Accessibility Guidelines
-Wednesday
-Wikipedia
-Windows
-WordPress
-World Wide Web Consortium
-XHTML
-XML
-XPReader
-XREA
-XSS
-Yahoo!
-Yahoo! Japan
-Yahoo! Site Explorer
-YouTube
 abandon
 abbr // JPY
 ability
@@ -427,6 +18,7 @@ academic
 accelerator
 accept
 access
+Accessibility
 accessibility
 accesskey
 accident
@@ -450,6 +42,7 @@ across
 act
 action
 active
+ActiveX
 activities
 activity
 actual
@@ -472,6 +65,7 @@ administrator
 admire
 admission
 admit
+Adobe
 adopt
 adult
 advance
@@ -514,6 +108,7 @@ align
 alike
 alive
 all
+All rights reserved.
 allergy
 allow
 allowance
@@ -526,6 +121,9 @@ alright
 also
 alt
 alter
+ALTER TABLE TABLE_NAME ADD `is_bool` INTEGER NOT NULL DEFAULT 0 AFTER `foo`
+ALTER TABLE TABLE_NAME auto_increment=1;
+ALTER TABLE TABLE_NAME CHANGE `COLUMN` `COLUMN` INTEGER NOT NULL DEFAULT 0
 alternative
 although
 always
@@ -541,10 +139,12 @@ amusement
 analysis
 analytics
 analyze
+Anarchism
 ancestor
 anchor
 ancient
 and
+Android
 angel
 anger
 angle
@@ -566,7 +166,9 @@ anyone
 anything
 anyway
 anywhere
+Apache
 apart
+Apollo
 apologize
 app
 apparatus
@@ -577,6 +179,7 @@ appear
 appearance
 append
 appetite
+Apple
 apple
 applet
 appliance
@@ -591,6 +194,7 @@ appropriate
 approval
 approve
 approximately
+April
 arch
 architecture
 archive
@@ -605,6 +209,26 @@ armour
 arms
 army
 around
+Arr::assoc_to_keyval()
+Arr::average()
+Arr::delete()
+Arr::filter_keys()
+Arr::flatten()
+Arr::flatten_assoc()
+Arr::get()
+Arr::in_array_recursive()
+Arr::insert()
+Arr::is_assoc()
+Arr::is_multi()
+Arr::merge()
+Arr::merge_assoc()
+Arr::multisort()
+Arr::search()
+Arr::set()
+Arr::sort()
+Arr::sum()
+Arr::to_assoc()
+Arr::unique()
 arrange
 arrangement
 array
@@ -652,6 +276,8 @@ article
 artificial
 artist
 as
+ASC
+ASCII
 ash
 ashamed
 aside
@@ -666,7 +292,16 @@ assert
 assert_options
 assess
 assessment
+Asset
 asset
+Asset::add_path()
+Asset::css()
+Asset::find_file()
+Asset::get_file()
+Asset::img()
+Asset::js()
+Asset::remove_path()
+Asset::render()
 assign
 assign var="key_yesnos" value=","|explode:"0,1"
 assign var="yesnos" value=","|explode:"いいえ,はい"
@@ -678,6 +313,7 @@ assumption
 astonish
 at
 atmosphere
+Atom
 atomic
 attach
 attack
@@ -690,11 +326,15 @@ attraction
 attractive
 attribute
 audience
+August
 auth
+Auth::check()
+Auth::login()
 authentication
 author
 authority
 auto-complete
+AUTO_INCREMENT
 automatic
 autumn
 availability
@@ -743,6 +383,7 @@ base64_encode
 base_convert
 basename
 basic
+Basic English
 basin
 basis
 basket
@@ -823,6 +464,7 @@ blood
 bloody
 blow
 blue
+Bluetooth
 board
 boast
 boat
@@ -899,6 +541,7 @@ building
 bulb
 bullet
 bulletin
+Bulletproof
 bunch
 burial
 burn
@@ -919,6 +562,11 @@ bz
 cabinet
 cable
 cache
+Cache::call()
+Cache::delete()
+Cache::delete_all()
+Cache::get()
+Cache::set()
 cage
 cake
 calculate
@@ -935,12 +583,14 @@ campaign
 can
 can't
 canal
+Cancel
 cancel
 candidate
 canvas
 capable
 capacity
 capital
+Capitalism
 capitalize
 caption
 capture
@@ -960,6 +610,7 @@ carry out
 cart
 carve
 case
+case sensitive
 cash
 cast
 castle
@@ -973,16 +624,19 @@ cathedral
 cattle
 cause
 cave
+CD-ROM
 ceil
 ceiling
 celebrate
 cell
 cement
 cent
+CentOS
 central
 centre
 century
 ceremony
+CERN
 certain
 certainly
 certificate
@@ -1024,12 +678,16 @@ childhood
 children
 chimney
 chin
+China
+Chinese
 chmod
 choice
 choose
 chop
 chown
 chr
+Christmas
+Chrome
 chroot
 church
 cigarette
@@ -1159,6 +817,11 @@ confess
 confidence
 confident
 config
+Config::delete()
+Config::get()
+Config::load()
+Config::save()
+Config::set()
 confine
 confirm
 conflict
@@ -1213,8 +876,12 @@ convince
 convincing
 cook
 cookie
+Cookie::delete()
+Cookie::get()
+Cookie::set()
 copper
 copy
+Copyright
 copyright
 cord
 core
@@ -1227,6 +894,7 @@ correct
 correspond
 cos
 cosmetic
+Cosmic
 cost
 costume
 cotton
@@ -1249,11 +917,13 @@ cover
 cow
 coward
 cowardly
+CPU
 crack
 crash
 crawl
 crazy
 create
+CREATE TABLE TABLE_NAME (id INTEGER PRIMARY KEY, body TEXT NOT NULL DEFAULT '');
 create_function
 created
 created_at
@@ -1284,9 +954,12 @@ crush
 cry
 crypt
 crystal
+CSS
 css
+CSV
 csv
 cue
+CUI
 cultivate
 cultural
 culture
@@ -1294,6 +967,7 @@ cup
 cupboard
 cure
 curiosity
+Curl
 curl
 currency
 current
@@ -1311,6 +985,7 @@ custom_post_type
 customer
 customize
 cut
+CVS
 cvs
 cycle
 daily
@@ -1323,6 +998,7 @@ dark
 dash
 dashboard
 data
+Database
 date
 date_add
 date_create
@@ -1347,6 +1023,49 @@ daughter
 dawn
 day
 db
+DB::commit_transaction()
+DB::count_last_query()
+DB::count_records()
+DB::datatype()
+DB::delete()
+DB::error_info()
+DB::escape()
+DB::expr()
+DB::in_transaction()
+DB::insert()
+DB::last_query()
+DB::list_columns()
+DB::list_tables()
+DB::query()
+DB::quote()
+DB::quote_identifier()
+DB::quote_table()
+DB::rollback_transaction()
+DB::select()
+DB::select_array()
+DB::set_charset()
+DB::start_transaction()
+DB::table_prefix()
+DB::update()
+DBUtil::add_fields()
+DBUtil::add_foregin_key()
+DBUtil::analyze_table()
+DBUtil::check_table()
+DBUtil::create_database()
+DBUtil::create_index()
+DBUtil::create_table()
+DBUtil::drop_database()
+DBUtil::drop_fields()
+DBUtil::drop_foreign_key()
+DBUtil::drop_index()
+DBUtil::drop_table()
+DBUtil::field_exists()
+DBUtil::modify_fields()
+DBUtil::optimize_table()
+DBUtil::rename_table()
+DBUtil::repair_table()
+DBUtil::table_exists()
+DBUtil::truncate_table()
 dead
 deal
 deal with
@@ -1355,11 +1074,13 @@ dear
 death
 debate
 debt
+Debug
 decade
 decay
 decbin
 deceitful
 deceive
+December
 deception
 dechex
 decide
@@ -1390,6 +1111,7 @@ degree
 delay
 delegate
 delete
+DELETE FROM TABLE_NAME WHERE
 deleted
 deleted_at
 deliberate
@@ -1415,6 +1137,7 @@ depression
 depth
 deputy
 derive
+DESC
 descend
 describe
 description
@@ -1424,6 +1147,7 @@ design
 desirable
 desire
 desk
+Desktop
 despair
 despite
 destination
@@ -1454,6 +1178,7 @@ difficult
 difficulty
 dig
 digestion
+Digital
 dignity
 dimension
 dinner
@@ -1501,6 +1226,7 @@ dissolve
 distance
 distant
 distil
+DISTINCT
 distinct
 distinction
 distinctive
@@ -1538,6 +1264,7 @@ double
 doubt
 doubtful
 down
+Download
 download
 downward
 draft
@@ -1567,6 +1294,7 @@ duplicate
 during
 dust
 duty
+DVD
 dye
 dynamic
 dynamic_sidebar();
@@ -1593,6 +1321,7 @@ echo '<br />';
 ecology
 economic
 economy
+Edge
 edge
 edible
 edit
@@ -1602,6 +1331,7 @@ edu
 educate
 education
 educational
+Edy
 effect
 effective
 effectively
@@ -1627,6 +1357,7 @@ eliminate
 elisp
 else
 elsewhere
+Emacs
 emacsclient
 email
 embarrass
@@ -1659,6 +1390,7 @@ engage
 engine
 engineer
 engineering
+English
 english
 enjoy
 enough
@@ -1688,6 +1420,7 @@ error
 error_log
 error_reporting
 error_reporting(E_ALL & ~E_STRICT);
+Esc
 esc_html()
 escape
 especially
@@ -1719,9 +1452,11 @@ examine
 example
 example.com
 example@example.com
+Excel
 excellence
 excellent
 except
+Exception
 exception
 exceptional
 excess
@@ -1783,6 +1518,7 @@ extremely
 eye
 fabric
 face
+Facebook
 facebook
 facility
 facsimile
@@ -1799,6 +1535,7 @@ fairy
 faith
 faithful
 fall
+FALSE
 false
 fame
 familiar
@@ -1826,6 +1563,7 @@ fclose
 fear
 feather
 feature
+February
 fee
 feeble
 feed
@@ -1844,9 +1582,11 @@ fgets
 fgetss
 fiction
 field
+Fieldset
 fierce
 fight
 figure
+File
 file
 file_exists
 file_get_contents
@@ -1870,12 +1610,14 @@ find('all', array('where' => array(array('category_id', 1), 'or' => array(array(
 find('all', array('where' => array(array('category_id', 1),), 'order_by' => array('created_at' => 'desc'),));
 find('first')
 find('last', array('order_by' => 'date'))
+Finder
 finding
 fine
 finely
 finger
 finish
 fire
+Firefox
 fireplace
 firm
 firmly
@@ -1909,6 +1651,7 @@ fluid
 flush
 fly
 focus
+FocusTalk
 fold
 follow
 follower
@@ -1952,6 +1695,7 @@ forge
 forget
 forgive
 fork
+Form
 form
 formal
 formally
@@ -1974,11 +1718,15 @@ framework
 frank
 freak
 free
+FreeBSD
 freedom
 freeze
+French
 frequent
 frequently
 fresh
+Frickr
+Friday
 friend
 friendship
 frighten
@@ -1987,8 +1735,10 @@ from
 front
 fruit
 fry
+FTP
 ftp
 fuel
+FuelPHP
 fulfil
 full
 full-time
@@ -2010,6 +1760,7 @@ fuss
 future
 fwrite
 gain
+Galaxy
 gallery
 game
 gang
@@ -2034,6 +1785,7 @@ gentleman
 genuine
 geometry
 gesture
+GET
 get
 get_browser
 get_called_class
@@ -2081,7 +1833,10 @@ glossary
 glove
 glow
 glue
+Gmail
 gmail.com
+GNU
+GNU Library Public License
 go
 goal
 goat
@@ -2090,6 +1845,13 @@ gold
 good
 goodness
 goods
+Google
+Google Analytics
+Google Apps
+Google Chrome
+Google Earth
+Google Map
+Google Sitemap
 gossip
 goto-char
 govern
@@ -2134,6 +1896,7 @@ guideline
 guilt
 guilty
 gun
+GyazMail
 habit
 hair
 hairy
@@ -2205,6 +1968,7 @@ hip
 hire
 his
 historical
+Historical Event Markup and Linking
 history
 hit
 hoge
@@ -2240,9 +2004,11 @@ household
 housing
 how
 however
+HTML
 html
 html_options options=$ZZZs name="ZZZ_id" selected=$ZZZ_ids
 html_options values=$ZZZ_ids output=$ZZZ_names selected=$ZZZ_ids
+HTTP
 http
 http-equiv
 http://
@@ -2258,18 +2024,13 @@ hurry
 hurt
 husband
 hut
+HyperText Markup Language
 hyphens
+I
 i-mode
-iMac
-iPad
-iPhone
-iPod
-iPod mini
-iPod nano
-iPod shuffle
-iPod touch
-iTunes
-iTunes Music Store
+IBM
+IBM Homepage builder
+IBM Homepage Reader
 ice
 icon
 id
@@ -2289,6 +2050,9 @@ illegal
 illness
 illusion
 illustrate
+Illustrator
+iMac
+Image
 image
 imaginary
 imagine
@@ -2334,6 +2098,7 @@ incremental
 indeed
 independence
 independent
+InDesign
 index
 index.html
 index.php
@@ -2342,12 +2107,14 @@ indication
 indirect
 individual
 indoors
+Industory
 industrial
 industry
 inevitable
 infect
 infection
 inferior
+Inflector
 inflict
 influence
 influential
@@ -2355,6 +2122,7 @@ info
 inform
 informal
 information
+Information Technology
 ingredient
 inhabitant
 inherit
@@ -2370,8 +2138,31 @@ ink
 inner
 innocent
 input
+Input::all()
+Input::cookie()
+Input::delete()
+Input::extension()
+Input::file()
+Input::get()
+Input::headers()
+Input::ip()
+Input::is_ajax()
+Input::json()
+Input::method()
+Input::param()
+Input::patch()
+Input::post()
+Input::protocol()
+Input::put()
+Input::real_ip()
+Input::referrer()
+Input::server()
+Input::uri()
+Input::user_agent()
+Input::xml()
 inquiry
 insert
+INSERT INTO TABLE_NAME (field_name1, field_name2) VALUES ('value1', 'value2');
 inside
 insincere
 insist
@@ -2389,6 +2180,7 @@ instrument
 insult
 insulting
 insurance
+INTEGER
 integer
 integration
 intellectual
@@ -2408,6 +2200,8 @@ interface
 interfere
 internal
 international
+Internet
+Internet Explorer
 interpret
 interpretation
 interrupt
@@ -2430,6 +2224,15 @@ invoke
 involve
 inward
 ip
+iPad
+iPhone
+iPod
+iPod mini
+iPod nano
+iPod shuffle
+iPod touch
+IPv4
+IPv6
 iron
 irrelevant
 irreverent
@@ -2460,26 +2263,42 @@ is_user_logged_in();
 is_visible
 is_writable
 island
+ISO 14001
+ISO 27001
+ISO 9001
 isolate
 isset
 issue
+IT
 it
 item
 its
 itself
-jQuery
-jQuery (function(){ });
+iTunes
+iTunes Music Store
 ja
 jacket
 jam
+January
+Japan
+Japanese
 japanese
+Java
+JavaScript
 javascript
 jaw
+JAWS
 jealous
+Jedit X
 jelly
 jet
 jewel
 jidaikobo
+JIS
+JIS Q 15001
+JIS X 8341-3
+JIS X 8341-3:2016
+JIS X 8341-3:2016「高齢者・障害者等配慮設計指針 - 情報通信における機器、ソフトウェア及びサービス−第三部: ウェブコンテンツ」
 job
 join
 joint
@@ -2489,6 +2308,8 @@ journalist
 journey
 joy
 jp
+jQuery
+jQuery (function(){ });
 json
 json_decode
 json_encode
@@ -2496,7 +2317,9 @@ judge
 judgement
 juice
 juicy
+July
 jump
+June
 just
 justice
 justify
@@ -2505,6 +2328,8 @@ keep
 kettle
 key
 key_exists
+Keyboard
+Keyboard Maestro
 keyword
 kick
 kid
@@ -2519,12 +2344,15 @@ kneel
 knife
 knit
 knock
+KNOPPIX
 knot
 know
 knowledge
+Konqueror
 kr
 krsort
 ksort
+Kyoto
 kyoto
 label
 labour
@@ -2536,8 +2364,10 @@ lake
 lamb
 lambda
 lamp
+LAN
 land
 landing
+Lang
 language
 large
 largely
@@ -2588,7 +2418,9 @@ level
 lhasa
 liability
 liberal
+Libertarian
 library
+LibreOffice
 licence
 lid
 lie
@@ -2609,6 +2441,7 @@ line-height
 line-height: 1;
 linen
 link
+Linux
 lip
 liquid
 lisence
@@ -2638,6 +2471,11 @@ location
 lock
 lodging
 log
+Log::debug()
+Log::error()
+Log::info()
+Log::warning()
+Log::write()
 logic
 logical
 login
@@ -2667,8 +2505,13 @@ luck
 lump
 lunch
 lung
+Mac
+Mac OS X
+MacBook
+MacBook Air
 machine
 machinery
+Macintosh
 mad
 madness
 magazine
@@ -2696,6 +2539,7 @@ manual
 manufacture
 many
 map
+March
 march
 margin
 margin-bottom
@@ -2704,6 +2548,7 @@ margin-right
 margin-top
 margin: 0;
 mark
+Markdown
 market
 marking
 marks
@@ -2722,6 +2567,7 @@ max
 max-height
 max-width
 maximum
+May
 may
 maybe
 maybe_serialize();
@@ -2732,8 +2578,8 @@ mb_convert_encoding
 mb_convert_encoding($str, "SJIS") //内部文字エンコーディングからSJISに変換
 mb_convert_encoding($str, "UTF-8", "EUC-JP") //EUC-JPからUTF-8に変換
 mb_convert_kana
-mb_convert_kana($str, "KV") //「半角カタカナ」を「全角カタカナ」＋濁点付きの文字を一文字に変換
 mb_convert_kana($str, "a") //「全角英数字」を「半角」
+mb_convert_kana($str, "KV") //「半角カタカナ」を「全角カタカナ」＋濁点付きの文字を一文字に変換
 mb_convert_kana($str, "s") //「全角スペース」を「半角スペース」
 mb_internal_encoding
 mb_language
@@ -2751,6 +2597,7 @@ meanwhile
 measure
 measurement
 meat
+MECE (Mutually Exclusive collectively Exhaustive)
 mechanical
 mechanism
 media
@@ -2785,6 +2632,8 @@ method_exists
 metre
 metric
 micro
+Microsoft
+Microsoft Edge
 microtime
 middle
 midnight
@@ -2830,7 +2679,12 @@ modified_at
 modifier
 modify
 module
+Module::exists()
+Module::load()
+Module::loaded()
+Module::unload()
 moment
+Monday
 money
 monk
 monkey
@@ -2851,11 +2705,13 @@ mould
 mountain
 mouth
 movable
+Movable Type
 move
 move-to
 move_uploaded_file
 movement
 movie
+Mozilla
 msgfmt
 much
 mud
@@ -2871,6 +2727,7 @@ must
 mutual
 my
 myself
+MySQL
 mysqli('example.com', 'user', 'password', 'database'); // $mysqli->query();
 mysterious
 mystery
@@ -2910,6 +2767,8 @@ nerve
 nervous
 nest
 net
+Netscape
+Netscape Navigator
 network
 never
 nevertheless
@@ -2948,9 +2807,14 @@ noticeable
 notion
 noun
 novel
+November
 now
 nowhere
+NS
 nuclear
+Nucleus
+NULL
+Num
 number
 number_format
 nun
@@ -2989,6 +2853,7 @@ occupation
 occupy
 occur
 ocean
+October
 odd
 of
 off
@@ -3005,6 +2870,7 @@ officially
 often
 oil
 oily
+OK
 okay
 old
 old-fashion
@@ -3018,6 +2884,9 @@ onto
 opacity
 open
 openly
+OpenOffice
+OpenType
+Opera
 operate
 operation
 opinion
@@ -3074,6 +2943,9 @@ oxygen
 pace
 pack
 package
+Package::load()
+Package::loaded()
+Package::unload()
 packet
 pad
 padding
@@ -3087,6 +2959,8 @@ page-break-after
 page-break-before
 page-break-inside
 page-policy
+PageRank
+Pagination
 pagination
 pain
 painful
@@ -3138,7 +3012,12 @@ pattern
 pause
 pay
 payment
+PayPal
+PC
+PC Talker
+PDF
 pdf
+PDO('mysql:host=localhost;dbname=database', 'user', 'password'); //  $pdo->query();
 peace
 peaceful
 pen
@@ -3158,6 +3037,7 @@ performance
 performer
 perhaps
 period
+Perl
 permanent
 permission
 permit
@@ -3176,13 +3056,16 @@ photograph
 photographer
 photographic
 photography
+Photoshop
+Photoshop Elements
 php
-phpMyAdmin
 phpinfo
+phpMyAdmin
 phpversion
 phrase
 physical
 pi
+Picasa
 pick
 picture
 pie
@@ -3221,6 +3104,7 @@ plugin
 plural
 plus
 pocket
+Podcast
 poem
 poet
 poetry
@@ -3242,6 +3126,7 @@ politics
 pool
 poor
 pop
+POP before SMTP
 popular
 popularity
 population
@@ -3261,6 +3146,7 @@ possession
 possibility
 possible
 possibly
+POST
 post
 post_content
 post_date
@@ -3268,6 +3154,7 @@ post_excerpt
 post_status
 post_title
 post_type
+PostgreSQL
 pot
 potato
 potential
@@ -3277,8 +3164,10 @@ poverty
 pow
 powder
 power
+PowerBook
 powered by
 powerful
+PowerPC
 practical
 practice
 praise
@@ -3417,12 +3306,14 @@ quarter
 query
 query_posts
 query_posts('post_type=POST_TYPE&orderby=menu_order&numberposts=-1');
+QUERY_STRING
 query_string
 question
 questionnaire
 questionnaires
 quick
 quickly
+QuickTime
 quiet
 quite
 quote
@@ -3432,6 +3323,7 @@ race
 rad2deg
 radio
 radio button
+RAID
 rail
 railway
 rain
@@ -3448,6 +3340,8 @@ raw
 rawurldecode
 rawurlencode
 ray
+RDF
+RDF - Resource Description Framework
 reach
 react
 reaction
@@ -3487,10 +3381,13 @@ recruit
 recycle
 red
 redirect
+Redirect permanent /test http://www.example.com/test.html
+Redirect temp /test http://www.example.com/test.html
 reduce
 reduction
 refer
 reference
+Referer
 refined
 reflect
 reform
@@ -3557,6 +3454,8 @@ reptile
 republic
 reputation
 request
+Request::active()
+Request::main()
 require
 requirement
 rescue
@@ -3576,6 +3475,8 @@ respect
 respectable
 respond
 response
+Response::get_header()
+Response::redirect()
 responsibilities
 responsibility
 responsible
@@ -3635,16 +3536,23 @@ rot
 rough
 round
 route
+Router
 routine
 row
 royal
 rsort
+RSS
+RSS - RDF Site Summary
+RSS - Really Simple Syndication
+RSS - Rich Site Summary
 rsync
 rtrim
 rub
 rubber
 rubbish
 rubikitch
+Ruby
+Ruby on Rails
 rude
 ruin
 rule
@@ -3653,8 +3561,11 @@ rumour
 run
 rural
 rush
+SaaS
+SaaS - Software as a Service
 sacrifice
 sad
+Safari
 safe
 safety
 said
@@ -3665,6 +3576,7 @@ sake
 salary
 sale
 salt
+Samba
 same
 sample
 sand
@@ -3673,6 +3585,7 @@ sans-serif
 satisfaction
 satisfactory
 satisfy
+Saturday
 save
 save-excursion
 say
@@ -3712,6 +3625,7 @@ secretary
 section
 sector
 secure
+Security
 security
 see
 seed
@@ -3719,6 +3633,7 @@ seek
 seem
 seize
 select
+SELECT * FROM TABLE_NAME WHERE `foo` = '1';
 selection
 self
 sell
@@ -3733,6 +3648,7 @@ sentimental
 separate
 separately
 separation
+September
 sequence
 serialize
 series
@@ -3741,8 +3657,11 @@ serious
 seriously
 servant
 serve
+SERVER
 server
 service
+SESSION
+Session
 session
 set
 setcookie
@@ -3774,6 +3693,7 @@ shelf
 shell
 shelter
 shield
+Shift_JIS
 shine
 shiny
 ship
@@ -3814,6 +3734,7 @@ silver
 similar
 similarly
 simple
+SimpleText
 simply
 sin
 since
@@ -3841,6 +3762,7 @@ skilled
 skin
 skirt
 sky
+Skype
 slave
 sleep
 sleeve
@@ -3885,6 +3807,7 @@ so
 soak
 soap
 social
+Socialism
 society
 sock
 soft
@@ -3915,11 +3838,14 @@ sore
 sorrow
 sorry
 sort
+SORT_ASC
+SORT_DESC
 soul
 sound
 soup
 sour
 source
+SourceForge
 south
 southern
 space
@@ -3927,6 +3853,7 @@ spacecraft
 spacify
 spade
 spam
+SpamAssassin
 speak
 speaker
 spec
@@ -3965,11 +3892,14 @@ spread
 spring
 sprintf
 sprintf("%02d", $num)
+SQL
+SQL injection
 sqlite
 square
 srand
 sscanf
 ssh
+SSL
 stable
 staff
 stage
@@ -3982,6 +3912,7 @@ stamp
 stand
 standard
 star
+STAR WARS
 stare
 start
 stat
@@ -4080,10 +4011,12 @@ studio
 studioNiCr
 study
 stuff
+StuffIt Expander
 stupid
 style
 stylesheet
 subject
+Sublime Text
 submit
 substance
 substantial
@@ -4114,6 +4047,7 @@ summary
 summer
 summon
 sun
+Sunday
 superior
 supervise
 supply
@@ -4136,6 +4070,7 @@ suspect
 suspend
 suspicion
 suspicious
+SVN
 svn
 swallow
 swear
@@ -4181,7 +4116,9 @@ teaching
 team
 tear
 technical
+Technical Term
 technique
+Techniques for WCAG 2.0
 technology
 tel
 telephone
@@ -4200,6 +4137,7 @@ terms
 terrible
 territory
 test
+TeX
 text
 text-align
 text-align: center;
@@ -4223,6 +4161,7 @@ thank
 thanks
 that
 the
+The quick brown fox jumps over the lazy dog
 thead
 theatre
 theatrical
@@ -4260,6 +4199,8 @@ throw
 thumb
 thumbnail
 thunder
+Thunderbird
+Thursday
 thus
 ticket
 tide
@@ -4269,9 +4210,11 @@ tight
 tighten
 till
 time
+Time Machine
 timtowtdi - There is more than one way to do it
 tin
 tiny
+Tiny MCE
 tip
 tire
 tired
@@ -4322,6 +4265,7 @@ trait
 trait_exists
 transfer
 transform
+Transitional
 translate
 transmit
 transparent
@@ -4346,7 +4290,9 @@ troop
 tropical
 trouble
 trousers
+TRUE
 true
+TrueType
 truly
 truncate
 trunk
@@ -4355,12 +4301,15 @@ truth
 try
 try {} catch (Exception $e) {}
 tube
+Tuesday
 tune
 tunnel
 turn
 tw
+TWAIN
 twice
 twist
+Twitter
 twitter
 type
 typical
@@ -4373,6 +4322,8 @@ ugly
 uksort
 umask
 umbrella
+UML
+UML - Unified Modeling Language
 unable
 unacceptable
 unaware
@@ -4387,6 +4338,7 @@ underline
 underneath
 understand
 understanding
+Understanding WCAG2.0
 undertake
 undesirable
 undo
@@ -4397,6 +4349,7 @@ unfair
 unfortunate
 unfortunately
 unhappy
+Unicode
 uniform
 unimportant
 union
@@ -4407,6 +4360,7 @@ united
 unity
 universe
 university
+UNIX
 unkind
 unknown
 unless
@@ -4428,6 +4382,9 @@ unwilling
 unwise
 up
 update
+UPDATE sqlite_sequence SET `seq` = 1 WHERE `name` = 'TABLE_NAME';
+UPDATE TABLE_NAME SET `column` = REPLACE(column, 'Foo', 'FooBar') ;
+UPDATE TABLE_NAME SET `field_name1` = 'value1',`field_name2` = 'value2' WHERE `id` = ?;
 updated
 updated_at
 updater
@@ -4442,6 +4399,17 @@ urban
 urge
 urgent
 uri
+Uri::base()
+Uri::build_query_string()
+Uri::create()
+Uri::current()
+Uri::main()
+Uri::segment()
+Uri::segment_replace()
+Uri::segments()
+Uri::string()
+Uri::to_assoc()
+Uri::update_query_string()
 url
 urldecode
 urlencode
@@ -4452,10 +4420,12 @@ used
 useful
 useless
 user
+User Agent
 usort
 ussage
 usual
 usually
+UTF-8
 utf8_decode
 utf8_encode
 utilities
@@ -4463,12 +4433,14 @@ utility
 vacuum
 val
 valid
+Validation
 validation
 validator
 valley
 vals
 valuable
 value
+VALUE DOMAIN
 var
 var_dump
 var_export
@@ -4499,6 +4471,7 @@ vertical-align: text-top;
 vertical-align: top;
 very
 vessel
+Vi
 via
 victim
 victory
@@ -4508,6 +4481,7 @@ viewport
 vigorous
 vigour
 village
+Vim
 violence
 violent
 virgin
@@ -4521,17 +4495,26 @@ visit
 visited
 visitor
 visual
+Visual Basic
 vital
 vivid
 vocabulary
+Vodafone
 voice
+VoiceOver
+VoIP
 volume
 vote
 vowel
 voyage
+Voyager
 vulnerability
 vulnerable
+W3C
+W3C - World Wide Web Consortium
 wage
+WAI
+WAI-ARIA
 waist
 wait
 waiting
@@ -4552,6 +4535,7 @@ water
 wave
 wax
 way
+WCAG
 we
 weak
 weakness
@@ -4562,7 +4546,10 @@ wear
 weather
 weave
 web
+Web Accessibility Initiative
+Web Content Accessibility Guidelines
 website
+Wednesday
 week
 weekend
 weigh
@@ -4607,6 +4594,7 @@ widows
 width
 width: 100%;
 wife
+Wikipedia
 wild
 wildly
 will
@@ -4614,6 +4602,7 @@ willing
 win
 wind
 window
+Windows
 windows
 wine
 wing
@@ -4642,6 +4631,7 @@ word
 word-break
 word-break: break-all;
 word-spacing
+WordPress
 wordwrap
 work
 worker
@@ -4649,6 +4639,7 @@ workflow
 working
 works
 world
+World Wide Web Consortium
 worm
 worry
 worse
@@ -4676,11 +4667,20 @@ wrong
 wrongdoing
 wrongly
 www.example.com
+WYSIWYG - What You See Is What You Get
+XHTML
 xhtml
 xls
 xlsx
+XML
 xml
 xor
+XPReader
+XREA
+XSS
+Yahoo!
+Yahoo! Japan
+Yahoo! Site Explorer
 yard
 yeah
 year
@@ -4694,6 +4694,7 @@ young
 your
 yourself
 youth
+YouTube
 z-index
 zero
 zip
