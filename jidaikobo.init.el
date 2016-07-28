@@ -563,6 +563,9 @@
 
 (declare-function smartrep-define-key "smartrep")
 
+(define-key mc/keymap (kbd "<return>")
+  (lambda () (interactive) (insert (char-to-string 10))))
+
 (global-set-key (kbd "C-M-c") 'mc/edit-lines)
 (global-set-key (kbd "C-M-r") 'mc/mark-all-in-region)
 
