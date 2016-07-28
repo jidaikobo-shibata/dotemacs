@@ -884,6 +884,7 @@ end tell"
 (setq ac-disable-faces nil)
 (setq ac-quick-help-delay 1)
 (setq ac-use-comphist nil)
+(setq ac-use-dictionary-as-stop-words nil)
 
 ;; ユーザ辞書設定
 (defvar ac-my-dictionary (concat jidaikobo-dir "ac-dict/my-dictionary"))
