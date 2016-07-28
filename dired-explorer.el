@@ -176,41 +176,57 @@
             (dired-explorer-mode t)))
 
 (put 'dired-find-alternate-file 'disabled nil)
+(declare-function string-trim "string-trim" (x))
 (defun dired-explorer-dired-open ()
   "Dired open in accordance with situation."
   (interactive)
-  (let (p1
-        p2
-        (file "")
-        (path (dired-file-name-at-point))
-        (is-explorer (eq major-mode 'dired-explorer-mode)))
-    (save-excursion
-      (setq p1 (dired-move-to-filename))
-      (setq p2 (dired-move-to-end-of-filename)))
-    (when (and p1 p2) (setq file (buffer-substring p1 p2)))
-    ;; (message "this-event: %s this-command: %s" last-input-event this-command)
-    (cond ((string= file ".")
-           (message "current directory."))
-          ;; up directory at same buffer
+  (let* (p1
+         p2
+         (file "")
+         (path (expand-file-name (dired-file-name-at-point)))
+         (is-explorer (eq major-mode 'dired-explorer-mode))
+         (mac-orig-path (when (eq system-type 'darwin)
+                          (string-trim
+                           (shell-command-to-string
+                            (concat "osascript -e 'tell application \"Finder\" to return POSIX path of (original item of item (POSIX file \""
+                                    path
+                                    "\") as alias)'"))))))
+    (if (file-exists-p mac-orig-path)
+        (progn
+          (message "%s" mac-orig-path)
+          (setq path mac-orig-path)
+          (cond ((and
+                  (one-window-p)
+                  (file-directory-p path)
+                  (not (memq last-input-event '(s-return S-return))))
+                 (find-alternate-file path))
+                (t
+                 (find-file path))))
+      (save-excursion
+        (setq p1 (dired-move-to-filename))
+        (setq p2 (dired-move-to-end-of-filename)))
+      (when (and p1 p2) (setq file (buffer-substring p1 p2)))
+      ;; (message "this-event: %s this-command: %s" last-input-event this-command)
+      (cond ((string= file ".")
+             (message "current directory."))
+            ;; up directory at same buffer
           ((and
             (one-window-p)
             (or
              (memq last-input-event '(94)) ; means "^"
              (and (string= file "..") (not (memq last-input-event '(s-return S-return))))))
-           ;; (message "up")
            (find-alternate-file
             (file-name-directory (directory-file-name (dired-current-directory)))))
           ;; find file/directory at same buffer
           ((and
             (one-window-p)
-            (or
-             (and (file-directory-p path) (not (memq last-input-event '(s-return S-return))))))
-           ;; (message "move")
+            (file-directory-p path)
+            (not (memq last-input-event '(s-return S-return))))
            (dired-find-alternate-file))
           ;; find file/directory at new buffer when S-RET / s-RET
           (t
            ;; (message "etc")
-           (dired-find-file)))
+           (dired-find-file))))
     ;; keep explorer-mode
     (when (or (and (file-directory-p path) is-explorer)
               (and (string= file "..") is-explorer))
