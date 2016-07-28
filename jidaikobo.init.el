@@ -53,6 +53,9 @@
 ;; font-lock-mode
 (global-font-lock-mode t)
 
+;; sort-linesはcase insensitiveで
+(setq-default sort-fold-case t)
+
 ;; スクロールを一行ずつにする
 (setq scroll-step 1)
 
