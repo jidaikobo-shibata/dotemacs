@@ -1496,7 +1496,12 @@ end tell"
   "Contexual delete windows."
   (interactive)
   (cond
-   ;; ウィンドウ構成が多ければまずウィンドウを消す
+   ;; なんだかミニバッファにいたら抜ける
+   ((minibufferp (current-buffer))
+    (minibuffer-keyboard-quit)
+    (other-window 1)
+    (my-delete-windows))
+   ;; ウィンドウ構成が多ければまず自分を消す
    ((not (one-window-p)) (delete-window))
    ;; ウィンドウ構成がひとつでバッファに変更があれば破棄を確認する
    ((or (and (buffer-modified-p)
