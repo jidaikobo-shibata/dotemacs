@@ -739,11 +739,11 @@
   (shell-command (concat "open -b com.apple.terminal " (expand-file-name "."))))
 
 ;; thx http://qiita.com/ganmacs/items/cfc5f9c2213a6a9e6579
-(defun cd-on-iterm ()
-  "Change directory to current buffer path by iTerm.app."
+(defun cd-on-iterm (&optional command)
+  "Change directory to current buffer path by iTerm.app.  COMMAND is execute after cd."
   (interactive)
   (util/execute-on-iterm
-   (format "cd %s" default-directory)))
+   (concat (format "cd %s" default-directory) command)))
 
 (defun util/execute-on-iterm (command)
   "Change directory to current buffer path by iTerm.app.  COMMAND."
@@ -758,6 +758,7 @@ end tell"
            command)))
 
 (global-set-key (kbd "C-c d") 'cd-on-iterm)
+(global-set-key (kbd "C-c g") (lambda () (interactive) (cd-on-iterm " && git ci -a")))
 
 ;;; ------------------------------------------------------------
 ;;; gtags
