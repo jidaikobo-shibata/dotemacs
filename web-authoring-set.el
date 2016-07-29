@@ -387,14 +387,22 @@
         (setq cursor (+ beg cursor+))
       (setq cursor (+ (point) cursor-)))
     (goto-char cursor)))
-(global-set-key (kbd "s-M-v") 'any-html-tag) ; cmd+shift+v
 
-(defun foo ()
-  "Foo."
-  (interactive)
-       (let (v)
-         (setq v (read-string "foo:"))
-         (message "%s" v)))
+(global-set-key (kbd "s-M-v") 'any-html-tag)
+
+;;; ------------------------------------------------------------
+;;; ブラケット
+(defun sand-brackets (tag)
+  "Insert html intaractive.  TAG."
+  (interactive "i")
+  (let* ((beg (if (region-active-p) (region-beginning) (point)))
+         (end (when (region-active-p) (region-end)))
+         (word (if (region-active-p) (buffer-substring-no-properties beg end) "")))
+    (unless tag (setq tag (read-string "tag: ")))
+    (setq tag (concat "[" tag "]" word "[/" tag "]"))
+    (when (region-active-p) (delete-region beg end))
+    (insert tag)))
+(global-set-key (kbd "s-M-b") 'sand-brackets)
 
 ;;; headings
 (defun h1-tag ()
