@@ -387,7 +387,6 @@
         (setq cursor (+ beg cursor+))
       (setq cursor (+ (point) cursor-)))
     (goto-char cursor)))
-
 (global-set-key (kbd "s-M-v") 'any-html-tag)
 
 ;;; ------------------------------------------------------------
@@ -404,6 +403,7 @@
     (insert tag)))
 (global-set-key (kbd "s-M-b") 'sand-brackets)
 
+;;; ------------------------------------------------------------
 ;;; headings
 (defun h1-tag ()
   "Add h1."
