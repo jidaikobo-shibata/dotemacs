@@ -110,27 +110,29 @@
   (mac-auto-ascii-mode 1)
 
   ;; ヘルプは全角で操作しない
+  (defvar Helper-help-map nil)
   (require 'helper)
   (global-set-key [f1] (lambda () (interactive)
                          (mac-auto-ascii-select-input-source)
                          (Helper-help)))
-  (define-key Helper-help-map "a" 'apropos-command)
-  (define-key Helper-help-map "b" 'describe-bindings)
-  (define-key Helper-help-map "c" 'describe-key-briefly)
-  (define-key Helper-help-map "d" 'apropos-documentation)
-  (define-key Helper-help-map "e" 'view-echo-area-messages)
-  (define-key Helper-help-map "f" 'describe-function)
-  (define-key Helper-help-map "i" (lambda () (interactive) (info "(emacs245-ja)Top")))
-  (define-key Helper-help-map "k" 'describe-key)
-  (define-key Helper-help-map "m" 'describe-mode)
-  (define-key Helper-help-map "p" 'finder-by-keyword)
-  (define-key Helper-help-map "P" 'describe-package)
-  (define-key Helper-help-map "r" 'info-emacs-manual)
-  (define-key Helper-help-map "s" 'describe-syntax)
-  (define-key Helper-help-map "t" 'help-with-tutorial)
-  (define-key Helper-help-map "w" 'where-is)
-  (define-key Helper-help-map "v" 'describe-variable)
-  (define-key Helper-help-map "q" 'help-quit))
+  (with-eval-after-load 'helper
+    (define-key Helper-help-map "a" 'apropos-command)
+    (define-key Helper-help-map "b" 'describe-bindings)
+    (define-key Helper-help-map "c" 'describe-key-briefly)
+    (define-key Helper-help-map "d" 'apropos-documentation)
+    (define-key Helper-help-map "e" 'view-echo-area-messages)
+    (define-key Helper-help-map "f" 'describe-function)
+    (define-key Helper-help-map "i" (lambda () (interactive) (info "(emacs245-ja)Top")))
+    (define-key Helper-help-map "k" 'describe-key)
+    (define-key Helper-help-map "m" 'describe-mode)
+    (define-key Helper-help-map "p" 'finder-by-keyword)
+    (define-key Helper-help-map "P" 'describe-package)
+    (define-key Helper-help-map "r" 'info-emacs-manual)
+    (define-key Helper-help-map "s" 'describe-syntax)
+    (define-key Helper-help-map "t" 'help-with-tutorial)
+    (define-key Helper-help-map "w" 'where-is)
+    (define-key Helper-help-map "v" 'describe-variable)
+    (define-key Helper-help-map "q" 'help-quit)))
 
 ;; dont let the cursor go into minibuffer prompt
 ;; reference | http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
@@ -203,6 +205,7 @@
 ;; thx https://ayatakesi.github.io
 ;; thx http://rubikitch.com/2016/07/06/emacs245-manual-ja/
 (when (file-directory-p "~/.emacs.d/info/")
+  (defvar Info-directory-list nil)
   (require 'info)
   (add-to-list 'Info-directory-list "~/.emacs.d/info/")
   (defun Info-find-node--info-ja (orig-fn filename &rest args)
@@ -398,10 +401,11 @@
 (global-set-key (kbd "<C-kp-3>") 'split-window-horizontally)
 (global-set-key (kbd "C-0") 'delete-window)
 
-;; split-windowは、フォーカスを移動してほしい
+;; 能動的なsplit-windowは、フォーカスを移動してほしい
 (defadvice split-window (after split-window-and-select activate)
   "Split window and select."
-  (other-window 1))
+  (when (memq last-input-event '(50 51 67108914 67108915 C-kp-2 C-kp-3))
+  (other-window 1)))
 
 ;; escでM-g
 (setq-default normal-escape-enabled t)
