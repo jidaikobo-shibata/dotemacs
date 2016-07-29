@@ -733,10 +733,11 @@
 ;;; 現在バッファパスにterminal/iTermでcdする
 ;; thx http://stackoverflow.com/questions/29404870/change-directory-in-osx-terminal-app-from-emacs-nw
 
-(defun my-open-terminal-in-current-dir ()
-  "Change directory to current buffer path by Terminal.app."
+(defun my-open-terminal-in-current-dir (&optional command)
+  "Change directory to current buffer path by Terminal.app.  COMMAND is execute after cd."
   (interactive)
-  (shell-command (concat "open -b com.apple.terminal " (expand-file-name "."))))
+  (shell-command
+   (concat "open -b com.apple.terminal " (expand-file-name ".") command)))
 
 ;; thx http://qiita.com/ganmacs/items/cfc5f9c2213a6a9e6579
 (defun cd-on-iterm (&optional command)
