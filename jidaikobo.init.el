@@ -398,6 +398,11 @@
 (global-set-key (kbd "<C-kp-3>") 'split-window-horizontally)
 (global-set-key (kbd "C-0") 'delete-window)
 
+;; split-windowは、フォーカスを移動してほしい
+(defadvice split-window (after split-window-and-select activate)
+  "Split window and select."
+  (other-window 1))
+
 ;; escでM-g
 (setq-default normal-escape-enabled t)
 (define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
