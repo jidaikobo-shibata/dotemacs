@@ -43,6 +43,8 @@
 
 ;;; Code:
 
+(require 'subr-x)
+
 ;;; ------------------------------------------------------------
 ;;; 選択範囲内の文字列置換
 ;; thx http://qiita.com/ShingoFukuyama/items/62269c4904ca085f9149
@@ -154,7 +156,7 @@
   (interactive "i")
   (let* ((beg (if (region-active-p) (region-beginning) (point)))
          (end (when (region-active-p) (region-end)))
-         (word (if (region-active-p) (buffer-substring-no-properties beg end) ""))
+         (word (if (region-active-p) (string-trim (buffer-substring-no-properties beg end)) ""))
          (cursor- 0)
          (cursor+ 0)
          (close-tag (if (is-xhtml) " />" ">"))
@@ -252,8 +254,8 @@
           (progn (setq html (concat html "\t<li>" (car lines) "</li>\n"))))
         (setq lines (cdr lines)))
       (if (string= tag "ul-li")
-          (setq tag (concat "<ul>\n" html "</ul>"))
-        (setq tag (concat "<ol>\n" html "</ol>"))))
+          (setq tag (concat "<ul>\n" html "</ul>\n"))
+        (setq tag (concat "<ol>\n" html "</ol>\n"))))
 
      ;; select
      ((string= tag "select")
@@ -268,25 +270,23 @@
 
      ;; p-each
      ((string= tag "p-each")
-      ;; <br>が含まれていたらeachしない
-      (if (string-match
-           "<br>\\|<br />\\|<br/>"
-           (buffer-substring-no-properties (region-beginning)
-                                           (region-end)))
-          (setq tag (concat "<p>" word "</p>")
+      ;; 選択範囲がなければ空のpを用意する
+      (if (not mark-active)
+          (setq tag "<p></p>"
                 cursor+ 2)
-        ;; <br>が含まれていないのでeach
-        (setq html ""
-              lines (split-string word "\n"))
-        (while lines
-          (if (string= (car lines) "") nil
-            (progn (setq html (concat html "<p>" (car lines) "</p>\n"))))
-          (setq lines (cdr lines)))
-        (replace-regexp-in-string "\n+$" "" html)
-        (when (string= html "")
-          (setq html "<p></p>"
-                cursor+ 3))
-        (setq tag html)))
+        ;; 選択範囲があって、かつ<br>が含まれていたらeachしない
+        (if (string-match "<br */*?>" (buffer-substring-no-properties beg end))
+            (setq tag (concat "<p>" word "</p>")
+                  cursor+ 2)
+          ;; <br>が含まれていないのでeach
+          (setq lines (split-string word "\n"))
+          (while lines
+            (if (string= (car lines) "")
+                (setq html (concat html "\n"))
+              (setq html (concat html "<p>" (car lines) "</p>\n")))
+            (setq lines (cdr lines)))
+          (replace-regexp-in-string "\n+$" "" html)
+          (setq tag html))))
 
      ;; li-each
      ((string= tag "li-each")
