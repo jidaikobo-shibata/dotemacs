@@ -540,19 +540,6 @@
       (deactivate-mark))))
 
 ;;; ------------------------------------------------------------
-;;; 対になるパーレンに移動
-;; thx https://gist.github.com/donghee/3937661
-
-(defun jump-match-paren (arg)
-  "Go to the matching parenthesis.  ARG."
-  (interactive "p")
-  (cond ((looking-at "\\s\(\\|\\s\[") (forward-list 1) (backward-char 1))
-        ((looking-at "\\s\)\\|\\s\]") (forward-char 1) (backward-list 1))
-        (t (back-to-indentation))))
-
-(global-set-key (kbd "s-b") 'jump-match-paren)
-
-;;; ------------------------------------------------------------
 ;;; 複数箇所選択 - multiple-cursors and smartrep
 (require 'multiple-cursors)
 (require 'smartrep)
@@ -904,7 +891,6 @@ end tell"
 (defvar ac-my-dictionary-dict '((candidates . (ac-file-dictionary ac-my-dictionary))))
 (setq-default ac-sources '(ac-my-dictionary-dict
                            ac-source-words-in-same-mode-buffers))
-;; (setq-default ac-sources '(ac-my-dictionary-dict))
 
 ;; 条件の追加
 ;; global-auto-complete-modeで足されていないものたち
@@ -1033,16 +1019,14 @@ end tell"
 (push '("*anything*" :height 20)
       popwin:special-display-config)
 
-;; Messages buffer
+;; popwin buffers
 (push '("*Messages*" :height 10 :stick t :position bottom :tail t :noselect t)
       popwin:special-display-config)
-
-;; Backtrace buffer
 (push '("*Backtrace*" :height 10)
       popwin:special-display-config)
-
-;; auto-async-byte-compile buffer
 (push '(" *auto-async-byte-compile*" :height 10)
+      popwin:special-display-config)
+(push '("*Warnings*" :height 10)
       popwin:special-display-config)
 
 ;; key-binds
@@ -1217,7 +1201,7 @@ end tell"
 (add-to-list 'alist-anything-for-files 'anything-c-source-my-hosts t)
 
 ;;; ------------------------------------------------------------
-;;; ~/.ftp/configを情報源として、tramp接続
+;;; ~/.ftp/configを情報源として、ftp接続
 
 (defvar anything-c-source-my-ftp-hosts
   '((name . "FTP hosts")
@@ -1260,6 +1244,11 @@ end tell"
 
 ;;; ------------------------------------------------------------
 ;;; my-anything-for-files
+
+(add-to-list 'alist-anything-for-files 'anything-c-source-emacs-functions-with-abbrevs t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-emacs-commands t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-emacs-variables t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-imenu t)
 
 (defun my-anything-for-files ()
   "Anything command included find by gtags."
@@ -1361,16 +1350,16 @@ end tell"
 ;;; ------------------------------------------------------------
 ;;; Anything my-anything-for-functions
 
-(defun my-anything-for-functions ()
-  "Anything command for program."
-  (interactive)
-  (anything-other-buffer
-   '(anything-c-source-emacs-functions-with-abbrevs
-     anything-c-source-emacs-commands
-     anything-c-source-emacs-variables
-     anything-c-source-imenu)
-   "*my-anything-for-functions*"))
-(global-set-key (kbd "C-,") 'my-anything-for-functions)
+;; (defun my-anything-for-functions ()
+;;   "Anything command for program."
+;;   (interactive)
+;;   (anything-other-buffer
+;;    '(anything-c-source-emacs-functions-with-abbrevs
+;;      anything-c-source-emacs-commands
+;;      anything-c-source-emacs-variables
+;;      anything-c-source-imenu)
+;;    "*my-anything-for-functions*"))
+;; (global-set-key (kbd "C-,") 'my-anything-for-functions)
 
 
 ;;; ------------------------------------------------------------
@@ -1394,14 +1383,8 @@ end tell"
                        ((eq (current-buffer) b) b)
                        ((buffer-file-name b) b)
                        ((char-equal ?\ (aref (buffer-name b) 0)) nil)
-                       ;; *help*バッファは表示する
-                       ((equal "*help*" (buffer-name b)) b)
-                       ;; *scratch*バッファは表示する
-                       ((equal "*scratch*" (buffer-name b)) b)
-                       ;; *grep*バッファは表示する
-                       ((equal "*grep*" (buffer-name b)) b)
-                       ;; *eww*バッファは表示する
-                       ((equal "*eww*" (buffer-name b)) b)
+                       ;; show specified buffers
+                       ((member (buffer-name b) '("*Help*" "*scratch*" "*grep*" "*eww*")) b)
                        ;; それ以外の * で始まるバッファは表示しない
                        ((char-equal ?* (aref (buffer-name b) 0)) nil)
                        ((buffer-live-p b) b)))
@@ -1480,12 +1463,14 @@ end tell"
   ;; 幾つかのウィンドウでは、タブ移動しない
   (defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
     "Do not forward at specified baffers."
-    (if (member (buffer-name) '("*RE-Builder*" "*Messages*"))
+    (if (and (member (buffer-name) '("*RE-Builder*" "*Messages*"))
+             (not (one-window-p)))
         nil
       ad-do-it))
   (defadvice tabbar-backward-tab (around advise-tabbar-backward-tab activate)
     "Do not backward at specified baffers."
-    (if (member (buffer-name) '("*RE-Builder*" "*Messages*"))
+    (if (and (member (buffer-name) '("*RE-Builder*" "*Messages*"))
+             (not (one-window-p)))
         nil
       ad-do-it)))
 
@@ -1607,7 +1592,11 @@ end tell"
                       (point)
                       (point-max)
                       (if mark-active
-                          (concat "[" (format "%s" (- (region-end) (region-beginning))) "]")
+                          (concat "["
+                                  (format "%s" (count-lines (region-end) (region-beginning)))
+                                  "-"
+                                  (format "%s" (- (region-end) (region-beginning)))
+                                  "]")
                         ""))))
 
 ;; 改行の種類表示の変更
@@ -1633,28 +1622,39 @@ end tell"
 ;;; ------------------------------------------------------------
 
 ;;; 行／選択範囲の複製 (cmd+d)
-;; gist-description: Emacs(Elisp): duplicate region or line. 選択範囲がある場合は選択範囲を、選択範囲がない場合は、行を複製します。
+;; gist-description: Emacs(Elisp): duplicate region or line.  if same command repeated, then duplicate sate strings.  選択範囲がある場合は選択範囲を、選択範囲がない場合は、行を複製します。繰り返した場合、同じ文字列を複製し続けます。
 ;; gist-id: 297fe973cde66b384fa1
 ;; gist-name: duplicate-region-or-line.el
 ;; gist-private: nil
 
+(defvar previous-duplicate-region-or-line nil)
+(defvar previous-duplicate-region-or-line-was-line nil)
 (defun duplicate-region-or-line ()
   "Duplicate region or line."
   (interactive)
-  (let (selected
-        (is-line nil))
-    (if (not (region-active-p))
+  (let* ((beg (if mark-active
+                  (region-beginning)
+                (save-excursion (beginning-of-line) (point))))
+         (end (if mark-active
+                  (region-end)
+                (save-excursion (end-of-line) (point))))
+         (strings (buffer-substring-no-properties beg end))
+         (is-repeat (eq last-command this-command))
+         (is-line (if is-repeat
+                      previous-duplicate-region-or-line-was-line
+                    (not (region-active-p))))
+         (strings (if (region-active-p)
+                      strings
+                    (concat "\n" strings))))
+    (if is-line
         (progn
-          (setq is-line t)
-          (beginning-of-line)
-          (set-mark-command nil)
           (end-of-line)
-          (setq deactivate-mark nil)))
-    (setq selected (buffer-substring-no-properties (region-beginning) (region-end)))
-    (if is-line (progn
-                  (insert "\n" selected)
-                  (beginning-of-line))
-      (insert selected))))
+          (setq previous-duplicate-region-or-line-was-line is-line))
+      (setq previous-duplicate-region-or-line-was-line nil))
+    (if is-repeat
+        (insert previous-duplicate-region-or-line)
+      (insert strings)
+      (setq previous-duplicate-region-or-line strings))))
 
 (global-set-key (kbd "s-d") 'duplicate-region-or-line)
 
@@ -1725,7 +1725,8 @@ end tell"
   "Join multi lines."
   (interactive)
   (let ((beg (region-beginning))
-        (end (region-end)))
+        (end (region-end))
+        strings)
     (goto-char beg)
     (back-to-indentation)
     (setq beg (point))
@@ -1733,11 +1734,15 @@ end tell"
     (goto-char (- (point) 1))
     (end-of-line)
     (setq end (point))
-    (perform-replace "\n\\|^>+ *\\|^[\t　 ]+" "" nil t nil nil nil beg end)
+    (setq strings (buffer-substring-no-properties beg end))
+    (setq strings (replace-regexp-in-string "\n\\|^>+ *\\|^[\t　 ]+" " " strings))
+    (setq strings (replace-regexp-in-string " +" " " strings))
+    (delete-region beg end)
+    (insert strings)
     (goto-char beg)))
 
-(global-set-key (kbd "<s-kp-divide>") 'join-multi-lines-to-one) ; cmd+/
-(global-set-key (kbd "s-/") 'join-multi-lines-to-one) ; cmd+/
+(global-set-key (kbd "<s-kp-divide>") 'join-multi-lines-to-one)
+(global-set-key (kbd "s-/") 'join-multi-lines-to-one)
 
 ;;; ------------------------------------------------------------
 ;;; align-regexpが、indent-tabs-modeがtでも、スペースを詰めるように
@@ -1769,7 +1774,7 @@ end tell"
     (insert ret)
     (goto-char (- (point) cursor))))
 
-;; php without ip
+;; insert appropriate comment
 (global-set-key (kbd "s-M-C")
                 (lambda (type author copyright link)
                   (interactive
@@ -1959,7 +1964,7 @@ If gist-id exists update gist.  BEG END."
 ;;; 自動バイトコンパイル
 ;; thx http://www.emacswiki.org/emacs/auto-async-byte-compile.el
 (require 'auto-async-byte-compile)
-(setq auto-async-byte-compile-exclude-files-regexp "init.el\\|wl.el")
+(setq auto-async-byte-compile-exclude-files-regexp "init.el\\|wl.el\\|storage.el")
 (add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode)
 
 ;;; s+RETでeval-bufferかeval-region
@@ -2031,6 +2036,7 @@ If gist-id exists update gist.  BEG END."
 
 ;;; ------------------------------------------------------------
 ;;; kontiki-mode - ワイアフレームモード
+
 (easy-mmode-define-minor-mode kontiki-mode
                               "This is a Mode for Kontiki-Draft."
                               nil

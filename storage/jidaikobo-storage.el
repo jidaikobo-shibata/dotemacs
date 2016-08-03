@@ -1,4 +1,17 @@
 ;; ;;; ------------------------------------------------------------
+;; ;;; 対になるパーレンに移動
+;; ;; thx https://gist.github.com/donghee/3937661
+
+;; (defun jump-match-paren (arg)
+;;   "Go to the matching parenthesis.  ARG."
+;;   (interactive "p")
+;;   (cond ((looking-at "\\s\(\\|\\s\[") (forward-list 1) (backward-char 1))
+;;         ((looking-at "\\s\)\\|\\s\]") (forward-char 1) (backward-list 1))
+;;         (t (back-to-indentation))))
+
+;; (global-set-key (kbd "s-b") 'jump-match-paren)
+
+;; ;;; ------------------------------------------------------------
 ;; ;;; 一行目と最終行での上下キーの振る舞い（行末と行頭へ）
 ;; macらしいけど、Emacsらしくなくview-line-modeと相性が悪いのでいったんやめてみる
 ;; (defvar prev-line-num (line-number-at-pos))
