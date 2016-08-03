@@ -793,6 +793,18 @@ end tell"
 (define-key wdired-mode-map (kbd "C-g") 'wdired-abort-changes)
 (define-key wdired-mode-map [escape] 'wdired-abort-changes)
 
+;; spaceでtoggle marks
+(define-key dired-mode-map " " 'dired-toggle-mark)
+(define-key dired-explorer-mode-map " " 'dired-toggle-mark)
+(defun dired-toggle-mark (arg)
+  "Toggle the current (or next ARG) file."
+  (interactive "P")
+  (let ((dired-marker-char
+         (if (save-excursion (beginning-of-line)
+                             (looking-at " "))
+             dired-marker-char " ")))
+    (dired-mark arg)))
+
 ;; diredの前後の行移動をshift対応に
 ;; thx rubikitch
 (defun dired-next-line--shift-select (&rest them)
