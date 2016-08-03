@@ -853,8 +853,8 @@ end tell"
 (add-to-list 'backup-directory-alist
              (cons tramp-file-name-regexp nil))
 
-;; FTPではパッシブモードでの接続を試みる
-(setq-default ange-ftp-try-passive-mode t)
+;; パッシブモードで接続しようとするとエラーになるようなので、様子見nil
+(setq-default ange-ftp-try-passive-mode nil)
 
 ;; scpで接続
 (setq tramp-default-method "scp")
@@ -1382,6 +1382,8 @@ end tell"
                        ((eq (current-buffer) b) b)
                        ((buffer-file-name b) b)
                        ((char-equal ?\ (aref (buffer-name b) 0)) nil)
+                       ;; *help*バッファは表示する
+                       ((equal "*help*" (buffer-name b)) b)
                        ;; *scratch*バッファは表示する
                        ((equal "*scratch*" (buffer-name b)) b)
                        ;; *grep*バッファは表示する
