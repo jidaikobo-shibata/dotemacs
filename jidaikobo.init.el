@@ -42,7 +42,6 @@
 
 ;; ディレクトリ類
 (defvar my-work-dir (expand-file-name "~/"))
-(defvar my-fetch-app-dir (expand-file-name "~/"))
 
 ;; リージョンを上書きできるようにする
 (delete-selection-mode t)
@@ -248,6 +247,7 @@
 ;; load-pathの追加
 (add-to-list 'load-path jidaikobo-dir)
 (add-to-list 'load-path (concat dotfiles-dir "elisp"))
+(add-to-list 'load-path (concat dotfiles-dir "elisp/dired-explorer"))
 
 ;; package.override.el
 (defvar override-el (concat dotfiles-dir "package.override.el"))
