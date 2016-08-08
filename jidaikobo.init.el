@@ -286,6 +286,7 @@
       undo-tree
       undohist
       web-beautify
+      yaml-mode
       yagist
       zlc))
 
@@ -898,6 +899,7 @@ end tell"
 (add-to-list 'ac-modes 'text-mode)
 (add-to-list 'ac-modes 'fundamental-mode)
 (add-to-list 'ac-modes 'html-mode)
+(add-to-list 'ac-modes 'yaml-mode)
 
 ;;; 辞書に文字列を足して、git commit
 (defun add-strings-to-ac-my-dictionary (dict-path)
@@ -1632,12 +1634,8 @@ end tell"
 (defun duplicate-region-or-line ()
   "Duplicate region or line."
   (interactive)
-  (let* ((beg (if mark-active
-                  (region-beginning)
-                (save-excursion (beginning-of-line) (point))))
-         (end (if mark-active
-                  (region-end)
-                (save-excursion (end-of-line) (point))))
+  (let* ((beg (if mark-active (region-beginning) (line-beginning-position)))
+         (end (if mark-active (region-end) (line-end-position)))
          (strings (buffer-substring-no-properties beg end))
          (is-repeat (eq last-command this-command))
          (is-line (if is-repeat
@@ -2108,6 +2106,12 @@ If gist-id exists update gist.  BEG END."
              (setq indent-tabs-mode t)))
 
 ;;; ------------------------------------------------------------
+;;; yaml-mode
+
+(require 'yaml-mode)
+(add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode))
+
+;;; ------------------------------------------------------------
 ;;; php-mode
 
 ;; (require 'my-php-mode)
@@ -2121,6 +2125,20 @@ If gist-id exists update gist.  BEG END."
        (append '(("\\.php$" . php-mode))
            auto-mode-alist))
 
+(defun unindent-closure ()
+  "Fix php-mode indent for closures"
+  (let ((syntax (mapcar 'car c-syntactic-context)))
+    (if (and (member 'arglist-cont-nonempty syntax)
+             (or
+              (member 'statement-block-intro syntax)
+              (member 'brace-list-intro syntax)
+              (member 'brace-list-close syntax)
+              (member 'block-close syntax)))
+       (save-excursion
+          (beginning-of-line)
+          (delete-char (* (count 'arglist-cont-nonempty syntax)
+                          c-basic-offset))) )))
+
 (add-hook 'php-mode-hook
           '(lambda()
 
@@ -2132,12 +2150,20 @@ If gist-id exists update gist.  BEG END."
 
              (setq tab-width 2)
              (setq c-basic-offset 2)
-             ;; (setq indent-tabs-mode t)
+
+             (add-hook 'c-special-indent-hook 'unindent-closure)
+
+             (c-set-offset 'case-label 2)
+             (c-set-offset 'arglist-intro 2)
+             (c-set-offset 'arglist-cont-nonempty 2)
+             (c-set-offset 'arglist-close 0)
+
              (setq php-speedbar-config nil)
              (setq php-template-compatibility nil)
              (setq php-mode-warn-if-mumamo-off nil)
-             (setq php-mode-coding-style 'default)
+             ;; (setq php-mode-coding-style 'default)
              (setq php-manual-url "http://jp2.php.net/manual/ja/")
+
              (define-key php-mode-map ")" 'self-insert-command)
              (define-key php-mode-map "(" 'self-insert-command)
              (define-key php-mode-map "{" 'self-insert-command)
