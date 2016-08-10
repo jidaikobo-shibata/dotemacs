@@ -656,6 +656,9 @@
               (buffer-substring-no-properties (region-beginning)
                                               (region-end)))))
     (indent-for-tab-command))
+   ;; tab連打だったらインデント
+   ((eq last-command this-command)
+    (indent-according-to-mode))
    ;; タブ／インデントを挿入
    (t
     (when mark-active (delete-region (region-beginning) (region-end)))
@@ -1489,7 +1492,7 @@ end tell"
   "Contexual delete windows."
   (interactive)
   (cond
-   ;; なんだかミニバッファにいたら抜ける
+   ;; ミニバッファにいたらまず抜ける
    ((minibufferp (current-buffer))
     (minibuffer-keyboard-quit)
     (other-window 1)
@@ -1559,6 +1562,8 @@ end tell"
   ;; (global-linum-mode t)
   (setq-default linum-format "%5d: "))
 (add-hook 'emacs-lisp-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'js-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'html-mode-hook (lambda () (show-line-number) (linum-mode t)))
 (add-hook 'php-mode-hook (lambda () (show-line-number) (linum-mode t)))
 (add-hook 'css-mode-hook (lambda () (show-line-number) (linum-mode t)))
 
@@ -1665,8 +1670,6 @@ end tell"
 ;;; ------------------------------------------------------------
 ;;; 選択範囲を[大文字|小文字|キャピタライズ]に
 
-(put 'upcase-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
 (global-set-key (kbd "s-U") 'upcase-region)
 (global-set-key (kbd "s-L") 'downcase-region)
 (global-set-key (kbd "s-C") 'capitalize-region)
@@ -2132,7 +2135,7 @@ If gist-id exists update gist.  BEG END."
            auto-mode-alist))
 
 (defun unindent-closure ()
-  "Fix php-mode indent for closures"
+  "Fix php-mode indent for closures."
   (let ((syntax (mapcar 'car c-syntactic-context)))
     (if (and (member 'arglist-cont-nonempty syntax)
              (or
