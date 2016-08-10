@@ -974,8 +974,7 @@ end tell"
 (defadvice ac-complete (after advice-ac-complete activate)
   "Inhibit newline when full string was matched with candidate."
   (when (memq this-command '(newline))
-    (delete-backward-char 1)
-    (message "full string was matched with candidate.")))
+    (delete-backward-char 1)))
 
 ;; 日本語に続く文字列でもauto-completeする
 ;; thx https://github.com/lugecy/dot-emacs/blob/master/conf.d/050-auto-complete.el
