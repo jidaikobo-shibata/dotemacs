@@ -775,6 +775,12 @@ end tell"
 (require 'dired-explorer)
 (require 'wdired)
 
+;; dired-explorer
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
+            (dired-explorer-mode t)))
+
 ;; diredでファイル編集（rで編集モードに）
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 (define-key dired-explorer-mode-map "\M-r" 'wdired-change-to-wdired-mode)
@@ -955,13 +961,14 @@ end tell"
 (global-set-key (kbd "C-c r") (lambda () (interactive)
                                 (remove-strings-from-ac-my-dictionary ac-my-dictionary)))
 
-;; auto-complete の候補に日本語を含む単語が含まれないようにする
+;; auto-complete の候補に日本語を含む単語、数字から始まる単語が含まれないようにする
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
 ;; see also http://club.jidaikobo.com/knowledge/150.html
-(defadvice ac-candidates (after remove-japanese-from-ac-candidates activate)
-  "Do not contain multi byte character in auto-complete candidates."
-  (let ((contain-japanese (lambda (s) (string-match (rx (category japanese)) s))))
-    (setq ad-return-value (remove-if contain-japanese ad-return-value))))
+(defadvice ac-candidates (after remove-specified-from-ac-candidates activate)
+  "Do not contain multi byte or start with numeric character in auto-complete candidates."
+  (let ((ignore-case (lambda (s) (or (string-match (rx (category japanese)) s)
+                                     (string-match "^[0-9]+.*" s)))))
+    (setq ad-return-value (remove-if ignore-case ad-return-value))))
 
 ;; 候補と入力文字が完全に一致している時にRETでac-completeするとnewlineしてしまうので抑止
 (defadvice ac-complete (after advice-ac-complete activate)
