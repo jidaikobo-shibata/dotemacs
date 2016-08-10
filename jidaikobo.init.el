@@ -656,9 +656,12 @@
               (buffer-substring-no-properties (region-beginning)
                                               (region-end)))))
     (indent-for-tab-command))
-   ;; tab連打だったらインデント
-   ((eq last-command this-command)
+   ;; beginning-of-lineだったらインデント
+   ((bolp)
     (indent-according-to-mode))
+   ;; tab連打だったらインデント
+   ;; ((eq last-command this-command)
+   ;;  (indent-according-to-mode))
    ;; タブ／インデントを挿入
    (t
     (when mark-active (delete-region (region-beginning) (region-end)))
