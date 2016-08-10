@@ -971,7 +971,7 @@ end tell"
     (setq ad-return-value (remove-if ignore-case ad-return-value))))
 
 ;; 候補と入力文字が完全に一致している時にRETでac-completeするとnewlineしてしまうので抑止
-(defadvice ac-complete (after advice-ac-complete activate)
+(defadvice ac-complete (after advice-ac-complete-to-avoid-newline activate)
   "Inhibit newline when full string was matched with candidate."
   (when (memq this-command '(newline))
     (delete-backward-char 1)))
