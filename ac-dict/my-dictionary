@@ -2010,7 +2010,6 @@ html
 html_options options=$ZZZs name="ZZZ_id" selected=$ZZZ_ids
 html_options values=$ZZZ_ids output=$ZZZ_names selected=$ZZZ_ids
 htmlspecialchars
-htmlspecialchars($val ,ENT_QUOTES)
 htmlspecialchars_decode
 HTTP
 http
