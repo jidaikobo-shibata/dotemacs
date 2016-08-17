@@ -166,7 +166,8 @@
 (setq-default ns-pop-up-frames nil)
 
 ;; emacsclientを使う
-(server-start)
+(require 'server)
+(unless (server-running-p) (server-start))
 
 ;; emacsclientバッファを落とす時に出る確認を抑止
 (remove-hook
@@ -780,6 +781,14 @@ end tell"
 (require 'dired-aux)
 (require 'dired-explorer)
 (require 'wdired)
+
+;; omit .DS_Store
+;; thx https://www.emacswiki.org/emacs/DiredOmitMode
+(require 'dired-x)
+(add-hook 'dired-load-hook '(lambda () (require 'dired-x)))
+(setq dired-omit-mode t)
+(setq-default dired-omit-files-p t)
+(setq dired-omit-files "^\\.DS_Store")
 
 ;; dired-explorer
 (add-hook 'dired-mode-hook
