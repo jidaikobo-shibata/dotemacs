@@ -299,7 +299,7 @@
       (setq tag html))
 
      ;; table
-     ((string= tag "table")
+     ((string= tag "table-intaractive")
       (setq type (read-string "type (1:th, 2:thead, 3:th and thead, 4:no headers): " nil))
       (setq html ""
             cnt 1
@@ -343,7 +343,7 @@
             cursor+ 5))
 
      ;; ruby
-     ((string= tag "ruby")
+     ((string= tag "ruby-intaractive")
       (setq ruby (read-string "ruby: " nil)
             tag (concat "<ruby><rb>" word "</rb><rt>" ruby "</rt></ruby>")
             cursor+ 10))
@@ -517,7 +517,7 @@
 (global-set-key (kbd "s-M-t")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "table")))
+                   (any-html-tag "table-intaractive")))
 
 ;;; ul-li
 (global-set-key (kbd "s-M-u")
@@ -529,7 +529,7 @@
 (global-set-key (kbd "s-M-y")
                 '(lambda ()
                    (interactive)
-                   (any-html-tag "ruby")))
+                   (any-html-tag "ruby-intaractive")))
 
 ;;; remove-html-tags
 (defun remove-html-tags (tag)
