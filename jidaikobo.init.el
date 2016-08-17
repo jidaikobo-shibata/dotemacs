@@ -798,6 +798,7 @@ end tell"
 
 ;; diredでファイル編集（rで編集モードに）
 (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+(define-key dired-mode-map (kbd "<M-return>") 'dired-maybe-insert-subdir)
 (define-key dired-explorer-mode-map "\M-r" 'wdired-change-to-wdired-mode)
 (define-key wdired-mode-map (kbd "C-g") 'wdired-abort-changes)
 (define-key wdired-mode-map [escape] 'wdired-abort-changes)
