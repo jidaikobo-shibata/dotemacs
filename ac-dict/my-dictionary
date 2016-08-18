@@ -3674,6 +3674,7 @@ service
 SESSION
 Session
 session
+session_start
 set
 setcookie
 setlocale
