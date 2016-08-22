@@ -207,6 +207,13 @@
                       :background ,jidaikobo-darkwine))))
 
 ;;; ------------------------------------------------------------
+;;; anything
+   `(anything-selection-face
+     ((t (:foreground "black"
+                      :background ,jidaikobo-wheat
+                      :weight bold))))
+
+;;; ------------------------------------------------------------
 ;;; linum
    `(linum
      ((t (:foreground "grey30"

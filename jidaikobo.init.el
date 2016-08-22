@@ -268,7 +268,8 @@
 
   ;; my-packages
   (defvar my-packages
-    '(anything
+    '(ace-jump-mode
+      anything
       auto-async-byte-compile
       auto-complete
       cursor-chg
@@ -431,6 +432,15 @@
 (global-set-key (kbd "s-]") 'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "s-{") 'indent-rigidly-left-to-tab-stop)
 (global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
+
+
+;;;ace-jump-mode
+(require 'ace-jump-mode)
+(setq ace-jump-mode-move-keys
+      (append "asdfghjkl;:]qwertyuiop@zxcvbnm,." nil))
+;; ace-jump-word-modeのとき文字を尋ねないようにする
+(setq ace-jump-word-mode-use-query-char nil)
+(global-set-key (kbd "C-:") 'ace-jump-char-mode)
 
 ;;; ------------------------------------------------------------
 ;;; 次/前の空行
@@ -782,6 +792,9 @@ end tell"
 (require 'dired-explorer)
 (require 'wdired)
 
+;; emacs-async
+(eval-after-load "dired-aux" '(require 'dired-async))
+
 ;; omit .DS_Store
 ;; thx https://www.emacswiki.org/emacs/DiredOmitMode
 (require 'dired-x)
@@ -797,7 +810,7 @@ end tell"
             (dired-explorer-mode t)))
 
 ;; diredでファイル編集（rで編集モードに）
-(define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
+(define-key dired-mode-map "E" 'wdired-change-to-wdired-mode)
 (define-key dired-mode-map (kbd "<M-return>") 'dired-maybe-insert-subdir)
 (define-key dired-explorer-mode-map "\M-r" 'wdired-change-to-wdired-mode)
 (define-key wdired-mode-map (kbd "C-g") 'wdired-abort-changes)
@@ -1283,7 +1296,7 @@ end tell"
 (global-set-key (kbd "C-;") 'my-anything-for-files)
 
 ;;; ------------------------------------------------------------
-;; diredでanythingしたらfindする
+;; diredでanythingしたらfindする（ファイル編）
 (defvar anything-c-source-find-at-dired
   '((name . "Find file")
     (candidates . (lambda ()
@@ -1323,11 +1336,48 @@ end tell"
                           results)))))
     (type . file)))
 
+;;; ------------------------------------------------------------
+;; diredでanythingしたらfindする（ディレクトリ編）
+(defvar anything-c-source-find-dir-at-dired
+  '((name . "Find Directories")
+    (candidates . (lambda ()
+                    (with-current-buffer anything-current-buffer
+                      (let* ((shell-file-name
+                              (if (string-match
+                                   "\\.sakura"
+                                   (or (file-remote-p dired-directory t) ""))
+                                  "/usr/local/bin/bash"
+                                "/bin/bash"))
+                             (current-dir (dired-current-directory))
+                             (sep-point (string-match ":/" current-dir))
+                             (pwd (if sep-point (substring current-dir (+ (match-beginning 0) 1))
+                                    current-dir))
+                             (tramp-host (file-remote-p dired-directory t))
+                             (tramp-results (list))
+                             (results (split-string
+                                       (shell-command-to-string
+                                        (concat "find "
+                                                (replace-regexp-in-string "/$" "" pwd)
+                                                (replace-regexp-in-string "\n" " "
+                                                                          " -type d")))
+                                       "\n")))
+                        (if tramp-host
+                            (progn
+                              (dolist (result results)
+                                (add-to-list 'tramp-results (concat tramp-host result)))
+                              tramp-results)
+                          results)))))
+    (type . file)))
+
+;;; ------------------------------------------------------------
+;;; Diredの情報源
+
 (defun my-anything-c-source-find-at-dired ()
   "Anything command for find at dired."
   (interactive)
   (anything-other-buffer
-   '(anything-c-source-find-at-dired
+   '(anything-c-source-find-dir-at-dired
+     anything-c-source-find-at-dired
      anything-c-source-my-hosts
     anything-c-source-bookmarks
     anything-c-source-recentf)
