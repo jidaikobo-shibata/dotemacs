@@ -105,7 +105,7 @@
      ((t (:foreground ,jidaikobo-bg
                       :background ,jidaikobo-bg)))) ;; フレームの余白
    `(highlight
-     ((t (:background "grey"))))
+     ((t (:background ,jidaikobo-olive))))
    `(region
      ((t (:background ,jidaikobo-blue))
       (t :inverse-video t)))
