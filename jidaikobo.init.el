@@ -434,11 +434,12 @@
 (global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
 
 
+;;; ------------------------------------------------------------
 ;;;ace-jump-mode
+
 (require 'ace-jump-mode)
 (setq ace-jump-mode-move-keys
       (append "asdfghjkl;:]qwertyuiop@zxcvbnm,." nil))
-;; ace-jump-word-modeのとき文字を尋ねないようにする
 (setq ace-jump-word-mode-use-query-char nil)
 (global-set-key (kbd "C-:") 'ace-jump-char-mode)
 
@@ -777,7 +778,7 @@ end tell"
 ;; thx http://qiita.com/hayamiz/items/8e8c7fca64b4810d8e78
 (defun my-update-gtags ()
   "Update gtags."
-  (when (and (gtags-get-rootpath)
+  (when (and (ignore-errors (gtags-get-rootpath))
              (executable-find "global"))
     (start-process "gtags-update" nil
                    "global" "-uv")

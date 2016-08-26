@@ -25,10 +25,3 @@ Macintosh example:
 
     sudo port install global
     emacs --batch -l ~/.emacs.d/jdiaikobo/jidaikobo.init.el
-
-## little bit useful
-
-after load jidaikobo.init.el.
-or use [once-in-a-day](https://gist.github.com/jidaikobo-shibata/33e072cea6aa96a19f58).
-
-    (when (or noninteractive (is-once-in-a-day)) (package-refresh-contents))
