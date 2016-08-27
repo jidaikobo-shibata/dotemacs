@@ -2968,6 +2968,7 @@ padding: 0;
 page
 page-break-after
 page-break-before
+page-break-before: always;
 page-break-inside
 page-policy
 PageRank
