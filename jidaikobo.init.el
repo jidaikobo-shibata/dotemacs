@@ -61,10 +61,12 @@
 ;; クリップボードを他のアプリケーションと共用にする
 (setq x-select-enable-clipboard t)
 
-;; optionキーをMetaキーに
+;; Meta/Super/Hyperキー
 (setq mac-pass-command-to-system nil)
 (setq mac-command-modifier 'super)
 (setq mac-option-modifier 'meta)
+(setq mac-right-option-modifier 'hyper)
+(setq mac-right-command-modifier 'hyper)
 
 ;; yes/noをy/nへ
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -433,7 +435,6 @@
 (global-set-key (kbd "s-{") 'indent-rigidly-left-to-tab-stop)
 (global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
 
-
 ;;; ------------------------------------------------------------
 ;;;ace-jump-mode
 
@@ -441,11 +442,37 @@
 (setq ace-jump-mode-move-keys
       (append "asdfghjkl;:]qwertyuiop@zxcvbnm,." nil))
 (setq ace-jump-word-mode-use-query-char nil)
-(global-set-key (kbd "C-:") 'ace-jump-char-mode)
+(global-set-key (kbd "M-z")
+                (lambda (chr) (interactive (list (read-char "Query Char:")))
+                  (mac-auto-ascii-select-input-source)
+                  (ace-jump-char-mode chr)))
+
+;; (defun add-keys-to-search (prefix c &optional mode)
+;;   "Add keys to search.  PREFIX is key prefix.  C is character.  MODE is direction."
+;;   (global-set-key
+;;    (kbd (concat prefix (string c)))
+;;    `(lambda ()
+;;       (interactive)
+;;       (funcall
+;;        (if (eq ',mode 'backward)
+;;            #'search-backward
+;;          #'search-forward) ,(string c)))))
+;; (loop for c from ?a to ?z do (add-keys-to-search "H-" c))
+;; (loop for c from ?0 to ?9 do (add-keys-to-search "H-" c))
+;; (loop for c from ?A to ?Z do (add-keys-to-search "S-H-" c, 'backward))
+;;   (cl-loop for ch across str do
+;;            (define-key dired-explorer-mode-map (char-to-string ch) 'dired-explorer-isearch)))
+;; (dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789")
+
+;; (cl-loop for ch across "abcdefghijklmnopqrstuvwxyz0123456789" do
+;;          (global-set-key (char-to-string ch) '(lambda () (interactive) (search-forward ch))))
+
+
+
 
 ;;; ------------------------------------------------------------
 ;;; 次/前の空行
-;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がおそらくシンタックステーブル依存になり、字義通りの「次の空行」にならないので、別途用意。
+;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がメジャーモードごとで異なり、字義通りの「次の空行」にならないので、別途用意。
 ;; gist-id: ad27b19dd3779ccc1ff2
 ;; gist-name: move-to-next(previous)-blank-line.el
 ;; gist-private: nil
@@ -724,36 +751,32 @@
 (global-set-key (kbd "M-s-K") 'point-current-buffer-by-finder)
 
 ;;; ------------------------------------------------------------
-;;; 現在バッファパスにterminal/iTermでcdする
-;; thx http://stackoverflow.com/questions/29404870/change-directory-in-osx-terminal-app-from-emacs-nw
+;;; 現在バッファパスにterminalでcdする
+;; thx http://superuser.com/questions/466619/open-new-terminal-tab-and-execute-script
+;; thx http://qiita.com/ganmacs/items/cfc5f9c2213a6a9e6579
 
-(defun my-open-terminal-in-current-dir (&optional command)
+(defun cd-on-terminal (&optional command)
   "Change directory to current buffer path by Terminal.app.  COMMAND is execute after cd."
   (interactive)
-  (shell-command
-   (concat "open -b com.apple.terminal " (expand-file-name ".") command)))
-
-;; thx http://qiita.com/ganmacs/items/cfc5f9c2213a6a9e6579
-(defun cd-on-iterm (&optional command)
-  "Change directory to current buffer path by iTerm.app.  COMMAND is execute after cd."
-  (interactive)
-  (util/execute-on-iterm
+  (util/execute-on-terminal
    (concat (format "cd %s" default-directory) command)))
 
-(defun util/execute-on-iterm (command)
-  "Change directory to current buffer path by iTerm.app.  COMMAND."
+(defun util/execute-on-terminal (command)
+  "Change directory to current buffer path by Terminal.app.  COMMAND."
   (interactive "MCommand: ")
   (do-applescript
-   (format "tell application \"iTerm2\"
+   (format "tell application \"Terminal\"
 activate
-tell current session of current window
-write text \"%s\"
-end tell
+tell application \"System Events\" to keystroke \"t\" using command down
+repeat while contents of selected tab of window 1 starts with linefeed
+delay 0.01
+end repeat
+do script \"%s\" in window 1
 end tell"
            command)))
 
-(global-set-key (kbd "C-c d") 'cd-on-iterm)
-(global-set-key (kbd "C-c g") (lambda () (interactive) (cd-on-iterm " && git ci -a")))
+(global-set-key (kbd "C-c d") 'cd-on-terminal)
+(global-set-key (kbd "C-c g") (lambda () (interactive) (cd-on-terminal " && git ci -a")))
 
 ;;; ------------------------------------------------------------
 ;;; gtags
