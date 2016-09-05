@@ -82,7 +82,7 @@
 
     ;; ip
     (if (string= ip "") nil
-      (setq ret (concat "if( $_SERVER['REMOTE_ADDR'] == '" ip "' ){\n" ret "\n}")
+      (setq ret (concat "if ($_SERVER['REMOTE_ADDR'] == '" ip "'){\n" ret "\n}")
             cursor 37))
 
     ;; put val
