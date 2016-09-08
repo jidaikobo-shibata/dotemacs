@@ -279,7 +279,6 @@
       foreign-regexp
       google-translate
       gtags
-      mic-paren
       multiple-cursors
       php-mode
       popwin
@@ -2050,10 +2049,15 @@ If gist-id exists update gist.  BEG END."
 
 ;;; 釣り合いのとれる括弧のハイライト
 ;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
-(require 'mic-paren)
-(paren-activate)
-(setq paren-match-face 'underline paren-sexp-mode t)
-(setq paren-sexp-mode t)
+(show-paren-mode 1)
+(setq-default show-paren-delay 0)
+(setq-default show-paren-style 'expression)
+(set-face-attribute 'show-paren-match-face nil
+                    :background nil :foreground nil
+                    :underline '(:style wave))
+(set-face-attribute 'show-paren-mismatch-face nil
+                    :background nil :foreground nil
+                    :strike-through t :weight 'extra-bold)
 
 ;;; 自動バイトコンパイル
 ;; thx http://www.emacswiki.org/emacs/auto-async-byte-compile.el
@@ -2287,6 +2291,14 @@ If gist-id exists update gist.  BEG END."
 
 ;; Flycheckのwindowは単独で表示
 (add-to-list 'same-window-buffer-names "*Flycheck errors*")
+
+;; face
+(set-face-attribute 'flycheck-error nil
+                    :foreground "Red1"
+                    :inverse-video t)
+(set-face-attribute 'flycheck-warning nil
+                    :foreground "DarkOrange"
+                    :inverse-video t)
 
 ;; キーバインド
 (global-set-key (kbd "C-M-c") 'flycheck-buffer)

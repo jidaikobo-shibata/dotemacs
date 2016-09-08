@@ -78,7 +78,7 @@
      ;; php
      ((string= type "php")
       (setq ret (concat "echo '<textarea style=\"width:100%;height:200px;background-color:#fff;color:#111;font-size:90%;font-family:monospace;position:relative;z-index:9999\">';\nvar_dump(" word ");\necho '</textarea>';\ndie();")
-            cursor 35)))
+            cursor 37)))
 
     ;; ip
     (if (string= ip "") nil
