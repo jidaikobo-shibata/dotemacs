@@ -78,12 +78,12 @@
      ;; php
      ((string= type "php")
       (setq ret (concat "echo '<textarea style=\"width:100%;height:200px;background-color:#fff;color:#111;font-size:90%;font-family:monospace;position:relative;z-index:9999\">';\nvar_dump(" word ");\necho '</textarea>';\ndie();")
-            cursor 37)))
+            cursor 34)))
 
     ;; ip
     (if (string= ip "") nil
       (setq ret (concat "if ($_SERVER['REMOTE_ADDR'] == '" ip "'){\n" ret "\n}")
-            cursor 37))
+            cursor 36))
 
     ;; put val
     (if mark-active (delete-region beg end) nil)

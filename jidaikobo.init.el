@@ -2174,9 +2174,16 @@ If gist-id exists update gist.  BEG END."
           '(lambda()
              (setq-local syntax-propertize-function
                          (syntax-propertize-rules
+                          ;; normal comment-out
+                          ("\\(<!--)\\*" (1 "< d"))
+                          ("\\--\\(>\\)" (1 "> d"))
                           ;; xoops smarty comment-out
                           ("\\(<\\){\\*" (1 "< c"))
                           ("\\*}\\(>\\)" (1 "> c"))))
+             ;; occasionally normal comment out doesn't work
+             (font-lock-add-keywords
+              nil
+              '(("<!--(?:.\\)+?-->" . font-lock-keyword-face)))
              ;; xoops smarty
              (font-lock-add-keywords
               nil
@@ -2310,7 +2317,7 @@ If gist-id exists update gist.  BEG END."
 
 ;; enable
 (add-hook 'php-mode-hook 'flycheck-mode)
-(add-hook 'html-mode-hook 'flycheck-mode)
+;; (add-hook 'html-mode-hook 'flycheck-mode)
 (add-hook 'lisp-mode-hook 'flycheck-mode)
 (add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
 
