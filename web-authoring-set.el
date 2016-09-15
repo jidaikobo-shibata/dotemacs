@@ -371,7 +371,7 @@
      ;; label
      ((string= tag "label")
       (setq tag (concat "<label for=\"str\">" word "</label>")
-            cursor+ 13))
+            cursor+ 12))
 
      ;; specify tag
      (t (when (string= tag "") (setq tag "div"))
