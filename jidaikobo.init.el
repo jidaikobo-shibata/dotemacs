@@ -2174,16 +2174,13 @@ If gist-id exists update gist.  BEG END."
           '(lambda()
              (setq-local syntax-propertize-function
                          (syntax-propertize-rules
-                          ;; normal comment-out
-                          ("\\(<!--)\\*" (1 "< d"))
-                          ("\\--\\(>\\)" (1 "> d"))
                           ;; xoops smarty comment-out
                           ("\\(<\\){\\*" (1 "< c"))
-                          ("\\*}\\(>\\)" (1 "> c"))))
-             ;; occasionally normal comment out doesn't work
-             (font-lock-add-keywords
-              nil
-              '(("<!--(?:.\\)+?-->" . font-lock-keyword-face)))
+                          ("\\*}\\(>\\)" (1 "> c"))
+                          ;; html comment-out ; it seems wired and buggy...
+                          ("\\(<\\)!--" (1 "< c"))
+                          ("--[ \t\n]*\\(>\\)" (1 "> c"))
+                          ))
              ;; xoops smarty
              (font-lock-add-keywords
               nil
