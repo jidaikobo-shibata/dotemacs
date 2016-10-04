@@ -349,7 +349,7 @@
         ".recentf"
         "^/[^/:]+:" ; TRAMP
         ".+Fetch Temporary Folder.+"))
-(setq recentf-max-saved-items 10000)
+(setq recentf-max-saved-items nil)
 
 
 ;;; ------------------------------------------------------------
@@ -445,29 +445,6 @@
                 (lambda (chr) (interactive (list (read-char "Query Char:")))
                   (mac-auto-ascii-select-input-source)
                   (ace-jump-char-mode chr)))
-
-;; (defun add-keys-to-search (prefix c &optional mode)
-;;   "Add keys to search.  PREFIX is key prefix.  C is character.  MODE is direction."
-;;   (global-set-key
-;;    (kbd (concat prefix (string c)))
-;;    `(lambda ()
-;;       (interactive)
-;;       (funcall
-;;        (if (eq ',mode 'backward)
-;;            #'search-backward
-;;          #'search-forward) ,(string c)))))
-;; (loop for c from ?a to ?z do (add-keys-to-search "H-" c))
-;; (loop for c from ?0 to ?9 do (add-keys-to-search "H-" c))
-;; (loop for c from ?A to ?Z do (add-keys-to-search "S-H-" c, 'backward))
-;;   (cl-loop for ch across str do
-;;            (define-key dired-explorer-mode-map (char-to-string ch) 'dired-explorer-isearch)))
-;; (dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789")
-
-;; (cl-loop for ch across "abcdefghijklmnopqrstuvwxyz0123456789" do
-;;          (global-set-key (char-to-string ch) '(lambda () (interactive) (search-forward ch))))
-
-
-
 
 ;;; ------------------------------------------------------------
 ;;; 次/前の空行
@@ -1164,6 +1141,14 @@ end tell"
 (add-hook 'php-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'conf-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'sh-script-mode-hook #'my-set-indent-tabs-mode)
+
+;; indent-tabs-modeをtoggle
+(global-set-key (kbd "C-c i")
+                (lambda ()
+                  (interactive)
+                  (if indent-tabs-mode
+                      (setq indent-tabs-mode nil)
+                    (setq indent-tabs-mode t))))
 
 
 ;;; ------------------------------------------------------------
@@ -2052,9 +2037,13 @@ If gist-id exists update gist.  BEG END."
 (show-paren-mode 1)
 (setq-default show-paren-delay 0)
 (setq-default show-paren-style 'expression)
+;; (setq-default show-paren-style 'parenthesis)
+;; (set-face-attribute 'show-paren-match-face nil
+;;                     :background nil :foreground nil
+;;                     :underline '(:style wave))
 (set-face-attribute 'show-paren-match-face nil
                     :background nil :foreground nil
-                    :underline '(:style wave))
+                    :underline t)
 (set-face-attribute 'show-paren-mismatch-face nil
                     :background nil :foreground nil
                     :strike-through t :weight 'extra-bold)
@@ -2283,6 +2272,7 @@ If gist-id exists update gist.  BEG END."
 (add-hook 'fundamental-mode-hook 'rainbow-mode)
 (add-hook 'text-mode-hook 'rainbow-mode)
 (add-hook 'lisp-mode-hook 'rainbow-mode)
+(add-hook 'emacs-lisp-mode-hook 'rainbow-mode)
 (add-hook 'css-mode-hook 'rainbow-mode)
 
 
@@ -2297,12 +2287,12 @@ If gist-id exists update gist.  BEG END."
 (add-to-list 'same-window-buffer-names "*Flycheck errors*")
 
 ;; face
-(set-face-attribute 'flycheck-error nil
-                    :foreground "Red1"
-                    :inverse-video t)
-(set-face-attribute 'flycheck-warning nil
-                    :foreground "DarkOrange"
-                    :inverse-video t)
+;; (set-face-attribute 'flycheck-error nil
+;;                     :foreground "Red1"
+;;                     :inverse-video t)
+;; (set-face-attribute 'flycheck-warning nil
+;;                     :foreground "DarkOrange"
+;;                     :inverse-video t)
 
 ;; キーバインド
 (global-set-key (kbd "C-M-c") 'flycheck-buffer)

@@ -1,3 +1,23 @@
+;; (defun add-keys-to-search (prefix c &optional mode)
+;;   "Add keys to search.  PREFIX is key prefix.  C is character.  MODE is direction."
+;;   (global-set-key
+;;    (kbd (concat prefix (string c)))
+;;    `(lambda ()
+;;       (interactive)
+;;       (funcall
+;;        (if (eq ',mode 'backward)
+;;            #'search-backward
+;;          #'search-forward) ,(string c)))))
+;; (loop for c from ?a to ?z do (add-keys-to-search "H-" c))
+;; (loop for c from ?0 to ?9 do (add-keys-to-search "H-" c))
+;; (loop for c from ?A to ?Z do (add-keys-to-search "S-H-" c, 'backward))
+;;   (cl-loop for ch across str do
+;;            (define-key dired-explorer-mode-map (char-to-string ch) 'dired-explorer-isearch)))
+;; (dired-explorer-isearch-define-key "abcdefghijklmnopqrstuvwxyz0123456789")
+
+;; (cl-loop for ch across "abcdefghijklmnopqrstuvwxyz0123456789" do
+;;          (global-set-key (char-to-string ch) '(lambda () (interactive) (search-forward ch))))
+
 ;; ;;; 現在バッファパスにterminal/iTermでcdする
 ;; ;; thx http://stackoverflow.com/questions/29404870/change-directory-in-osx-terminal-app-from-emacs-nw
 ;; (defun my-open-terminal-in-current-dir (&optional command)

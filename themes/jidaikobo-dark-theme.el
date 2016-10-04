@@ -7,7 +7,7 @@
 
 ;;; Commentary:
 ;; 黒っぽい背景のテーマ
-;; M-x list-color-displayでカラーコード一覧表表示
+;; M-x list-faces-displayでface一覧表表示
 ;; 変更したい場所を見つけたらカーソルを持って行ってdescribe-face
 
 ;;; Code:
