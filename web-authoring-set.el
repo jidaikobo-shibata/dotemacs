@@ -156,10 +156,11 @@
   (interactive "i")
   (let* ((beg (if (region-active-p) (region-beginning) (point)))
          (end (when (region-active-p) (region-end)))
-         (word (if (region-active-p) (string-trim (buffer-substring-no-properties beg end)) ""))
+         (word (if (region-active-p) (buffer-substring-no-properties beg end) ""))
          (cursor- 0)
          (cursor+ 0)
          (close-tag (if (is-xhtml) " />" ">"))
+         (eob (if (string-match "\n$" word) "\n" ""))
          cursor
          url
          ruby
@@ -228,7 +229,7 @@
         (setq tag (concat "<input type=\"password\" name=\"str\" id=\"str\" value=\"\""
                           close-tag)))
        ((eq type 7)
-        (setq tag (concat "<input type=\"image\" name=\"str\" id=\"str\" value=\"\""
+        (setq tag (concat "<input type=\"image\" name=\"str\" id=\"str\" alt=\"\" value=\"\""
                           close-tag)))
        ((eq type 8)
         (setq tag "<input type=\"file\" name=\"str\" id=\"str\" value=\"\""
@@ -254,8 +255,8 @@
           (progn (setq html (concat html "\t<li>" (car lines) "</li>\n"))))
         (setq lines (cdr lines)))
       (if (string= tag "ul-li")
-          (setq tag (concat "<ul>\n" html "</ul>\n"))
-        (setq tag (concat "<ol>\n" html "</ol>\n"))))
+          (setq tag (concat "<ul>\n" html "</ul>" eob))
+        (setq tag (concat "<ol>\n" html "</ol>" eob))))
 
      ;; select
      ((string= tag "select")
@@ -276,8 +277,11 @@
                 cursor+ 2)
         ;; 選択範囲があって、かつ<br>が含まれていたらeachしない
         (if (string-match "<br */*?>" (buffer-substring-no-properties beg end))
-            (setq tag (concat "<p>" word "</p>")
-                  cursor+ 2)
+            (progn
+              (when (string-equal eob "\n")
+                (setq word (replace-regexp-in-string "\n+$" "" word)))
+              (setq tag (concat "<p>" word "</p>" eob)
+                    cursor+ 2))
           ;; <br>が含まれていないのでeach
           (setq lines (split-string word "\n"))
           (while lines
@@ -285,8 +289,8 @@
                 (setq html (concat html "\n"))
               (setq html (concat html "<p>" (car lines) "</p>\n")))
             (setq lines (cdr lines)))
-          (replace-regexp-in-string "\n+$" "" html)
-          (setq tag html))))
+          (setq html (replace-regexp-in-string "\n+$" "" html))
+          (setq tag (concat html eob)))))
 
      ;; li-each
      ((string= tag "li-each")
@@ -294,9 +298,10 @@
             lines (split-string word "\n"))
       (while lines
         (if (string= (car lines) "") nil
-          (progn (setq html (concat html "<li>" (car lines) "</li>\n"))))
+          (progn (setq html (concat html "\t<li>" (car lines) "</li>\n"))))
         (setq lines (cdr lines)))
-      (setq tag html))
+      (setq html (replace-regexp-in-string "\n+$" "" html))
+      (setq tag (concat html eob)))
 
      ;; table
      ((string= tag "table-intaractive")
@@ -319,7 +324,7 @@
             (setq html (concat html line))))
         (setq cnt 2)
         (setq lines (cdr lines)))
-      (setq tag (concat "<table>\n" html "</table>"))
+      (setq tag (concat "<table>\n" html "</table>" eob))
       (if (find type '("1" "3") :test #'string=)
           (setq tag (replace-regexp-in-string "<tr>\n\t<td>\\(.+?\\)</td>" "<tr>\n\t<th>\\1</th>" tag))))
 
@@ -335,7 +340,7 @@
               (setq line (concat "<dt>" (car lines) "</dd>\n")))))
         (setq html (concat html line))
         (setq lines (cdr lines)))
-      (setq tag (concat "<dl>\n" html "</dl>")))
+      (setq tag (concat "<dl>\n" html "</dl>" eob)))
 
      ;; comment out
      ((string= tag "comment-out")
@@ -376,7 +381,9 @@
      ;; specify tag
      (t (when (string= tag "") (setq tag "div"))
         (setq cursor+ (if (region-active-p) (+ 1 (length tag)) (+ 2 (length tag))))
-        (setq tag (concat "<" tag ">" word "</" tag ">"))))
+        (when (string-equal eob "\n")
+            (setq word (replace-regexp-in-string "\n+$" "" word)))
+        (setq tag (concat "<" tag ">" word "</" tag ">" eob))))
 
     ;; put tags
     (when (region-active-p) (delete-region beg end))
