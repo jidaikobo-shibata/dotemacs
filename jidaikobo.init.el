@@ -141,6 +141,9 @@
       '(read-only t point-entered minibuffer-avoid-prompt
                   face minibuffer-prompt))
 
+;; C-h
+(global-set-key "\C-h" 'delete-backward-char)
+
 ;; タブ幅
 (setq-default tab-width 2)
 
@@ -166,6 +169,13 @@
 
 ;; 複数フレームを開かないようにする
 (setq-default ns-pop-up-frames nil)
+
+;; 自分の意思でEmacsを複数起動する
+(defun open-new-emacs ()
+  "Open new Emacs."
+  (interactive)
+  (shell-command "/Applications/Emacs.app/Contents/MacOS/Emacs &"))
+(global-set-key (kbd "s-n") 'open-new-emacs)
 
 ;; emacsclientを使う
 (require 'server)
@@ -891,7 +901,6 @@ end tell"
 (define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
 (define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
 (define-key dired-mode-map (kbd "s-d") (lambda () (interactive) (find-file "~/Desktop")))
-(global-set-key (kbd "s-n") (lambda () (interactive) (find-file "~/")))
 (global-set-key (kbd "s-N") (lambda () (interactive) (find-file "~/Sites")))
 (global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
 

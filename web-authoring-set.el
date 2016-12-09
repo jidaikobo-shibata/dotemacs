@@ -336,9 +336,11 @@
         (if (string= (car lines) "") nil
           (progn
             (if (string-match "\t" word)
-                (setq line (concat "<dt>" (replace-regexp-in-string "\t" "</dt>\n\t<dd>" (car lines)) "</dd>\n"))
-              (setq line (concat "<dt>" (car lines) "</dd>\n")))))
-        (setq html (concat html line))
+                (setq line (concat "<dt>"
+                                   (replace-regexp-in-string "\t" "</dt>\n\t<dd>" (car lines))
+                                   "</dd>\n"))
+              (setq line (concat "<dt>" (car lines) "</dt>\n"))))
+        (setq html (concat html line)))
         (setq lines (cdr lines)))
       (setq tag (concat "<dl>\n" html "</dl>" eob)))
 
