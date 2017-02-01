@@ -1,3 +1,92 @@
+;; ;;; ------------------------------------------------------------
+;; ;; diredでanythingしたらfindする（ファイル編）
+;; (defvar anything-c-source-find-at-dired
+;;   '((name . "Find file")
+;;     (candidates . (lambda ()
+;;                     (with-current-buffer anything-current-buffer
+;;                       (let* ((shell-file-name
+;;                               (if (string-match
+;;                                    "\\.sakura"
+;;                                    (or (file-remote-p dired-directory t) ""))
+;;                                   "/usr/local/bin/bash"
+;;                                 "/bin/bash"))
+;;                              (current-dir (dired-current-directory))
+;;                              (sep-point (string-match ":/" current-dir))
+;;                              (pwd (if sep-point (substring current-dir (+ (match-beginning 0) 1))
+;;                                     current-dir))
+;;                              (tramp-host (file-remote-p dired-directory t))
+;;                              (tramp-results (list))
+;;                              (results (split-string
+;;                                        (shell-command-to-string
+;;                                         (concat "find "
+;;                                                 (replace-regexp-in-string "/$" "" pwd)
+;;                                                 (replace-regexp-in-string "\n" " "
+;;                                                                           "
+;; -type d -name \"logs\" -prune -o
+;; -type d -name \"cache\" -prune -o
+;; -type d -name \".git\" -prune -o
+;; -type f ! -name \"*.png\"
+;; ! -name \"*.ico\"
+;; ! -name \"*.gif\"
+;; ! -name \"*.jpg\"
+;; ! -name \".DS_Store\"")))
+;;                                        "\n")))
+;;                         (if tramp-host
+;;                             (progn
+;;                               (dolist (result results)
+;;                                 (add-to-list 'tramp-results (concat tramp-host result)))
+;;                               tramp-results)
+;;                           results)))))
+;;     (type . file)))
+
+;; ;;; ------------------------------------------------------------
+;; ;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
+;; (defun my-get-project-name (x)
+;;   "Project title for anything.  X."
+;;   (with-anything-current-buffer
+;;     (concat (if (gtags-get-rootpath) "gtags" "ls") ": "
+;;             (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
+;;                 (substring default-directory (match-beginning 1) (match-end 1))
+;;               (file-name-nondirectory (directory-file-name default-directory))))))
+;; (defvar anything-c-source-find-by-gtags
+;;   '((name . "Find by gtags or ls")
+;;     (header-name . my-get-project-name)
+;;     (candidates . (lambda ()
+;;                     (let
+;;                         ((default-directory
+;;                            (with-current-buffer anything-current-buffer default-directory))
+;;                          (find-opt " -type d -name \"logs\" -prune -o -type d -name \"cache\" -prune -o -type f ! -name \"*.png\" ! -name \"*.ico\" ! -name \"*.gif\" ! -name \"*.jpg\" ! -name \".DS_Store\""))
+;;                       (cond
+;;                        ;; gtags-get-rootpathが返ったらgtagsをあてにして良い
+;;                        ((gtags-get-rootpath)
+;;                         (split-string
+;;                          (shell-command-to-string
+;;                           (concat "find "
+;;                                   (directory-file-name (gtags-get-rootpath))
+;;                                   find-opt))
+;;                          "\n"))
+;;                        ;; gtagsがないならls
+;;                        (t
+;;                         (split-string
+;;                          (shell-command-to-string
+;;                           (concat "ls -1 " (shell-command-to-string "pwd"))) "\n"))))))
+;;     (type . file)))
+
+;; ;;; infoを日本語で
+;; ;; thx https://ayatakesi.github.io
+;; ;; thx http://rubikitch.com/2016/07/06/emacs245-manual-ja/
+;; (when (file-directory-p "~/.emacs.d/info/")
+;;   (defvar Info-directory-list nil)
+;;   (require 'info)
+;;   (add-to-list 'Info-directory-list "~/.emacs.d/info/")
+;;   (defun Info-find-node--info-ja (orig-fn filename &rest args)
+;;     (apply orig-fn
+;;            (pcase filename
+;;              ("emacs" "emacs245-ja")
+;;              (t filename))
+;;            args))
+;;   (advice-add 'Info-find-node :around 'Info-find-node--info-ja))
+
 ;; (defun add-keys-to-search (prefix c &optional mode)
 ;;   "Add keys to search.  PREFIX is key prefix.  C is character.  MODE is direction."
 ;;   (global-set-key

@@ -108,34 +108,9 @@
 
 ;; ミニバッファでは半角英数で
 (when (functionp 'mac-auto-ascii-mode)
-  (mac-auto-ascii-mode 1)
+  (mac-auto-ascii-mode 1))
 
-  ;; ヘルプは全角で操作しない
-  (defvar Helper-help-map nil)
-  (require 'helper)
-  (global-set-key [f1] (lambda () (interactive)
-                         (mac-auto-ascii-select-input-source)
-                         (Helper-help)))
-  (with-eval-after-load 'helper
-    (define-key Helper-help-map "a" 'apropos-command)
-    (define-key Helper-help-map "b" 'describe-bindings)
-    (define-key Helper-help-map "c" 'describe-key-briefly)
-    (define-key Helper-help-map "d" 'apropos-documentation)
-    (define-key Helper-help-map "e" 'view-echo-area-messages)
-    (define-key Helper-help-map "f" 'describe-function)
-    (define-key Helper-help-map "i" (lambda () (interactive) (info "(emacs245-ja)Top")))
-    (define-key Helper-help-map "k" 'describe-key)
-    (define-key Helper-help-map "m" 'describe-mode)
-    (define-key Helper-help-map "p" 'finder-by-keyword)
-    (define-key Helper-help-map "P" 'describe-package)
-    (define-key Helper-help-map "r" 'info-emacs-manual)
-    (define-key Helper-help-map "s" 'describe-syntax)
-    (define-key Helper-help-map "t" 'help-with-tutorial)
-    (define-key Helper-help-map "w" 'where-is)
-    (define-key Helper-help-map "v" 'describe-variable)
-    (define-key Helper-help-map "q" 'help-quit)))
-
-;; dont let the cursor go into minibuffer prompt
+;; ミニバッファのプロンプトにカーソルが入らないように
 ;; reference | http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
 (setq minibuffer-prompt-properties
       '(read-only t point-entered minibuffer-avoid-prompt
@@ -171,6 +146,7 @@
 (setq-default ns-pop-up-frames nil)
 
 ;; 自分の意思でEmacsを複数起動する
+;; yes no を聞くのとサーバで起動しないようにする
 (defun open-new-emacs ()
   "Open new Emacs."
   (interactive)
@@ -212,21 +188,6 @@
 (custom-set-variables
  '(delete-by-moving-to-trash t)
  '(trash-directory "~/.Trash"))
-
-;;; infoを日本語で
-;; thx https://ayatakesi.github.io
-;; thx http://rubikitch.com/2016/07/06/emacs245-manual-ja/
-(when (file-directory-p "~/.emacs.d/info/")
-  (defvar Info-directory-list nil)
-  (require 'info)
-  (add-to-list 'Info-directory-list "~/.emacs.d/info/")
-  (defun Info-find-node--info-ja (orig-fn filename &rest args)
-    (apply orig-fn
-           (pcase filename
-             ("emacs" "emacs245-ja")
-             (t filename))
-           args))
-  (advice-add 'Info-find-node :around 'Info-find-node--info-ja))
 
 
 ;;; ------------------------------------------------------------
@@ -421,7 +382,7 @@
   (when (memq last-input-event '(50 51 67108914 67108915 C-kp-2 C-kp-3))
   (other-window 1)))
 
-;; escでM-g
+;; escでC-g
 (setq-default normal-escape-enabled t)
 (define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
 (define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
@@ -1098,6 +1059,8 @@ end tell"
       popwin:special-display-config)
 (push '(" *auto-async-byte-compile*" :height 10)
       popwin:special-display-config)
+(push '("*Async Shell Command*" :height 10 :noselect t)
+      popwin:special-display-config)
 (push '("*Warnings*" :height 10)
       popwin:special-display-config)
 
@@ -1194,8 +1157,7 @@ end tell"
 (require 'anything-config)
 
 (defvar alist-anything-for-files
-  '(anything-c-source-find-by-gtags
-    anything-c-source-bookmarks
+  '(anything-c-source-bookmarks
     anything-c-source-recentf
     ;; anything-c-source-buffers-list ;; *のバッファでAnythingを止めることがある
     ))
@@ -1215,41 +1177,6 @@ end tell"
 ;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
 (setq anything-c-boring-buffer-regexp
       (rx "*" (+ not-newline) "*"))
-
-;;; ------------------------------------------------------------
-;;; あればgtagsを起点にしてfindし、なければカレントディレクトリを対象にした情報源
-
-(defun my-get-project-name (x)
-  "Project title for anything.  X."
-  (with-anything-current-buffer
-    (concat (if (gtags-get-rootpath) "gtags" "ls") ": "
-            (if (string-match "/Sites/\\(.+?\\)\\b" default-directory)
-                (substring default-directory (match-beginning 1) (match-end 1))
-              (file-name-nondirectory (directory-file-name default-directory))))))
-
-(defvar anything-c-source-find-by-gtags
-  '((name . "Find by gtags or ls")
-    (header-name . my-get-project-name)
-    (candidates . (lambda ()
-                    (let
-                        ((default-directory
-                           (with-current-buffer anything-current-buffer default-directory))
-                         (find-opt " -type d -name \"logs\" -prune -o -type d -name \"cache\" -prune -o -type f ! -name \"*.png\" ! -name \"*.ico\" ! -name \"*.gif\" ! -name \"*.jpg\" ! -name \".DS_Store\""))
-                      (cond
-                       ;; gtags-get-rootpathが返ったらgtagsをあてにして良い
-                       ((gtags-get-rootpath)
-                        (split-string
-                         (shell-command-to-string
-                          (concat "find "
-                                  (directory-file-name (gtags-get-rootpath))
-                                  find-opt))
-                         "\n"))
-                       ;; gtagsがないならls
-                       (t
-                        (split-string
-                         (shell-command-to-string
-                          (concat "ls -1 " (shell-command-to-string "pwd"))) "\n"))))))
-    (type . file)))
 
 ;;; ------------------------------------------------------------
 ;;; ~/.ssh/configを情報源として、tramp接続
@@ -1339,47 +1266,6 @@ end tell"
 (global-set-key (kbd "C-;") 'my-anything-for-files)
 
 ;;; ------------------------------------------------------------
-;; diredでanythingしたらfindする（ファイル編）
-(defvar anything-c-source-find-at-dired
-  '((name . "Find file")
-    (candidates . (lambda ()
-                    (with-current-buffer anything-current-buffer
-                      (let* ((shell-file-name
-                              (if (string-match
-                                   "\\.sakura"
-                                   (or (file-remote-p dired-directory t) ""))
-                                  "/usr/local/bin/bash"
-                                "/bin/bash"))
-                             (current-dir (dired-current-directory))
-                             (sep-point (string-match ":/" current-dir))
-                             (pwd (if sep-point (substring current-dir (+ (match-beginning 0) 1))
-                                    current-dir))
-                             (tramp-host (file-remote-p dired-directory t))
-                             (tramp-results (list))
-                             (results (split-string
-                                       (shell-command-to-string
-                                        (concat "find "
-                                                (replace-regexp-in-string "/$" "" pwd)
-                                                (replace-regexp-in-string "\n" " "
-                                                                          "
--type d -name \"logs\" -prune -o
--type d -name \"cache\" -prune -o
--type d -name \".git\" -prune -o
--type f ! -name \"*.png\"
-! -name \"*.ico\"
-! -name \"*.gif\"
-! -name \"*.jpg\"
-! -name \".DS_Store\"")))
-                                       "\n")))
-                        (if tramp-host
-                            (progn
-                              (dolist (result results)
-                                (add-to-list 'tramp-results (concat tramp-host result)))
-                              tramp-results)
-                          results)))))
-    (type . file)))
-
-;;; ------------------------------------------------------------
 ;; diredでanythingしたらfindする（ディレクトリ編）
 (defvar anything-c-source-find-dir-at-dired
   '((name . "Find Directories")
@@ -1420,7 +1306,6 @@ end tell"
   (interactive)
   (anything-other-buffer
    '(anything-c-source-find-dir-at-dired
-     anything-c-source-find-at-dired
      anything-c-source-my-hosts
     anything-c-source-bookmarks
     anything-c-source-recentf)
@@ -1849,7 +1734,7 @@ end tell"
     (setq end (point))
     (setq strings (buffer-substring-no-properties beg end))
     (setq strings (replace-regexp-in-string "\n\\|^>+ *\\|^[\t　 ]+" " " strings))
-    (setq strings (replace-regexp-in-string " +" " " strings))
+    (setq strings (replace-regexp-in-string " +" "" strings))
     (delete-region beg end)
     (insert strings)
     (goto-char beg)))
