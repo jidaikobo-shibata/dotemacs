@@ -185,7 +185,7 @@
 (when sc/is-sync-isearch
   (add-hook 'isearch-update-post-hook 'sc/isearch-update-string)
   (defun sc/isearch-update-string ()
-    (when (and (not (or isearch-regexp isearch-word))
+    (when (and (not (or isearch-regexp isearch-regexp-function))
                (eq this-command 'isearch-printing-char))
       (unless (get-buffer sc/search-str-buffer) (get-buffer-create sc/search-str-buffer))
       (sc/keep-target-buffer)
@@ -455,7 +455,7 @@
     ;; move cursor to search window
     ;; キャレットを検索窓にセットして選択
     (select-window (get-buffer-window sc/search-str-buffer))
-    (mark-whole-buffer)
+    ;; (mark-whole-buffer)
 
     (setq sc/ignore-delete-window-hook t)))
 
