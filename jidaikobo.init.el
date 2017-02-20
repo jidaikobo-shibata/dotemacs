@@ -333,6 +333,14 @@
 
 
 ;;; ------------------------------------------------------------
+;;; which-key
+;;; ------------------------------------------------------------
+
+(which-key-mode 1)
+(which-key-setup-side-window-bottom)
+
+
+;;; ------------------------------------------------------------
 ;;; キーボード操作
 ;;; ------------------------------------------------------------
 
@@ -1161,6 +1169,9 @@ end tell"
 
 ;; Anythingの画面更新を早く
 (setq anything-input-idle-delay 0.1)
+
+;; Anythingの表示されていない候補を遅延対象にする
+(setq anything-quick-update t)
 
 ;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
 (setq anything-c-boring-buffer-regexp
@@ -2249,8 +2260,5 @@ If gist-id exists update gist.  BEG END."
 ;; (global-set-key (kbd "C--") 'func)
 ;; (message "this-event: %s this-command: %s" last-input-event this-command)
 ;; (message "initial: %s point: %s" initial-point (point))
-
-(which-key-setup-side-window-bottom)
-(which-key-mode 1)
 
 ;;; jidaikobo.init.el ends here
