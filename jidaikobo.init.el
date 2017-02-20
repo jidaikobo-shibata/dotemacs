@@ -62,7 +62,7 @@
 (setq scroll-step 1)
 
 ;; クリップボードを他のアプリケーションと共用にする
-(setq x-select-enable-clipboard t)
+(setq select-enable-clipboard t)
 
 ;; Meta/Super/Hyperキー
 (setq mac-pass-command-to-system nil)
@@ -86,6 +86,9 @@
 ;; バックアップファイルを作らないようにする
 (setq make-backup-files nil)
 
+;; Emacs終了時に確認をする
+(setq confirm-kill-emacs 'y-or-n-p)
+
 ;; 自動保存を無効
 (setq auto-save-default nil)
 (setq delete-auto-save-files t)
@@ -100,8 +103,8 @@
 ;; ツールバーを非表示
 (when (functionp 'tool-bar-mode) (tool-bar-mode -1))
 
-;; タイトルバーにファイル名表示
-(setq frame-title-format (format "%%f %%* Emacs@%s" (system-name)))
+;; タイトルバーにバッファ名とファイル名表示
+(setq frame-title-format (format "%%b %%* %%f"))
 
 ;; ミニバッファ履歴を保存
 (savehist-mode 1)
@@ -119,8 +122,9 @@
       '(read-only t point-entered minibuffer-avoid-prompt
                   face minibuffer-prompt))
 
-;; C-h
+;; C-h, M-h
 (global-set-key "\C-h" 'delete-backward-char)
+(global-set-key "\M-h" 'help)
 
 ;; タブ幅
 (setq-default tab-width 2)
@@ -142,19 +146,19 @@
 ;; grepバッファは、ウィンドウを分割しない
 (add-to-list 'same-window-buffer-names "*grep*")
 
-;; tabbar使いなので、ほとんどの場合、window分割はしない
+;; ほとんどの場合、window分割はしない
 (add-to-list 'same-window-regexps "^[a-zA-Z0-9_-]+")
 
 ;; 複数フレームを開かないようにする
 (setq-default ns-pop-up-frames nil)
 
-;; 自分の意思でEmacsを複数起動する
-;; yes no を聞くのとサーバで起動しないようにする
+;; 自分の意思でEmacsを複数起動する（Mac用）
 (defun open-new-emacs ()
   "Open new Emacs."
   (interactive)
-  (shell-command "/Applications/Emacs.app/Contents/MacOS/Emacs &"))
-(global-set-key (kbd "s-n") 'open-new-emacs)
+  (when (yes-or-no-p "open new Emacs?")
+    (shell-command "/Applications/Emacs.app/Contents/MacOS/Emacs &")))
+(global-set-key (kbd "M-s-n") 'open-new-emacs)
 
 ;; emacsclientを使う
 (require 'server)
@@ -168,7 +172,7 @@
 ;; M-¥でバックスラッシュを入力
 (global-set-key (kbd "M-¥") "\\")
 
-;; 日本語入力時にM-/で全角スラッシュを入力
+;; 日本語入力時にM-/で全角スラッシュを入力（挙動不満）
 (global-set-key (kbd "M-/")
                 (lambda () (interactive)
                   (if (fboundp 'mac-input-source)
@@ -252,6 +256,7 @@
       flycheck
       foreign-regexp
       google-translate
+      goto-chg
       gtags
       multiple-cursors
       php-mode
@@ -263,6 +268,7 @@
       undo-tree
       undohist
       web-beautify
+      which-key
       yaml-mode
       yagist
       zlc))
@@ -362,6 +368,25 @@
 (global-set-key (kbd "M-g") 'goto-line)
 (global-set-key (kbd "M-s-j") 'goto-line)
 
+;; 編集履歴を使ってカーソル位置をたどる
+(global-set-key (kbd "M-s-<left>") 'goto-last-change)
+(global-set-key (kbd "M-s-<right>") 'goto-last-change-reverse)
+
+;; バッファ選択
+(global-set-key (kbd "C-,") 'switch-to-prev-buffer)
+(global-set-key (kbd "C-.") 'switch-to-next-buffer)
+
+;; 直前のバッファと行ったり来たりする
+(global-set-key (kbd "C-:") (lambda () (interactive) (switch-to-buffer (other-buffer))))
+
+;; 新規バッファを開く
+;; thx open-junk-file by rubikitch
+(global-set-key (kbd "s-n")
+                (lambda ()
+                  (interactive)
+                  (find-file-other-window
+                   (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time)))))
+
 ;; kill-lineがkill ringをnewするのでdelete-lineにする
 (global-set-key (kbd "C-k")
                 (lambda ()
@@ -409,7 +434,7 @@
 (global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
 
 ;;; ------------------------------------------------------------
-;;;ace-jump-mode
+;;; ace-jump-mode
 
 (require 'ace-jump-mode)
 (setq ace-jump-mode-move-keys
@@ -610,42 +635,6 @@
 
 (global-set-key (kbd "<M-s-down>") (lambda () (interactive) (next-block "next")))
 (global-set-key (kbd "<M-s-up>") (lambda () (interactive) (next-block "prev")))
-
-;;; ------------------------------------------------------------
-;;; 前回１秒以上立ち止まった場所にジャンプするコマンド
-;; thx http://qiita.com/zk_phi/items/c145b7bd8077b8a0f537
-
-(require 'ring)
-(require 'edmacro)
-
-(defvar-local jump-back!--marker-ring nil)
-
-(defun jump-back!--ring-update ()
-  "Jump-back! ring-update."
-  (let ((marker (point-marker)))
-    (unless jump-back!--marker-ring
-      (setq jump-back!--marker-ring (make-ring 30)))
-    (ring-insert jump-back!--marker-ring marker)))
-
-(run-with-idle-timer 1 t 'jump-back!--ring-update)
-
-(defun jump-back! ()
-  "Jump back."
-  (interactive)
-  (if (ring-empty-p jump-back!--marker-ring)
-      (error "No further undo information")
-    (let ((marker (ring-ref jump-back!--marker-ring 0))
-          (repeat-key (vector last-input-event)))
-      (ring-remove jump-back!--marker-ring 0)
-      (if (= (point-marker) marker)
-          (jump-back!)
-        (goto-char marker)
-        (message "(Type %s to repeat)" (edmacro-format-keys repeat-key))
-        (set-temporary-overlay-map
-         (let ((km (make-sparse-keymap)))
-           (define-key km repeat-key 'jump-back!)
-           km))))))
-(global-set-key (kbd "C-z") 'jump-back!)
 
 ;;; ------------------------------------------------------------
 ;;; 自分好みのタブの振る舞い（やや偏執的……）
@@ -1159,27 +1148,52 @@ end tell"
 (require 'anything)
 (require 'anything-config)
 
-(defvar alist-anything-for-files
-  '(anything-c-source-bookmarks
-    anything-c-source-recentf
-    ;; anything-c-source-buffers-list ;; *のバッファでAnythingを止めることがある
-    ))
-
 ;; key binds
 (define-key anything-map [escape] 'anything-keyboard-quit)
+(define-key anything-map (kbd "C-;") 'anything-keyboard-quit)
 (define-key anything-map (kbd "<tab>") 'anything-select-action)
-
-;; M-xによる補完をAnythingで行なう
-(require 'anything-complete)
-(anything-read-string-mode 1)
 
 ;; Anythingでファイルを開く方法をFind file as rootにしたときにsudoで開くように
 (setq anything-su-or-sudo "sudo")
 
+;; Anythingのショートカットをoff
+(setq anything-enable-shortcuts nil)
+
+;; Anythingの画面更新を早く
+(setq anything-input-idle-delay 0.1)
+
 ;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
-;; thx https://github.com/skkzsh/.emacs.d/blob/master/conf/anything-init.el
 (setq anything-c-boring-buffer-regexp
-      (rx "*" (+ not-newline) "*"))
+      (rx (or
+       (group bos " ")
+       ;; anything-buffers
+       "*anything" "*ac-mode" "*my-anything"
+       ;; My library
+       "*search" "*replace" "*Async"
+       ;; Emacs
+       "*Backtrace" "*Help" "*my-anything" "*Completions" "*Compile" "*Buffer"
+       ;; echo area
+       " *Echo Area" " *Minibuf")))
+
+;; alist-anything-for-files
+;; anything-c-source-buffers-list が*のバッファでAnythingを止めることがある？
+(defvar alist-anything-for-files
+  '(anything-c-source-bookmarks
+    ;; anything-c-source-recentf
+    anything-c-source-buffers-list))
+
+;;; ------------------------------------------------------------
+;;; working directory を対象にした候補
+
+(defvar anything-c-source-my-file-of-working-dir
+  '((name . "Works")
+    (candidates . (lambda ()
+                    (split-string
+                     (shell-command-to-string "ls -d ~/Sites/*")
+                     "\n")))
+    (type . file)))
+
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-file-of-working-dir t)
 
 ;;; ------------------------------------------------------------
 ;;; ~/.ssh/configを情報源として、tramp接続
@@ -1237,8 +1251,7 @@ end tell"
               ((string-match "[P\\|p]assword +\\(.+?\\)$" line)
                (setq password (string-trim (substring line (match-beginning 1) (match-end 2)))))
               ((not (string= "" line))
-               (setq alias (string-trim (string-trim line))))
-))
+               (setq alias (string-trim (string-trim line))))))
       (when path (add-to-list 'hosts (concat alias "  " path "  " password))))
       hosts))
 
@@ -1261,60 +1274,12 @@ end tell"
 (add-to-list 'alist-anything-for-files 'anything-c-source-imenu t)
 
 (defun my-anything-for-files ()
-  "Anything command included find by gtags."
+  "Anything command for files and commands."
   (interactive)
   (anything-other-buffer
    alist-anything-for-files
    "*my-anything-for-files*"))
 (global-set-key (kbd "C-;") 'my-anything-for-files)
-
-;;; ------------------------------------------------------------
-;; diredでanythingしたらfindする（ディレクトリ編）
-(defvar anything-c-source-find-dir-at-dired
-  '((name . "Find Directories")
-    (candidates . (lambda ()
-                    (with-current-buffer anything-current-buffer
-                      (let* ((shell-file-name
-                              (if (string-match
-                                   "\\.sakura"
-                                   (or (file-remote-p dired-directory t) ""))
-                                  "/usr/local/bin/bash"
-                                "/bin/bash"))
-                             (current-dir (dired-current-directory))
-                             (sep-point (string-match ":/" current-dir))
-                             (pwd (if sep-point (substring current-dir (+ (match-beginning 0) 1))
-                                    current-dir))
-                             (tramp-host (file-remote-p dired-directory t))
-                             (tramp-results (list))
-                             (results (split-string
-                                       (shell-command-to-string
-                                        (concat "find "
-                                                (replace-regexp-in-string "/$" "" pwd)
-                                                (replace-regexp-in-string "\n" " "
-                                                                          " -type d")))
-                                       "\n")))
-                        (if tramp-host
-                            (progn
-                              (dolist (result results)
-                                (add-to-list 'tramp-results (concat tramp-host result)))
-                              tramp-results)
-                          results)))))
-    (type . file)))
-
-;;; ------------------------------------------------------------
-;;; Diredの情報源
-
-(defun my-anything-c-source-find-at-dired ()
-  "Anything command for find at dired."
-  (interactive)
-  (anything-other-buffer
-   '(anything-c-source-find-dir-at-dired
-     anything-c-source-my-hosts
-    anything-c-source-bookmarks
-    anything-c-source-recentf)
-   "*my-anything-c-source-find-at-dired*"))
-(define-key dired-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
-(define-key dired-explorer-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
 
 ;;; ------------------------------------------------------------
 ;;; Anything - Encode and Line folding
@@ -1351,20 +1316,6 @@ end tell"
    '(anything-c-source-coding-system)
    "*my-anything-c-source-coding-system*"))
 (global-set-key (kbd "C-^") 'my-anything-for-coding-system)
-
-;;; ------------------------------------------------------------
-;;; Anything my-anything-for-functions
-
-;; (defun my-anything-for-functions ()
-;;   "Anything command for program."
-;;   (interactive)
-;;   (anything-other-buffer
-;;    '(anything-c-source-emacs-functions-with-abbrevs
-;;      anything-c-source-emacs-commands
-;;      anything-c-source-emacs-variables
-;;      anything-c-source-imenu)
-;;    "*my-anything-for-functions*"))
-;; (global-set-key (kbd "C-,") 'my-anything-for-functions)
 
 
 ;;; ------------------------------------------------------------
@@ -1985,19 +1936,6 @@ If gist-id exists update gist.  BEG END."
                     (eval-buffer))
                   (message "eval done.")))
 
-;;; Elispの関数名をコメント状態に（ものぐさ……）
-(global-set-key (kbd "C-.")
-                (lambda () (interactive)
-                  (let* (
-                         (beg (when (region-active-p) (region-beginning)))
-                         (end (when (region-active-p) (region-end)))
-                         (str (when (region-active-p) (buffer-substring-no-properties beg end))))
-                    (when str
-                      (setq str (replace-regexp-in-string "-" " " str))
-                      (setq str (replace-regexp-in-string "$" "." str)))
-                    (delete-region beg end)
-                    (insert str))))
-
 ;;; *Messages*バッファを自動スクロール
 ;; thx http://stackoverflow.com/questions/4682033/in-emacs-can-i-set-up-the-messages-buffer-so-that-it-tails
 (defun modi/messages-auto-tail (&rest _)
@@ -2311,5 +2249,8 @@ If gist-id exists update gist.  BEG END."
 ;; (global-set-key (kbd "C--") 'func)
 ;; (message "this-event: %s this-command: %s" last-input-event this-command)
 ;; (message "initial: %s point: %s" initial-point (point))
+
+(which-key-setup-side-window-bottom)
+(which-key-mode 1)
 
 ;;; jidaikobo.init.el ends here

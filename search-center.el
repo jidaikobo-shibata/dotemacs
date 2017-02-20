@@ -93,7 +93,7 @@
 
 ;; foreign-regexp
 (when (package-installed-p 'foreign-regexp)
-  (require 'foreign-regexp)
+  (with-no-warnings (require 'foreign-regexp))
   (eval-after-load "foreign-regexp"
     (progn
       (custom-set-variables

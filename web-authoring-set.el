@@ -171,24 +171,26 @@
          cnt)
 
     ;; use with completing
-    (unless tag
-      (setq tag (let ((completing-read-function 'completing-read-default))
-                  (anything-old-completing-read
-                   "Tag (default \"div\"): "
-                   '(("table", "table")
-                     ("section", "section")
-                     ("header", "header")
-                     ("footer", "footer")
-                     ("aside", "aside")
-                     ("article", "article")
-                     ("select", "select")
-                     ("script", "script")
-                     ("style", "style")
-                     ("input", "input")
-                     ("form", "form")
-                     ("label", "label")
-                     ("ruby", "ruby")
-                     ("textarea", "textarea"))))))
+    ;; (unless tag
+    ;;   (setq tag (let ((completing-read-function 'completing-read-default))
+    ;;               (anything-old-completing-read
+    ;;                "Tag (default \"div\"): "
+    ;;                '(("table", "table")
+    ;;                  ("section", "section")
+    ;;                  ("header", "header")
+    ;;                  ("footer", "footer")
+    ;;                  ("aside", "aside")
+    ;;                  ("article", "article")
+    ;;                  ("select", "select")
+    ;;                  ("script", "script")
+    ;;                  ("style", "style")
+    ;;                  ("input", "input")
+    ;;                  ("form", "form")
+    ;;                  ("label", "label")
+    ;;                  ("ruby", "ruby")
+    ;;                  ("textarea", "textarea"))))))
+
+    (unless tag (setq tag (read-string "tag: ")))
 
     (cond
      ;; anchor

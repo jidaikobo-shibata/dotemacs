@@ -1,3 +1,118 @@
+;; M-xによる補完をAnythingで行なう
+;; (require 'anything-complete)
+;; (anything-read-string-mode 1)
+
+;;; ------------------------------------------------------------
+;;; Anything my-anything-for-functions
+;;
+;; (defun my-anything-for-functions ()
+;;   "Anything command for program."
+;;   (interactive)
+;;   (anything-other-buffer
+;;    '(anything-c-source-emacs-functions-with-abbrevs
+;;      anything-c-source-emacs-commands
+;;      anything-c-source-emacs-variables
+;;      anything-c-source-imenu)
+;;    "*my-anything-for-functions*"))
+;; (global-set-key (kbd "C-,") 'my-anything-for-functions)
+
+;; ;;; ------------------------------------------------------------
+;; ;; diredでanythingしたらfindする（ディレクトリ編）
+;; (defvar anything-c-source-find-dir-at-dired
+;;   '((name . "Find Directories")
+;;     (candidates . (lambda ()
+;;                     (with-current-buffer anything-current-buffer
+;;                       (let* ((shell-file-name
+;;                               (if (string-match
+;;                                    "\\.sakura"
+;;                                    (or (file-remote-p dired-directory t) ""))
+;;                                   "/usr/local/bin/bash"
+;;                                 "/bin/bash"))
+;;                              (current-dir (dired-current-directory))
+;;                              (sep-point (string-match ":/" current-dir))
+;;                              (pwd (if sep-point (substring current-dir (+ (match-beginning 0) 1))
+;;                                     current-dir))
+;;                              (tramp-host (file-remote-p dired-directory t))
+;;                              (tramp-results (list))
+;;                              (results (split-string
+;;                                        (shell-command-to-string
+;;                                         (concat "find "
+;;                                                 (replace-regexp-in-string "/$" "" pwd)
+;;                                                 (replace-regexp-in-string "\n" " "
+;;                                                                           " -type d")))
+;;                                        "\n")))
+;;                         (if tramp-host
+;;                             (progn
+;;                               (dolist (result results)
+;;                                 (add-to-list 'tramp-results (concat tramp-host result)))
+;;                               tramp-results)
+;;                           results)))))
+;;     (type . file)))
+;;
+;;; ------------------------------------------------------------
+;;; Diredの情報源
+;;
+;; (defun my-anything-c-source-find-at-dired ()
+;;   "Anything command for find at dired."
+;;   (interactive)
+;;   (anything-other-buffer
+;;    '(anything-c-source-find-dir-at-dired
+;;      anything-c-source-my-hosts
+;;     anything-c-source-bookmarks
+;;     anything-c-source-recentf)
+;;    "*my-anything-c-source-find-at-dired*"))
+;; (define-key dired-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
+;; (define-key dired-explorer-mode-map (kbd "C-;") 'my-anything-c-source-find-at-dired)
+
+;; ;;; ------------------------------------------------------------
+;; ;;; 前回１秒以上立ち止まった場所にジャンプするコマンド
+;; ;; thx http://qiita.com/zk_phi/items/c145b7bd8077b8a0f537
+;;
+;; (require 'ring)
+;; (require 'edmacro)
+;;
+;; (defvar-local jump-back!--marker-ring nil)
+;;
+;; (defun jump-back!--ring-update ()
+;;   "Jump-back! ring-update."
+;;   (let ((marker (point-marker)))
+;;     (unless jump-back!--marker-ring
+;;       (setq jump-back!--marker-ring (make-ring 30)))
+;;     (ring-insert jump-back!--marker-ring marker)))
+;;
+;; (run-with-idle-timer 1 t 'jump-back!--ring-update)
+;;
+;; (defun jump-back! ()
+;;   "Jump back."
+;;   (interactive)
+;;   (if (ring-empty-p jump-back!--marker-ring)
+;;       (error "No further undo information")
+;;     (let ((marker (ring-ref jump-back!--marker-ring 0))
+;;           (repeat-key (vector last-input-event)))
+;;       (ring-remove jump-back!--marker-ring 0)
+;;       (if (= (point-marker) marker)
+;;           (jump-back!)
+;;         (goto-char marker)
+;;         (message "(Type %s to repeat)" (edmacro-format-keys repeat-key))
+;;         (set-temporary-overlay-map
+;;          (let ((km (make-sparse-keymap)))
+;;            (define-key km repeat-key 'jump-back!)
+;;            km))))))
+;; (global-set-key (kbd "C-z") 'jump-back!)
+
+;; ;;; Elispの関数名をコメント状態に（ものぐさ……）
+;; (global-set-key (kbd "C-.")
+;;                 (lambda () (interactive)
+;;                   (let* (
+;;                          (beg (when (region-active-p) (region-beginning)))
+;;                          (end (when (region-active-p) (region-end)))
+;;                          (str (when (region-active-p) (buffer-substring-no-properties beg end))))
+;;                     (when str
+;;                       (setq str (replace-regexp-in-string "-" " " str))
+;;                       (setq str (replace-regexp-in-string "$" "." str)))
+;;                     (delete-region beg end)
+;;                     (insert str))))
+
 ;; ;;; ------------------------------------------------------------
 ;; ;; diredでanythingしたらfindする（ファイル編）
 ;; (defvar anything-c-source-find-at-dired
