@@ -1,5 +1,5 @@
 ;;; jidaikobo.init.el --- jidaikobo.init.el for jidaikobo.  Provides Mac OS like interface.
-;; Copyright (C) 2016 by jidaikobo-shibata
+;; Copyright (C) 2017 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
@@ -83,13 +83,13 @@
 ;; 警告音とフラッシュを無効
 (setq ring-bell-function 'ignore)
 
-;; バックアップファイルを作らないようにする
-(setq make-backup-files nil)
-
 ;; Emacs終了時に確認をする
 (setq confirm-kill-emacs 'y-or-n-p)
 
-;; 自動保存を無効
+;; バックアップ・自動保存を無効
+(setq make-backup-files nil)
+(setq auto-save-list-file-prefix nil)
+(setq create-lockfiles nil)
 (setq auto-save-default nil)
 (setq delete-auto-save-files t)
 
@@ -115,6 +115,9 @@
 ;; ミニバッファでは半角英数で
 (when (functionp 'mac-auto-ascii-mode)
   (mac-auto-ascii-mode 1))
+
+;; isearchもまず半角で
+(add-hook 'isearch-mode-hook 'mac-auto-ascii-select-input-source)
 
 ;; ミニバッファのプロンプトにカーソルが入らないように
 ;; reference | http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
@@ -2051,11 +2054,12 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 ;;; css-mode
 
-(require 'css-mode)
+(autoload 'css-mode "css-mode"
+  "Major mode for css files" t)
+;; (require 'css-mode)
 (setq auto-mode-alist
       (cons '("\\.css$" . css-mode) auto-mode-alist))
 
-;; (defvar cssm-indent-function)
 (add-hook 'css-mode-hook
           (lambda ()
             (setq css-indent-offset 2)
@@ -2073,16 +2077,13 @@ If gist-id exists update gist.  BEG END."
 ;;; ------------------------------------------------------------
 ;;; yaml-mode
 
-(require 'yaml-mode)
+(autoload 'yaml-mode "yaml-mode"
+  "Major mode for yaml files" t)
+;; (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode))
 
 ;;; ------------------------------------------------------------
 ;;; php-mode
-
-;; (require 'my-php-mode)
-;; (setq auto-mode-alist
-;;        (append '(("\\.php$" . my-php-mode))
-;;            auto-mode-alist))
 
 (require 'php-mode)
 
@@ -2124,7 +2125,7 @@ If gist-id exists update gist.  BEG END."
              (c-set-offset 'arglist-close 0)
 
              (setq php-speedbar-config nil)
-             (setq php-template-compatibility nil)
+             (setq php-template-compatibility t)
              (setq php-mode-warn-if-mumamo-off nil)
              ;; (setq php-mode-coding-style 'default)
              (setq php-manual-url "http://jp2.php.net/manual/ja/")
@@ -2140,9 +2141,12 @@ If gist-id exists update gist.  BEG END."
 ;;; rainbow-mode
 ;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
 
-(require 'rainbow-mode)
+(autoload 'rainbow-mode "rainbow-mode"
+  "Major mode for rainbow" t)
+;; (require 'rainbow-mode)
 (add-hook 'fundamental-mode-hook 'rainbow-mode)
 (add-hook 'text-mode-hook 'rainbow-mode)
+(add-hook 'html-mode-hook 'rainbow-mode)
 (add-hook 'lisp-mode-hook 'rainbow-mode)
 (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)
 (add-hook 'css-mode-hook 'rainbow-mode)
@@ -2152,27 +2156,31 @@ If gist-id exists update gist.  BEG END."
 ;;; flycheck
 ;;; ------------------------------------------------------------
 
-(require 'flycheck)
-(setq flycheck-emacs-lisp-load-path 'inherit)
+;; (require 'flycheck)
+(autoload 'flycheck "flycheck-mode"
+  "Major mode for flycheck" t)
 
-;; Flycheckのwindowは単独で表示
-(add-to-list 'same-window-buffer-names "*Flycheck errors*")
+(with-eval-after-load 'flycheck
+  (setq flycheck-emacs-lisp-load-path 'inherit)
 
-;; face
-;; (set-face-attribute 'flycheck-error nil
-;;                     :foreground "Red1"
-;;                     :inverse-video t)
-;; (set-face-attribute 'flycheck-warning nil
-;;                     :foreground "DarkOrange"
-;;                     :inverse-video t)
+  ;; flycheckのwindowは単独で表示
+  (add-to-list 'same-window-buffer-names "*Flycheck errors*")
 
-;; キーバインド
-(global-set-key (kbd "C-M-c") 'flycheck-buffer)
-(global-set-key (kbd "C-M-l") 'flycheck-list-errors)
-(global-set-key (kbd "<C-M-up>") 'flycheck-previous-error)
-(global-set-key (kbd "<C-M-down>") 'flycheck-next-error)
-(define-key flycheck-error-list-mode-map (kbd "C-g") 'quit-window)
-(define-key flycheck-error-list-mode-map [escape] 'quit-window)
+  ;; face
+  ;; (set-face-attribute 'flycheck-error nil
+  ;;                     :foreground "Red1"
+  ;;                     :inverse-video t)
+  ;; (set-face-attribute 'flycheck-warning nil
+  ;;                     :foreground "DarkOrange"
+  ;;                     :inverse-video t)
+
+  ;; キーバインド
+  (global-set-key (kbd "C-M-c") 'flycheck-buffer)
+  (global-set-key (kbd "C-M-l") 'flycheck-list-errors)
+  (global-set-key (kbd "<C-M-up>") 'flycheck-previous-error)
+  (global-set-key (kbd "<C-M-down>") 'flycheck-next-error)
+  (define-key flycheck-error-list-mode-map (kbd "C-g") 'quit-window)
+  (define-key flycheck-error-list-mode-map [escape] 'quit-window))
 
 ;; enable
 (add-hook 'php-mode-hook 'flycheck-mode)
