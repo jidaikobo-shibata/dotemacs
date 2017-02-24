@@ -3408,6 +3408,7 @@ Redirect permanent /test http://www.example.com/test.html
 Redirect temp /test http://www.example.com/test.html
 reduce
 reduction
+redundancy
 refactoring
 refer
 reference
