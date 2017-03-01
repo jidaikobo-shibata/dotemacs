@@ -232,6 +232,7 @@
 (add-to-list 'load-path jidaikobo-dir)
 (add-to-list 'load-path (concat dotfiles-dir "elisp"))
 (add-to-list 'load-path (concat dotfiles-dir "elisp/dired-explorer"))
+(add-to-list 'load-path (concat dotfiles-dir "elisp/focus-on-editable-buffers"))
 
 ;; package.override.el
 (defvar override-el (concat dotfiles-dir "package.override.el"))
@@ -295,6 +296,9 @@
 
 ;; HTMLのマークアップのキーバインド集 - web-authoring-set
 (require 'web-authoring-set)
+
+;; バッファ移動を自分好みに - focus-on-editable-buffers
+(require 'focus-on-editable-buffers)
 
 ;; テーマ - jidaikobo's theme
 (add-to-list 'custom-theme-load-path
@@ -380,12 +384,12 @@
 (global-set-key (kbd "M-s-j") 'goto-line)
 
 ;; 編集履歴を使ってカーソル位置をたどる
-(global-set-key (kbd "M-s-<left>") 'goto-last-change)
-(global-set-key (kbd "M-s-<right>") 'goto-last-change-reverse)
+(global-set-key (kbd "C-,") 'goto-last-change)
+(global-set-key (kbd "C-.") 'goto-last-change-reverse)
 
 ;; バッファ選択
-(global-set-key (kbd "C-,") 'switch-to-prev-buffer)
-(global-set-key (kbd "C-.") 'switch-to-next-buffer)
+(global-set-key (kbd "M-s-<left>") 'foeb/switch-to-prev-buffer)
+(global-set-key (kbd "M-s-<right>") 'foeb/switch-to-next-buffer)
 
 ;; 直前のバッファと行ったり来たりする
 (global-set-key (kbd "C-:") (lambda () (interactive) (switch-to-buffer (other-buffer))))
@@ -1184,6 +1188,8 @@ end tell"
        "*anything" "*ac-mode" "*my-anything"
        ;; My library
        "*search" "*replace" "*Async"
+       ;; Tramp
+       "*tramp/"
        ;; Emacs
        "*Backtrace" "*Help" "*my-anything" "*Completions" "*Compile" "*Buffer"
        ;; echo area
