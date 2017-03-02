@@ -2266,6 +2266,7 @@ is_callable
 is_dir
 is_double
 is_executable
+is_exists
 is_file
 is_float
 is_int
