@@ -1829,6 +1829,7 @@ get_post_meta()
 get_posts('post_type=POST_TYPE&orderby=menu_order&order=DESC&numberposts=-1&taxonomy=TAXONOMY_NAME&term=SLUG');
 get_posts()
 get_stylesheet_directory_uri()
+get_the_permalink()
 getdate
 getenv
 gettext
