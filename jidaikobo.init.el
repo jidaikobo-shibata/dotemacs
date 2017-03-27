@@ -187,6 +187,10 @@
                           (dabbrev-expand nil)))
                     (dabbrev-expand nil))))
 
+
+;; 設定ファイル用のメジャーモード
+(require 'generic-x)
+
 ;; 機能の有効化
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
@@ -298,7 +302,10 @@
 (require 'web-authoring-set)
 
 ;; バッファ移動を自分好みに - focus-on-editable-buffers
+(setq-default foeb/is-use-advice-delete-window t)
+(setq-default foeb/is-use-anything-execute-persistent-action t)
 (require 'focus-on-editable-buffers)
+(require 'anything-focus-on-editable-buffers)
 
 ;; テーマ - jidaikobo's theme
 (add-to-list 'custom-theme-load-path
@@ -387,12 +394,8 @@
 (global-set-key (kbd "C-,") 'goto-last-change)
 (global-set-key (kbd "C-.") 'goto-last-change-reverse)
 
-;; バッファ選択
-(global-set-key (kbd "M-s-<left>") 'foeb/switch-to-prev-buffer)
-(global-set-key (kbd "M-s-<right>") 'foeb/switch-to-next-buffer)
-
 ;; 直前のバッファと行ったり来たりする
-(global-set-key (kbd "C-:") (lambda () (interactive) (switch-to-buffer (other-buffer))))
+(global-set-key (kbd "C-¥") (lambda () (interactive) (switch-to-buffer (other-buffer))))
 
 ;; 新規バッファを開く
 ;; thx open-junk-file by rubikitch
@@ -455,10 +458,13 @@
 (setq ace-jump-mode-move-keys
       (append "asdfghjkl;:]qwertyuiop@zxcvbnm,." nil))
 (setq ace-jump-word-mode-use-query-char nil)
-(global-set-key (kbd "M-z")
-                (lambda (chr) (interactive (list (read-char "Query Char:")))
-                  (mac-auto-ascii-select-input-source)
-                  (ace-jump-char-mode chr)))
+(defun do-ace-jump-mode (chr)
+  "Do ace jump mode.  CHR."
+  (interactive (list (read-char "Query Char:")))
+  (mac-auto-ascii-select-input-source)
+  (ace-jump-char-mode chr))
+(global-set-key (kbd "M-z") 'do-ace-jump-mode)
+(global-set-key (kbd "C-z") 'do-ace-jump-mode)
 
 ;;; ------------------------------------------------------------
 ;;; 次/前の空行
@@ -556,6 +562,7 @@
   ;; リージョン解除関数
   (defun my-deactivate-region ()
     "Logic of deactivate region by cursor."
+    ;; (interactive "^")
     ;; (message "l: %s c: %s" last-input-event this-command)
     ;; (message "m:%s r:%s u:%s" mark-active (region-active-p) (use-region-p))
     ;; (message "s:%s e:%s" (region-beginning) (region-end))
@@ -938,6 +945,7 @@ end tell"
 (add-to-list 'ac-modes 'fundamental-mode)
 (add-to-list 'ac-modes 'html-mode)
 (add-to-list 'ac-modes 'yaml-mode)
+(add-to-list 'ac-modes 'default-generic-mode)
 
 ;;; 辞書に文字列を足して、git commit
 (defun add-strings-to-ac-my-dictionary (dict-path)
@@ -1182,25 +1190,26 @@ end tell"
 
 ;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
 (setq anything-c-boring-buffer-regexp
-      (rx (or
-       (group bos " ")
-       ;; anything-buffers
-       "*anything" "*ac-mode" "*my-anything"
-       ;; My library
-       "*search" "*replace" "*Async"
-       ;; Tramp
-       "*tramp/"
-       ;; Emacs
-       "*Backtrace" "*Help" "*my-anything" "*Completions" "*Compile" "*Buffer"
-       ;; echo area
-       " *Echo Area" " *Minibuf")))
+      (rx
+       (or
+        ;; start with space / asterisk / plus
+        (group bos " ")
+        (group bos "*")
+        (group bos "+"))))
 
+;;; ------------------------------------------------------------
+;;; Anything - buffers
+
+(global-set-key (kbd "M-s-<left>") 'foeb/anything-for-buffers)
+(global-set-key (kbd "M-s-<right>") 'foeb/anything-for-buffers)
+(define-key anything-map (kbd "C-d") 'foeb/anything-execute-persistent-action-2)
+(define-key anything-map (kbd "s-w") 'foeb/anything-execute-persistent-action-2)
+(define-key anything-map (kbd "M-s-<left>") 'anything-previous-line)
+(define-key anything-map (kbd "M-s-<right>") 'anything-next-line)
+
+;;; ------------------------------------------------------------
 ;; alist-anything-for-files
-;; anything-c-source-buffers-list が*のバッファでAnythingを止めることがある？
-(defvar alist-anything-for-files
-  '(anything-c-source-bookmarks
-    ;; anything-c-source-recentf
-    anything-c-source-buffers-list))
+(defvar alist-anything-for-files '())
 
 ;;; ------------------------------------------------------------
 ;;; working directory を対象にした候補
@@ -1212,8 +1221,6 @@ end tell"
                      (shell-command-to-string "ls -d ~/Sites/*")
                      "\n")))
     (type . file)))
-
-(add-to-list 'alist-anything-for-files 'anything-c-source-my-file-of-working-dir t)
 
 ;;; ------------------------------------------------------------
 ;;; ~/.ssh/configを情報源として、tramp接続
@@ -1241,8 +1248,6 @@ end tell"
            'hosts
            (concat "/" tramp-default-method ":" host ":") t))))
     hosts))
-
-(add-to-list 'alist-anything-for-files 'anything-c-source-my-hosts t)
 
 ;;; ------------------------------------------------------------
 ;;; ~/.ftp/configを情報源として、ftp接続
@@ -1275,8 +1280,6 @@ end tell"
       (when path (add-to-list 'hosts (concat alias "  " path "  " password))))
       hosts))
 
-(add-to-list 'alist-anything-for-files 'anything-c-source-my-ftp-hosts t)
-
 (defun anything-tramp-ftp-open (str)
   "Tramp FTP open.  STR is path and password."
   (let* ((strs (split-string str "  "))
@@ -1288,6 +1291,14 @@ end tell"
 ;;; ------------------------------------------------------------
 ;;; my-anything-for-files
 
+(add-to-list 'alist-anything-for-files 'foeb/anything-c-source-buffers t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-files-in-current-dir t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-file-of-working-dir t)
+;;(add-to-list 'alist-anything-for-files 'anything-c-source-buffers-list t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-recentf t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-bookmarks t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-hosts t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-ftp-hosts t)
 (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-functions-with-abbrevs t)
 (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-commands t)
 (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-variables t)
@@ -1476,9 +1487,9 @@ end tell"
         (and (buffer-modified-p) (string= (buffer-name) "*scratch*")))
     (unless (yes-or-no-p "Buffer is modified. Close anyway?")
       (call-interactively (save-buffer)))
-    (kill-buffer))
+    (foeb/kill-buffer))
    ;; kill-buffer for is-use-tabbar and other situation
-   (t (kill-buffer))))
+   (t (foeb/kill-buffer))))
 
 (global-set-key (kbd "s-w") 'my-delete-windows)
 
