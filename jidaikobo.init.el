@@ -23,6 +23,10 @@
 ;; make GZIP_PROG='' install
 ;; cp -r mac/Emacs.app /Applications
 
+;; install package
+;; M-x package-refresh-contents
+;; M-x package-install PACKAGENAME
+
 ;; Update Packages
 ;; package-list-packages U x
 
@@ -405,6 +409,9 @@
                   (find-file-other-window
                    (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time)))))
 
+;; 新規フレームを開く
+(global-set-key (kbd "s-N") 'make-frame-command)
+
 ;; kill-lineがkill ringをnewするのでdelete-lineにする
 (global-set-key (kbd "C-k")
                 (lambda ()
@@ -631,6 +638,17 @@
   (interactive)
   (insert (format my/mc/insert-numbers-pad mc--insert-numbers-number))
   (setq mc--insert-numbers-number (+ mc--insert-numbers-number my/mc/insert-numbers-inc)))
+
+;;; ------------------------------------------------------------
+;;; 行選択 smartrep
+(global-set-key (kbd "C-=") 'my/mark-line)
+
+(defun my/mark-line ()
+  "Mark line."
+  (interactive)
+  (goto-char (point-at-bol))
+  (set-mark-command nil)
+  (goto-char (point-at-eol)))
 
 ;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
@@ -876,7 +894,6 @@ end tell"
 (define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
 (define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
 (define-key dired-mode-map (kbd "s-d") (lambda () (interactive) (find-file "~/Desktop")))
-(global-set-key (kbd "s-N") (lambda () (interactive) (find-file "~/Sites")))
 (global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
 
 ;; dired-download-to-desktop
