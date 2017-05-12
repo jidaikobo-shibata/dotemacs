@@ -1833,6 +1833,7 @@ get_posts()
 get_results
 get_stylesheet_directory_uri()
 get_the_permalink()
+get_var
 getdate
 getenv
 gettext
