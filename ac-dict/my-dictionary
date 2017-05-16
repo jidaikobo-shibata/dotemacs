@@ -1620,11 +1620,7 @@ finally
 finance
 financial
 find
-find('all')
-find('all', array('where' => array(array('category_id', 1), 'or' => array(array('category_id', 2),),),));
-find('all', array('where' => array(array('category_id', 1),), 'order_by' => array('created_at' => 'desc'),));
-find('first')
-find('last', array('order_by' => 'date'))
+find . -name ".DS_Store" -print -exec rm -r {} ";"
 Finder
 finding
 fine
