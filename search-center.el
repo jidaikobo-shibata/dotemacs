@@ -355,6 +355,7 @@
     (with-current-buffer target
       (delete-region (point-min) (point-max))
       (yank)
+
       ;; keep strings
       (setq sc/previous-searched-str (buffer-substring-no-properties (point-min) (point-max)))
 
@@ -479,7 +480,11 @@
     ;; move cursor to search window
     ;; キャレットを検索窓にセットして選択
     (select-window (get-buffer-window sc/search-str-buffer))
-    ;; (mark-whole-buffer)
+
+    ;; 全選択状態にする
+    (goto-char (point-min))
+    (set-mark (point)) ;; not into mark-ring
+    (goto-char (point-max))
 
     (setq sc/ignore-delete-window-hook t)))
 
