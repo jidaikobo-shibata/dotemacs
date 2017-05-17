@@ -244,6 +244,7 @@
   (global-set-key (kbd "s-F") 'sc/toggle-search-mode)
   (global-set-key (kbd "s-e") (lambda () (interactive) (sc/set-strings "search")))
   (global-set-key (kbd "s-E") (lambda () (interactive) (sc/set-strings "replace")))
+  (global-set-key (kbd "C-s-e") 'sc/set-strings-from-kill-ring)
   (global-set-key (kbd "s-g") 'sc/alias-search-next)
   (global-set-key (kbd "s-G") 'sc/alias-search-prev)
   (global-set-key (kbd "s-l") 'sc/alias-replace-next)
@@ -266,6 +267,7 @@
   (define-key sc/keybind-map (kbd "F") 'sc/toggle-search-mode)
   (define-key sc/keybind-map (kbd "e") (lambda () (interactive) (sc/set-strings "search")))
   (define-key sc/keybind-map (kbd "E") (lambda () (interactive) (sc/set-strings "replace")))
+  (define-key sc/keybind-map (kbd "C-s-e") 'sc/set-strings-from-kill-ring)
   (define-key sc/keybind-map (kbd "g") 'sc/alias-search-next)
   (define-key sc/keybind-map (kbd "G") 'sc/alias-search-prev)
   (define-key sc/keybind-map (kbd "l") 'sc/alias-replace-next)
@@ -335,6 +337,28 @@
     (with-current-buffer sc/replace-str-buffer
       (search-center-re-mode -1))
     (message "%s" (concat "turned off RE with " sc/target-buffer))))
+
+;;; ------------------------------------------------------------
+;;; set clip board strings to search buffer
+;; クリップボードから検索文字列をセット
+
+(defun sc/set-strings-from-kill-ring ()
+  "Set `kill-ring' strings to search buffer."
+  (interactive)
+  (let* ((target sc/search-str-buffer))
+
+    (unless (get-buffer target) (get-buffer-create target))
+    (sc/keep-target-buffer)
+
+    ;; set strings
+    ;; 文字列をセット
+    (with-current-buffer target
+      (delete-region (point-min) (point-max))
+      (yank)
+      ;; keep strings
+      (setq sc/previous-searched-str (buffer-substring-no-properties (point-min) (point-max)))
+
+      (message "%s" (concat "set search strings: " sc/previous-searched-str)))))
 
 ;;; ------------------------------------------------------------
 ;;; set strings to search/replace buffer

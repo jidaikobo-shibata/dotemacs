@@ -8,17 +8,17 @@
 ;; thx http://masutaka.net/chalow/2015-04-12-1.html
 ;; ftp://ftp.math.s.chiba-u.ac.jp/emacsを確認して、あたらしいパッチの存在を確認すると良い
 ;; @ terminal
-;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-25.1.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.1-mac-6.1.tar.gz
-;; tar xfJ emacs-25.1.tar.xz
-;; tar xfz emacs-25.1-mac-6.1.tar.gz
-;; cd emacs-25.1
-;; patch -p 1 < ../emacs-25.1-mac-6.1/patch-mac
-;; cp -r ../emacs-25.1-mac-6.1/mac mac
-;; cp ../emacs-25.1-mac-6.1/src/* src
-;; cp ../emacs-25.1-mac-6.1/lisp/term/mac-win.el lisp/term
+;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-25.2.tar.xz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.2-mac-6.3.tar.gz
+;; tar xfJ emacs-25.2.tar.xz
+;; tar xfz emacs-25.2-mac-6.3.tar.gz
+;; cd emacs-25.2
+;; patch -p 1 < ../emacs-25.2-mac-6.3/patch-mac
+;; cp -r ../emacs-25.2-mac-6.3/mac mac
+;; cp ../emacs-25.2-mac-6.3/src/* src
+;; cp ../emacs-25.2-mac-6.3/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
-;; ./configure --prefix=$HOME/opt/emacs-25.1 --with-mac --without-x
+;; ./configure --prefix=$HOME/opt/emacs-25.2 --with-mac --without-x
 ;; make
 ;; make GZIP_PROG='' install
 ;; cp -r mac/Emacs.app /Applications
@@ -190,7 +190,6 @@
                             (insert "／")
                           (dabbrev-expand nil)))
                     (dabbrev-expand nil))))
-
 
 ;; 設定ファイル用のメジャーモード
 (require 'generic-x)
