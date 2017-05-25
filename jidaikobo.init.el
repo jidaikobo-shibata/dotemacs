@@ -9,18 +9,20 @@
 ;; ftp://ftp.math.s.chiba-u.ac.jp/emacsを確認して、あたらしいパッチの存在を確認すると良い
 ;; @ terminal
 ;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-25.2.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.2-mac-6.3.tar.gz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.2-mac-6.4.tar.gz
 ;; tar xfJ emacs-25.2.tar.xz
-;; tar xfz emacs-25.2-mac-6.3.tar.gz
+;; tar xfz emacs-25.2-mac-6.4.tar.gz
 ;; cd emacs-25.2
-;; patch -p 1 < ../emacs-25.2-mac-6.3/patch-mac
-;; cp -r ../emacs-25.2-mac-6.3/mac mac
-;; cp ../emacs-25.2-mac-6.3/src/* src
-;; cp ../emacs-25.2-mac-6.3/lisp/term/mac-win.el lisp/term
+;; patch -p 1 < ../emacs-25.2-mac-6.4/patch-mac
+;; cp -r ../emacs-25.2-mac-6.4/mac mac
+;; cp ../emacs-25.2-mac-6.4/src/* src
+;; cp ../emacs-25.2-mac-6.4/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
 ;; ./configure --prefix=$HOME/opt/emacs-25.2 --with-mac --without-x
 ;; make
 ;; make GZIP_PROG='' install
+;; mkdir mac/Emacs.app/Contents/MacOS/bin
+;; cp /Applications/Emacs.app/Contents/MacOS/bin/emacsclient mac/Emacs.app/Contents/MacOS/bin/
 ;; cp -r mac/Emacs.app /Applications
 
 ;; install package
@@ -28,7 +30,7 @@
 ;; M-x package-install PACKAGENAME
 
 ;; Update Packages
-;; package-list-packages U x
+;; M-x package-list-packages U x
 
 ;;; Usage: 利用前の準備
 ;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
@@ -275,7 +277,6 @@
       rainbow-mode
       recentf-ext
       smartrep
-      tabbar
       undo-tree
       undohist
       web-beautify
@@ -1366,118 +1367,6 @@ end tell"
 
 
 ;;; ------------------------------------------------------------
-;;; タブ関連 - tabbar
-;;; ------------------------------------------------------------
-
-(defvar is-use-tabbar nil)
-(autoload 'tabbar-mode "tabbar" "" t)
-
-(when is-use-tabbar
-  (tabbar-mode 1)
-
-  ;; my-tabbar-buffer-list
-  ;; thx http://ser1zw.hatenablog.com/entry/2012/12/31/022359
-  (defun my-tabbar-buffer-list ()
-    "My tabbar buffer list."
-    (delq nil
-          (mapcar #'(lambda (b)
-                      (cond
-                       ;; Always include the current buffer.
-                       ((eq (current-buffer) b) b)
-                       ((buffer-file-name b) b)
-                       ((char-equal ?\ (aref (buffer-name b) 0)) nil)
-                       ;; show specified buffers
-                       ((member (buffer-name b) '("*Help*" "*scratch*" "*grep*" "*eww*")) b)
-                       ;; それ以外の * で始まるバッファは表示しない
-                       ((char-equal ?* (aref (buffer-name b) 0)) nil)
-                       ((buffer-live-p b) b)))
-                  (buffer-list))))
-  (setq-default tabbar-buffer-list-function 'my-tabbar-buffer-list)
-
-  ;; 変更をラベルで可視化
-  ;; thx http://www.emacswiki.org/emacs/TabBarMode
-  (defadvice tabbar-buffer-tab-label (after fixup_tab_label_space_and_flag activate)
-    (setq ad-return-value
-          (if (and (buffer-modified-p (tabbar-tab-value tab))
-                   (buffer-file-name (tabbar-tab-value tab)))
-              (concat " + " (concat ad-return-value " "))
-            (concat " " (concat ad-return-value " ")))))
-  (defun ztl-modification-state-change ()
-    (tabbar-set-template tabbar-current-tabset nil)
-    (tabbar-display-update))
-  (defun ztl-on-buffer-modification ()
-    (set-buffer-modified-p t)
-    (ztl-modification-state-change))
-  (add-hook 'after-save-hook 'ztl-modification-state-change)
-  (add-hook 'first-change-hook 'ztl-on-buffer-modification)
-
-  ;; タブ同士の間隔
-  (setq-default tabbar-separator '(0.7))
-
-  ;; グループ化しない
-  (setq-default tabbar-buffer-groups-function nil)
-
-  ;; 画像を使わない
-  (setq-default tabbar-use-images nil)
-
-  ;; hide buttons
-  (dolist (btn '(tabbar-buffer-home-button
-                 tabbar-scroll-left-button
-                 tabbar-scroll-right-button))
-    (set btn (cons (cons "" nil) (cons "" nil))))
-
-  ;; move-current-tab-to-top
-  ;; gist-description: Emacs(Elisp): move current tab (buffer) to top at tabbar-mode. tabbarで選択中のタブ（バッファ）を左端に移動します。
-  ;; gist-id: 54dab2fc5f2e278833f5
-  ;; gist-name: move-current-tab-to-top.el
-  ;; gist-private: nil
-
-  (eval-when-compile (defvar tabbar-current-tabset))
-  (defun move-current-tab-to-top ()
-    "Move current tab to top."
-    (interactive)
-    (let* ((bufset (tabbar-current-tabset t))
-           (bufs (tabbar-tabs bufset))
-           (car-bufs (list))
-           (cdr-bufs (list)))
-      ;; 現在のバッファと一致するものを探して先頭へ
-      (dolist (buf bufs)
-        (if (string= (buffer-name) (format "%s" (car buf)))
-            (add-to-list 'car-bufs buf)
-          (add-to-list 'cdr-bufs buf)))
-      (setq cdr-bufs (reverse cdr-bufs))
-      (set bufset (append car-bufs cdr-bufs))
-      ;; タブバー書き換え
-      (tabbar-set-template bufset nil)
-      (tabbar-display-update)))
-
-  ;; キーバインド
-  (global-set-key (kbd "M-s-<right>") 'tabbar-forward-tab)
-  (global-set-key (kbd "M-s-<left>") 'tabbar-backward-tab)
-  (global-set-key (kbd "C-s-t") 'move-current-tab-to-top)
-
-  ;; thx open-junk-file by rubikitch
-  (global-set-key (kbd "s-t")
-                  (lambda ()
-                    (interactive)
-                    (find-file-other-window
-                     (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time)))))
-
-  ;; 幾つかのウィンドウでは、タブ移動しない
-  (defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
-    "Do not forward at specified baffers."
-    (if (and (member (buffer-name) '("*RE-Builder*" "*Messages*"))
-             (not (one-window-p)))
-        nil
-      ad-do-it))
-  (defadvice tabbar-backward-tab (around advise-tabbar-backward-tab activate)
-    "Do not backward at specified baffers."
-    (if (and (member (buffer-name) '("*RE-Builder*" "*Messages*"))
-             (not (one-window-p)))
-        nil
-      ad-do-it)))
-
-;;; ------------------------------------------------------------
 ;;; ウィンドウ/スクリーンを閉じる
 
 (defun my-delete-windows ()
@@ -1504,7 +1393,7 @@ end tell"
     (unless (yes-or-no-p "Buffer is modified. Close anyway?")
       (call-interactively (save-buffer)))
     (foeb/kill-buffer))
-   ;; kill-buffer for is-use-tabbar and other situation
+   ;; kill-buffer for other situation
    (t (foeb/kill-buffer))))
 
 (global-set-key (kbd "s-w") 'my-delete-windows)

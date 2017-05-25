@@ -1,3 +1,103 @@
+;; 
+;; ;;; ------------------------------------------------------------
+;; ;;; タブ関連 - tabbar
+;; ;;; ------------------------------------------------------------
+;; (defvar is-use-tabbar nil)
+;; (autoload 'tabbar-mode "tabbar" "" t)
+;; (when is-use-tabbar
+;;   (tabbar-mode 1)
+;;   ;; my-tabbar-buffer-list
+;;   ;; thx http://ser1zw.hatenablog.com/entry/2012/12/31/022359
+;;   (defun my-tabbar-buffer-list ()
+;;     "My tabbar buffer list."
+;;     (delq nil
+;;           (mapcar #'(lambda (b)
+;;                       (cond
+;;                        ;; Always include the current buffer.
+;;                        ((eq (current-buffer) b) b)
+;;                        ((buffer-file-name b) b)
+;;                        ((char-equal ?\ (aref (buffer-name b) 0)) nil)
+;;                        ;; show specified buffers
+;;                        ((member (buffer-name b) '("*Help*" "*scratch*" "*grep*" "*eww*")) b)
+;;                        ;; それ以外の * で始まるバッファは表示しない
+;;                        ((char-equal ?* (aref (buffer-name b) 0)) nil)
+;;                        ((buffer-live-p b) b)))
+;;                   (buffer-list))))
+;;   (setq-default tabbar-buffer-list-function 'my-tabbar-buffer-list)
+;;   ;; 変更をラベルで可視化
+;;   ;; thx http://www.emacswiki.org/emacs/TabBarMode
+;;   (defadvice tabbar-buffer-tab-label (after fixup_tab_label_space_and_flag activate)
+;;     (setq ad-return-value
+;;           (if (and (buffer-modified-p (tabbar-tab-value tab))
+;;                    (buffer-file-name (tabbar-tab-value tab)))
+;;               (concat " + " (concat ad-return-value " "))
+;;             (concat " " (concat ad-return-value " ")))))
+;;   (defun ztl-modification-state-change ()
+;;     (tabbar-set-template tabbar-current-tabset nil)
+;;     (tabbar-display-update))
+;;   (defun ztl-on-buffer-modification ()
+;;     (set-buffer-modified-p t)
+;;     (ztl-modification-state-change))
+;;   (add-hook 'after-save-hook 'ztl-modification-state-change)
+;;   (add-hook 'first-change-hook 'ztl-on-buffer-modification)
+;;   ;; タブ同士の間隔
+;;   (setq-default tabbar-separator '(0.7))
+;;   ;; グループ化しない
+;;   (setq-default tabbar-buffer-groups-function nil)
+;;   ;; 画像を使わない
+;;   (setq-default tabbar-use-images nil)
+;;   ;; hide buttons
+;;   (dolist (btn '(tabbar-buffer-home-button
+;;                  tabbar-scroll-left-button
+;;                  tabbar-scroll-right-button))
+;;     (set btn (cons (cons "" nil) (cons "" nil))))
+;;   ;; move-current-tab-to-top
+;;   ;; gist-description: Emacs(Elisp): move current tab (buffer) to top at tabbar-mode. tabbarで選択中のタブ（バッファ）を左端に移動します。
+;;   ;; gist-id: 54dab2fc5f2e278833f5
+;;   ;; gist-name: move-current-tab-to-top.el
+;;   ;; gist-private: nil
+;;   (eval-when-compile (defvar tabbar-current-tabset))
+;;   (defun move-current-tab-to-top ()
+;;     "Move current tab to top."
+;;     (interactive)
+;;     (let* ((bufset (tabbar-current-tabset t))
+;;            (bufs (tabbar-tabs bufset))
+;;            (car-bufs (list))
+;;            (cdr-bufs (list)))
+;;       ;; 現在のバッファと一致するものを探して先頭へ
+;;       (dolist (buf bufs)
+;;         (if (string= (buffer-name) (format "%s" (car buf)))
+;;             (add-to-list 'car-bufs buf)
+;;           (add-to-list 'cdr-bufs buf)))
+;;       (setq cdr-bufs (reverse cdr-bufs))
+;;       (set bufset (append car-bufs cdr-bufs))
+;;       ;; タブバー書き換え
+;;       (tabbar-set-template bufset nil)
+;;       (tabbar-display-update)))
+;;   ;; キーバインド
+;;   (global-set-key (kbd "M-s-<right>") 'tabbar-forward-tab)
+;;   (global-set-key (kbd "M-s-<left>") 'tabbar-backward-tab)
+;;   (global-set-key (kbd "C-s-t") 'move-current-tab-to-top)
+;;   ;; thx open-junk-file by rubikitch
+;;   (global-set-key (kbd "s-t")
+;;                   (lambda ()
+;;                     (interactive)
+;;                     (find-file-other-window
+;;                      (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time)))))
+;;   ;; 幾つかのウィンドウでは、タブ移動しない
+;;   (defadvice tabbar-forward-tab (around advise-tabbar-forward-tab activate)
+;;     "Do not forward at specified baffers."
+;;     (if (and (member (buffer-name) '("*RE-Builder*" "*Messages*"))
+;;              (not (one-window-p)))
+;;         nil
+;;       ad-do-it))
+;;   (defadvice tabbar-backward-tab (around advise-tabbar-backward-tab activate)
+;;     "Do not backward at specified baffers."
+;;     (if (and (member (buffer-name) '("*RE-Builder*" "*Messages*"))
+;;              (not (one-window-p)))
+;;         nil
+;;       ad-do-it)))
+
 ;; ;;; ------------------------------------------------------------
 ;; ;;; web-mode
 ;;
