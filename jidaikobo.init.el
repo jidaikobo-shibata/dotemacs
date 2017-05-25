@@ -7,6 +7,8 @@
 ;; usage: emacsのインストール（要Xcode Command Line Tools）
 ;; thx http://masutaka.net/chalow/2015-04-12-1.html
 ;; ftp://ftp.math.s.chiba-u.ac.jp/emacsを確認して、あたらしいパッチの存在を確認すると良い
+;; Emacsのメジャーバージョンが同じ場合は、emacsclientを使い回すので、ApplicationsディレクトリのEmacsをとっておくこと。
+;;  メジャーバージョンが異なる場合は、Emacsのサイトから適当なパッケージ版を取得すること。
 ;; @ terminal
 ;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-25.2.tar.xz
 ;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.2-mac-6.4.tar.gz
