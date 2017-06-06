@@ -1822,6 +1822,7 @@ get_magic_quotes_runtime
 get_meta_tags
 get_object_vars
 get_parent_class
+get_permalink
 get_post($post_id);
 get_post_meta($post_id, $key, TRUE);
 get_post_meta()
