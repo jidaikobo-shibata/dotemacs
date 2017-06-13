@@ -195,6 +195,24 @@
                           (dabbrev-expand nil)))
                     (dabbrev-expand nil))))
 
+;;; ------------------------------------------------------------
+;;; やっぱりキル時にリージョンを残したい……。
+;; gist-description: Emacs(Elisp): Preserve region when kill. 他のエディタだと選択範囲を作った後コピーしても選択範囲が解除されないが、Emacsは解除されちゃう。1年以上使っていてもどうしてもこれには慣れることができなかったので、選択範囲をキープするように変更。
+;; gist-id: 94f27670afed23696c6a2d0774982b01
+;; gist-name: preserve-region-when-kill.el
+;; gist-private: nil
+(defun f--around--cua-copy-region (cua-copy-region arg)
+  "Keep Region at kill.  CUA-COPY-REGION, ARG."
+  (let ((beg (region-beginning))
+        (end (region-end)))
+    (funcall cua-copy-region arg)
+    (goto-char beg)
+    (message "%s" beg)
+    (set-mark (point))
+    (goto-char end)
+    (setq deactivate-mark nil)))
+(advice-add 'cua-copy-region :around 'f--around--cua-copy-region)
+
 ;; 設定ファイル用のメジャーモード
 (require 'generic-x)
 
@@ -310,6 +328,10 @@
 ;; バッファ移動を自分好みに - focus-on-editable-buffers
 (setq-default foeb/is-use-advice-delete-window t)
 (setq-default foeb/is-use-anything-execute-persistent-action t)
+(setq-default foeb/non-ignore-buffers
+              (rx
+               (or
+                "*scratch*" "*grep*")))
 (require 'focus-on-editable-buffers)
 (require 'anything-focus-on-editable-buffers)
 
