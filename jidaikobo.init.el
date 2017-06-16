@@ -207,7 +207,6 @@
         (end (region-end)))
     (funcall cua-copy-region arg)
     (goto-char beg)
-    (message "%s" beg)
     (set-mark (point))
     (goto-char end)
     (setq deactivate-mark nil)))
@@ -301,6 +300,7 @@
       undohist
       web-beautify
       which-key
+      yafolding
       yaml-mode
       yagist
       zlc))
@@ -804,8 +804,13 @@ do script \"%s\" in window 1
 end tell"
            command)))
 
+(defun cd-on-terminal-and-git-ci ()
+  "Change directory and git commit.  For `which-key'."
+  (interactive)
+  (cd-on-terminal " && git ci -a"))
+
 (global-set-key (kbd "C-c d") 'cd-on-terminal)
-(global-set-key (kbd "C-c g") (lambda () (interactive) (cd-on-terminal " && git ci -a")))
+(global-set-key (kbd "C-c g") 'cd-on-terminal-and-git-ci)
 
 ;;; ------------------------------------------------------------
 ;;; gtags
@@ -825,6 +830,12 @@ end tell"
                  (local-set-key (kbd "RET") 'gtags-select-tag)))
 
 (add-hook 'php-mode-hook '(lambda () (gtags-mode 1)))
+
+;; Yet another folding
+(add-hook 'prog-mode-hook 'yafolding-mode)
+(add-hook 'yafolding-mode-hook
+          '(lambda()
+             (define-key yafolding-mode-map (kbd "<M-return>") 'yafolding-toggle-element)))
 
 ;; update gtags
 ;; thx http://qiita.com/hayamiz/items/8e8c7fca64b4810d8e78
@@ -862,7 +873,7 @@ end tell"
             (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
             (dired-explorer-mode t)))
 
-;; diredでファイル編集（rで編集モードに）
+;; diredでファイル編集（M-rで編集モードに）
 (define-key dired-mode-map "E" 'wdired-change-to-wdired-mode)
 (define-key dired-mode-map (kbd "<M-return>") 'dired-maybe-insert-subdir)
 (define-key dired-explorer-mode-map "\M-r" 'wdired-change-to-wdired-mode)
@@ -912,8 +923,8 @@ end tell"
 
 ;; key-binds
 (define-key dired-mode-map (kbd "C-o") 'other-window)
-(define-key dired-mode-map (kbd "RET") 'dired-explorer-dired-open)
-(define-key dired-mode-map (kbd "<s-return>") 'dired-explorer-dired-open)
+;; (define-key dired-mode-map (kbd "RET") 'dired-explorer-dired-open)
+;; (define-key dired-mode-map (kbd "<s-return>") 'dired-explorer-dired-open)
 (define-key dired-mode-map (kbd "a") 'dired-find-file)
 (define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
 (define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
@@ -1037,10 +1048,17 @@ end tell"
             (message (concat "Did nothing with: " strings)))
         (message (concat "Not found: " strings))))))
 
-(global-set-key (kbd "C-c a") (lambda () (interactive)
-                                (add-strings-to-ac-my-dictionary ac-my-dictionary)))
-(global-set-key (kbd "C-c r") (lambda () (interactive)
-                                (remove-strings-from-ac-my-dictionary ac-my-dictionary)))
+
+(defun add-strings-to-ac-my-dictionary-f ()
+  "For `which-key'."
+  (add-strings-to-ac-my-dictionary ac-my-dictionary))
+
+(defun remove-strings-from-ac-my-dictionary-f ()
+  "For `which-key'."
+  (remove-strings-from-ac-my-dictionary ac-my-dictionary))
+
+(global-set-key (kbd "C-c a") 'add-strings-to-ac-my-dictionary-f)
+(global-set-key (kbd "C-c r") 'remove-strings-from-ac-my-dictionary-f)
 
 ;; auto-complete の候補に日本語を含む単語、数字から始まる単語が含まれないようにする
 ;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
@@ -1197,12 +1215,15 @@ end tell"
 (add-hook 'sh-script-mode-hook #'my-set-indent-tabs-mode)
 
 ;; indent-tabs-modeをtoggle
-(global-set-key (kbd "C-c i")
-                (lambda ()
-                  (interactive)
-                  (if indent-tabs-mode
-                      (setq indent-tabs-mode nil)
-                    (setq indent-tabs-mode t))))
+(defun toggle-indent-tabs-mode ()
+  "For `which-key'."
+  (interactive)
+  (if indent-tabs-mode
+      (progn (setq indent-tabs-mode nil)
+             (message "indent by SPACE"))
+    (setq indent-tabs-mode t)
+    (message "indent by TAB")))
+(global-set-key (kbd "C-c i") 'toggle-indent-tabs-mode)
 
 
 ;;; ------------------------------------------------------------
@@ -1241,10 +1262,8 @@ end tell"
 ;;; ------------------------------------------------------------
 ;;; Anything - buffers
 
-(global-set-key (kbd "M-s-<left>") 'foeb/anything-for-buffers)
-(global-set-key (kbd "M-s-<right>") 'foeb/anything-for-buffers)
-(define-key anything-map (kbd "C-d") 'foeb/anything-execute-persistent-action-2)
-(define-key anything-map (kbd "s-w") 'foeb/anything-execute-persistent-action-2)
+(define-key anything-map (kbd "C-d") 'foeb/anything-execute-persistent-kill)
+(define-key anything-map (kbd "s-w") 'foeb/anything-execute-persistent-kill)
 (define-key anything-map (kbd "M-s-<left>") 'anything-previous-line)
 (define-key anything-map (kbd "M-s-<right>") 'anything-next-line)
 
@@ -1352,6 +1371,8 @@ end tell"
    alist-anything-for-files
    "*my-anything-for-files*"))
 (global-set-key (kbd "C-;") 'my-anything-for-files)
+(global-set-key (kbd "M-s-<left>") 'foeb/anything-for-buffers)
+(global-set-key (kbd "M-s-<right>") 'foeb/anything-for-buffers)
 
 ;;; ------------------------------------------------------------
 ;;; Anything - Encode and Line folding
@@ -2076,6 +2097,7 @@ If gist-id exists update gist.  BEG END."
              ;; (setq php-mode-coding-style 'default)
              (setq php-manual-url "http://jp2.php.net/manual/ja/")
 
+             (define-key php-mode-map (kbd "C-.") 'goto-last-change-reverse) ; override `php-show-arglist'
              (define-key php-mode-map ")" 'self-insert-command)
              (define-key php-mode-map "(" 'self-insert-command)
              (define-key php-mode-map "{" 'self-insert-command)

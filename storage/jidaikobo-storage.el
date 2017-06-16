@@ -1,3 +1,9 @@
+;; (defun my-anything-for-files ()
+;;   "Anything command for files and commands."
+;;   (interactive)
+;;       (anything :sources alist-anything-for-files
+;;                 :use-follow-mode t))
+
 ;; 
 ;; ;;; ------------------------------------------------------------
 ;; ;;; タブ関連 - tabbar
