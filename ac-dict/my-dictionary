@@ -2186,6 +2186,7 @@ Input::server()
 Input::uri()
 Input::user_agent()
 Input::xml()
+INPUT_COOKIE
 INPUT_ENV
 INPUT_GET
 INPUT_POST
