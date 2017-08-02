@@ -2188,6 +2188,7 @@ Input::user_agent()
 Input::xml()
 INPUT_GET
 INPUT_POST
+INPUT_SERVER
 inquiry
 insert
 INSERT INTO TABLE_NAME (field_name1, field_name2) VALUES ('value1', 'value2');
