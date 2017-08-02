@@ -1618,6 +1618,7 @@ filetype
 fill
 filling
 film
+filter_input(INPUT_POST, 'vals', FILTER_DEFAULT ,FILTER_REQUIRE_ARRAY)
 final
 finally
 finance
