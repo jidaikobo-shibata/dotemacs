@@ -1620,6 +1620,7 @@ filling
 film
 filter_input()
 filter_input(INPUT_POST, 'vals', FILTER_DEFAULT ,FILTER_REQUIRE_ARRAY)
+filter_input(INPUT_SERVER, "REQUEST_METHOD")
 final
 finally
 finance
