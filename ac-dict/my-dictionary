@@ -3707,6 +3707,7 @@ Session
 session
 session_start
 set
+set_transient
 setcookie
 setlocale
 settle
