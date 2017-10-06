@@ -11,14 +11,14 @@
 ;;  メジャーバージョンが異なる場合は、Emacsのサイトから適当なパッケージ版を取得すること。
 ;; @ terminal
 ;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-25.2.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.2-mac-6.4.tar.gz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.2-mac-6.5.tar.gz
 ;; tar xfJ emacs-25.2.tar.xz
-;; tar xfz emacs-25.2-mac-6.4.tar.gz
+;; tar xfz emacs-25.2-mac-6.5.tar.gz
 ;; cd emacs-25.2
-;; patch -p 1 < ../emacs-25.2-mac-6.4/patch-mac
-;; cp -r ../emacs-25.2-mac-6.4/mac mac
-;; cp ../emacs-25.2-mac-6.4/src/* src
-;; cp ../emacs-25.2-mac-6.4/lisp/term/mac-win.el lisp/term
+;; patch -p 1 < ../emacs-25.2-mac-6.5/patch-mac
+;; cp -r ../emacs-25.2-mac-6.5/mac mac
+;; cp ../emacs-25.2-mac-6.5/src/* src
+;; cp ../emacs-25.2-mac-6.5/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
 ;; ./configure --prefix=$HOME/opt/emacs-25.2 --with-mac --without-x
 ;; make
@@ -33,6 +33,9 @@
 
 ;; Update Packages
 ;; M-x package-list-packages U x
+
+;; Update specified Packages
+;; M-x package-utils-upgrade-by-name PACKAGE-NAME
 
 ;;; Usage: 利用前の準備
 ;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
@@ -425,16 +428,34 @@
 ;; 直前のバッファと行ったり来たりする
 (global-set-key (kbd "C-¥") (lambda () (interactive) (switch-to-buffer (other-buffer))))
 
+;; フレーム切り替え
+(global-set-key (kbd "<s-f1>") (lambda () (interactive) (other-frame 1)))
+
 ;; 新規バッファを開く
 ;; thx open-junk-file by rubikitch
-(global-set-key (kbd "s-n")
-                (lambda ()
-                  (interactive)
-                  (find-file-other-window
-                   (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time)))))
+(global-set-key (kbd "s-n") 'my-find-file-other-window)
+(defun my-find-file-other-window (&optional frame)
+  "Find file other window.  FRAME is optional."
+  (interactive)
+  (select-frame (if frame frame (selected-frame)))
+  (find-file-other-window
+   (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time))))
 
 ;; 新規フレームを開く
-(global-set-key (kbd "s-N") 'make-frame-command)
+(global-set-key (kbd "s-N") 'my-make-frame-command)
+(defun my-make-frame-command ()
+  "Make new frame and buffer."
+  (interactive)
+  (let* ((param (frame-parameters (selected-frame)))
+         (current-top-margin (if (integerp (cdr (assoc 'top param)))
+                                 (cdr (assoc 'top param))
+                               0))
+         (current-left-margin (if (integerp (cdr (assoc 'left param)))
+                                  (cdr (assoc 'left param))
+                                0)))
+    (make-frame-command)
+    (set-frame-position (selected-frame) (+ current-left-margin 20) (+ current-top-margin 20))
+    (my-find-file-other-window)))
 
 ;; kill-lineがkill ringをnewするのでdelete-lineにする
 (global-set-key (kbd "C-k")
@@ -1051,10 +1072,12 @@ end tell"
 
 (defun add-strings-to-ac-my-dictionary-f ()
   "For `which-key'."
+  (interactive)
   (add-strings-to-ac-my-dictionary ac-my-dictionary))
 
 (defun remove-strings-from-ac-my-dictionary-f ()
   "For `which-key'."
+  (interactive)
   (remove-strings-from-ac-my-dictionary ac-my-dictionary))
 
 (global-set-key (kbd "C-c a") 'add-strings-to-ac-my-dictionary-f)
@@ -1775,6 +1798,7 @@ It defaults to a comma."
 ;; google-translate
 ;; http://rubikitch.com/2014/12/07/google-translate/
 (require 'google-translate)
+(setq google-translate--tkk-url "http://translate.google.cn/")
 (defvar google-translate-english-chars "[:ascii:]"
   "Ascii means English.")
 (defun google-translate-enja-or-jaen (&optional string)
@@ -2220,6 +2244,8 @@ If gist-id exists update gist.  BEG END."
 
 ;; portのEmacsを試してみる？
 ;; 自動クリーンアップをendlineのwhitespacesのみにする
+;; ciel
+;; outdent
 
 ;; search-centerの履歴？ でもあまり必要性を感じない……。むしろ検索セットか。
 
