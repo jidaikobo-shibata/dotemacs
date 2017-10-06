@@ -442,20 +442,7 @@
    (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time))))
 
 ;; 新規フレームを開く
-(global-set-key (kbd "s-N") 'my-make-frame-command)
-(defun my-make-frame-command ()
-  "Make new frame and buffer."
-  (interactive)
-  (let* ((param (frame-parameters (selected-frame)))
-         (current-top-margin (if (integerp (cdr (assoc 'top param)))
-                                 (cdr (assoc 'top param))
-                               0))
-         (current-left-margin (if (integerp (cdr (assoc 'left param)))
-                                  (cdr (assoc 'left param))
-                                0)))
-    (make-frame-command)
-    (set-frame-position (selected-frame) (+ current-left-margin 20) (+ current-top-margin 20))
-    (my-find-file-other-window)))
+(global-set-key (kbd "s-N") 'make-frame-command)
 
 ;; kill-lineがkill ringをnewするのでdelete-lineにする
 (global-set-key (kbd "C-k")
@@ -977,6 +964,15 @@ end tell"
 ;; scpで接続
 (setq tramp-default-method "scp")
 
+;; my-load-contextual-theme
+(defun my-load-contextual-theme ()
+  "Change Background color."
+  (interactive)
+  (if (tramp-tramp-file-p (buffer-file-name (current-buffer)))
+    (load-theme 'jidaikobo-tramp t)
+  (load-theme 'jidaikobo-dark t)))
+;; (add-hook 'switch-buffer-functions (lambda (prev cur) (my-load-contextual-theme)))
+
 ;;; ------------------------------------------------------------
 ;; .poファイルを保存したらmsgfmt -oする
 
@@ -1236,6 +1232,10 @@ end tell"
 (add-hook 'php-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'conf-mode-hook #'my-set-indent-tabs-mode)
 (add-hook 'sh-script-mode-hook #'my-set-indent-tabs-mode)
+(add-hook 'js-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'html-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'php-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'css-mode-hook (lambda () (show-line-number) (linum-mode t)))
 
 ;; indent-tabs-modeをtoggle
 (defun toggle-indent-tabs-mode ()
@@ -1435,7 +1435,7 @@ end tell"
 
 
 ;;; ------------------------------------------------------------
-;;; ウィンドウ/スクリーンを閉じる
+;;; ウィンドウ/スクリーン/フレームを閉じる
 
 (defun my-delete-windows ()
   "Contexual delete windows."
@@ -1448,6 +1448,8 @@ end tell"
     (my-delete-windows))
    ;; ウィンドウ構成が多ければまず自分を消す
    ((not (one-window-p)) (delete-window))
+   ;; 複数のフレームを開いている時には、フレームを閉じる
+   ((/= 1 (safe-length (frame-list))) (delete-frame))
    ;; ウィンドウ構成がひとつでバッファに変更があれば破棄を確認する
    ((or (and (buffer-modified-p)
              ;; read-onlyなら無視
@@ -1911,22 +1913,6 @@ If gist-id exists update gist.  BEG END."
           '(("defun" "^\\s-*(defun\\s-+\\([-A-Za-z0-9/+]+\\)" 1)
             ("defadvice" "^\\s-*(defadvice\\s-+\\([-A-Za-z0-9/+]+\\)" 1)))))
 
-;;; 釣り合いのとれる括弧のハイライト
-;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
-(show-paren-mode 1)
-(setq-default show-paren-delay 0)
-(setq-default show-paren-style 'expression)
-;; (setq-default show-paren-style 'parenthesis)
-;; (set-face-attribute 'show-paren-match-face nil
-;;                     :background nil :foreground nil
-;;                     :underline '(:style wave))
-(set-face-attribute 'show-paren-match-face nil
-                    :background nil :foreground nil
-                    :underline t)
-(set-face-attribute 'show-paren-mismatch-face nil
-                    :background nil :foreground nil
-                    :strike-through t :weight 'extra-bold)
-
 ;;; 自動バイトコンパイル
 ;; thx http://www.emacswiki.org/emacs/auto-async-byte-compile.el
 (require 'auto-async-byte-compile)
@@ -1954,6 +1940,42 @@ If gist-id exists update gist.  BEG END."
       (with-current-buffer buf
         (goto-char (point-max))))))
 (advice-add 'message :after #'modi/messages-auto-tail)
+
+;;; ------------------------------------------------------------
+;;; 釣り合いのとれる括弧のハイライト
+;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
+(defun my-force-paren-view ()
+  "My force paren view."
+  (show-paren-mode 1)
+  (setq-default show-paren-delay 0)
+  (setq-default show-paren-style 'expression)
+  (set-face-attribute 'show-paren-match-face nil
+                      :background nil :foreground nil
+                      :underline t)
+  (set-face-attribute 'show-paren-mismatch-face nil
+                      :background nil :foreground nil
+                      :strike-through t :weight 'extra-bold))
+(my-force-paren-view)
+;; (add-hook 'after-make-frame-functions '(lambda (frame)
+;;                                          (my-force-paren-view)
+;;                                          (my-find-file-other-window)))
+(add-hook 'after-make-frame-functions 'my-make-frame-hook)
+
+(defun my-make-frame-hook (frame)
+  "Make new frame and buffer.  FRAME is unused."
+  (interactive)
+  (let* ((param (frame-parameters (selected-frame)))
+         (current-top-margin (if (integerp (cdr (assoc 'top param)))
+                                 (cdr (assoc 'top param))
+                               0))
+         (current-left-margin (if (integerp (cdr (assoc 'left param)))
+                                  (cdr (assoc 'left param))
+                                0)))
+    ;; (my-find-file-other-window frame)
+    (select-frame (if frame frame (selected-frame)))
+    (switch-to-buffer "*scratch*")
+    (my-force-paren-view)
+    (set-frame-position frame (+ current-left-margin 20) (+ current-top-margin 20))))
 
 
 ;;; ------------------------------------------------------------
