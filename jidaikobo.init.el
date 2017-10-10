@@ -1529,10 +1529,10 @@ end tell"
 ;; フレーム情報は不要
 (setq-default mode-line-frame-identification "")
 
-;; タブバーに出ているのでバッファ名は不要
+;; titleに出ているのでバッファ名は不要
 (setq-default mode-line-buffer-identification "")
 
-;; タブバーに出ているのでバッファの変更状態も不要
+;; titleに出ているのでバッファの変更状態も不要
 (setq-default mode-line-modified "")
 
 ;;; 前に行番号、総行数、桁番号を表示
@@ -1568,6 +1568,38 @@ end tell"
 (setq-default eol-mnemonic-unix "(LF)")
 (setq-default eol-mnemonic-dos  "(CRLF)")
 (setq-default eol-mnemonic-mac  "(CR)")
+
+;; minor-mode名称を省略
+;; thx http://syohex.hatenablog.com/entry/20130131/1359646452
+(defvar mode-line-cleaner-alist
+  '( ;; For minor-mode, first char is 'space'
+    (yas-minor-mode . " Ys")
+    (paredit-mode . " Pe")
+    (eldoc-mode . "")
+    (abbrev-mode . "")
+    (undo-tree-mode . " Ut")
+    ;; (flycheck-mode . " Fc")
+    ;; Major modes
+    (lisp-interaction-mode . "Li")
+    (python-mode . "Py")
+    (ruby-mode   . "Rb")
+    (php-mode    . "Ph")
+    (emacs-lisp-mode . "El")
+    (markdown-mode . "Md")))
+
+(defun clean-mode-line ()
+  "Clean mode-line."
+  (interactive)
+  (loop for (mode . mode-str) in mode-line-cleaner-alist
+        do
+        (let ((old-mode-str (cdr (assq mode minor-mode-alist))))
+          (when old-mode-str
+            (setcar old-mode-str mode-str))
+          ;; major mode
+          (when (eq mode major-mode)
+            (setq mode-name mode-str)))))
+
+(add-hook 'after-change-major-mode-hook 'clean-mode-line)
 
 
 ;;; ------------------------------------------------------------
