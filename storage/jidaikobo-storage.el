@@ -1,3 +1,11 @@
+;; 自分の意思でEmacsを複数起動する（Mac用）
+;; (defun open-new-emacs ()
+;;   "Open new Emacs."
+;;   (interactive)
+;;   (when (yes-or-no-p "open new Emacs?")
+;;     (shell-command "/Applications/Emacs.app/Contents/MacOS/Emacs &")))
+;; (global-set-key (kbd "M-s-n") 'open-new-emacs)
+
 ;; (defun my-anything-for-files ()
 ;;   "Anything command for files and commands."
 ;;   (interactive)

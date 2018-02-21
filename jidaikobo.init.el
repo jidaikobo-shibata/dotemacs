@@ -1,5 +1,6 @@
 ;;; jidaikobo.init.el --- jidaikobo.init.el for jidaikobo.  Provides Mac OS like interface.
 ;; Copyright (C) 2017 by jidaikobo-shibata
+;; Copyright (C) 2018 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
@@ -10,17 +11,17 @@
 ;; Emacsのメジャーバージョンが同じ場合は、emacsclientを使い回すので、ApplicationsディレクトリのEmacsをとっておくこと。
 ;;  メジャーバージョンが異なる場合は、Emacsのサイトから適当なパッケージ版を取得すること。
 ;; @ terminal
-;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-25.2.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.2-mac-6.5.tar.gz
-;; tar xfJ emacs-25.2.tar.xz
-;; tar xfz emacs-25.2-mac-6.5.tar.gz
-;; cd emacs-25.2
-;; patch -p 1 < ../emacs-25.2-mac-6.5/patch-mac
-;; cp -r ../emacs-25.2-mac-6.5/mac mac
-;; cp ../emacs-25.2-mac-6.5/src/* src
-;; cp ../emacs-25.2-mac-6.5/lisp/term/mac-win.el lisp/term
+;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-25.3.tar.xz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.3-mac-6.8.tar.gz
+;; tar xfJ emacs-25.3.tar.xz
+;; tar xfz emacs-25.3-mac-6.8.tar.gz
+;; cd emacs-25.3
+;; patch -p 1 < ../emacs-25.3-mac-6.8/patch-mac
+;; cp -r ../emacs-25.3-mac-6.8/mac mac
+;; cp ../emacs-25.3-mac-6.8/src/* src
+;; cp ../emacs-25.3-mac-6.8/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
-;; ./configure --prefix=$HOME/opt/emacs-25.2 --with-mac --without-x
+;; ./configure --prefix=$HOME/opt/emacs-25.3 --with-mac --without-x
 ;; make
 ;; make GZIP_PROG='' install
 ;; mkdir mac/Emacs.app/Contents/MacOS/bin
@@ -166,14 +167,6 @@
 ;; 複数フレームを開かないようにする
 (setq-default ns-pop-up-frames nil)
 
-;; 自分の意思でEmacsを複数起動する（Mac用）
-(defun open-new-emacs ()
-  "Open new Emacs."
-  (interactive)
-  (when (yes-or-no-p "open new Emacs?")
-    (shell-command "/Applications/Emacs.app/Contents/MacOS/Emacs &")))
-(global-set-key (kbd "M-s-n") 'open-new-emacs)
-
 ;; emacsclientを使う
 (require 'server)
 (unless (server-running-p) (server-start))
@@ -247,7 +240,9 @@
 (defun resize-selected-frame ()
   "Resize frame to jidaikobo's default."
   (interactive)
-  (set-frame-position (selected-frame) 0 0)
+  ;; フレームが一枚の時には左上に寄せる
+  (when (= 1 (safe-length (frame-list)))
+    (set-frame-position (selected-frame) 0 0))
   (set-frame-size (selected-frame) 105 60))
 (global-set-key (kbd "s-W") 'resize-selected-frame)
 
@@ -672,15 +667,16 @@
   (setq mc--insert-numbers-number (+ mc--insert-numbers-number my/mc/insert-numbers-inc)))
 
 ;;; ------------------------------------------------------------
-;;; 行選択 smartrep
+;;; 行選択
 (global-set-key (kbd "C-=") 'my/mark-line)
 
 (defun my/mark-line ()
-  "Mark line."
+  "Mark line(s)."
   (interactive)
-  (goto-char (point-at-bol))
-  (set-mark-command nil)
-  (goto-char (point-at-eol)))
+  (unless (eq last-command this-command)
+    (goto-char (point-at-bol))
+    (set-mark-command nil))
+  (goto-char (+ (point-at-eol) 1)))
 
 ;;; ------------------------------------------------------------
 ;;; よく使うところに早く移動
@@ -740,6 +736,7 @@
    ;;  (indent-according-to-mode))
    ;; タブ／インデントを挿入
    (t
+    ;; 選択範囲があったらタブで上書き
     (when mark-active (delete-region (region-beginning) (region-end)))
     (insert "\t"))))
 
@@ -1449,7 +1446,7 @@ end tell"
    ;; ウィンドウ構成が多ければまず自分を消す
    ((not (one-window-p)) (delete-window))
    ;; 複数のフレームを開いている時には、フレームを閉じる
-   ((/= 1 (safe-length (frame-list))) (delete-frame))
+   ;; ((/= 1 (safe-length (frame-list))) (delete-frame))
    ;; ウィンドウ構成がひとつでバッファに変更があれば破棄を確認する
    ((or (and (buffer-modified-p)
              ;; read-onlyなら無視
@@ -1467,6 +1464,7 @@ end tell"
    (t (foeb/kill-buffer))))
 
 (global-set-key (kbd "s-w") 'my-delete-windows)
+(global-set-key (kbd "C-s-w") 'delete-frame)
 
 
 ;;; ------------------------------------------------------------
@@ -1575,6 +1573,7 @@ end tell"
   '( ;; For minor-mode, first char is 'space'
     (yas-minor-mode . " Ys")
     (paredit-mode . " Pe")
+    (rainbow-mode . "")
     (eldoc-mode . "")
     (abbrev-mode . "")
     (undo-tree-mode . " Ut")
@@ -2190,6 +2189,13 @@ If gist-id exists update gist.  BEG END."
 (autoload 'rainbow-mode "rainbow-mode"
   "Major mode for rainbow" t)
 ;; (require 'rainbow-mode)
+(with-eval-after-load 'rainbow-mode
+  (pop rainbow-hexadecimal-colors-font-lock-keywords)
+  (pop rainbow-hexadecimal-colors-font-lock-keywords)
+  (push '("[^&]\\(#\\(?:[0-9a-fA-F]\\{3\\}\\)+\\{2,4\\}\\)" (1 (rainbow-colorize-itself 1)))
+        rainbow-hexadecimal-colors-font-lock-keywords)
+  (push '("^\\(#\\(?:[0-9a-fA-F]\\{3\\}\\)+\\{2,4\\}\\)" (0 (rainbow-colorize-itself)))
+        rainbow-hexadecimal-colors-font-lock-keywords))
 (add-hook 'fundamental-mode-hook 'rainbow-mode)
 (add-hook 'text-mode-hook 'rainbow-mode)
 (add-hook 'html-mode-hook 'rainbow-mode)

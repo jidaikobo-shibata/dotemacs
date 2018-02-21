@@ -103,7 +103,7 @@
    ;; 				:background ,jidaikobo-fg))))
    `(fringe
      ((t (:foreground ,jidaikobo-bg
-                      :background ,jidaikobo-bg)))) ;; フレームの余白
+          :background ,jidaikobo-bg)))) ;; フレームの余白
    `(highlight
      ((t (:background ,jidaikobo-olive))))
    `(region
@@ -111,7 +111,7 @@
       (t :inverse-video t)))
    `(warning
      ((t (:foreground ,jidaikobo-palevioletred
-                      :weight bold))))
+          :weight bold))))
 
 ;;; ------------------------------------------------------------
 ;;; font lock
