@@ -612,8 +612,14 @@
       (exchange-point-and-mark))
     (setq sc/previous-searced-direction direction)
 
+    ;; quit minibuffer
+    ;; ミニバッファにいたらまず抜ける
+    (when (minibufferp (current-buffer))
+      (other-window 1))
+
     ;; use target window
     ;; 現在のウィンドウが検索・置換編集用ウィンドウだったら、主たるウィンドウに移動する
+    (sc/keep-target-buffer)
     (unless (eq (selected-window) sc/target-window)
       (select-window sc/target-window))
 

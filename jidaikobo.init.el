@@ -961,15 +961,6 @@ end tell"
 ;; scpで接続
 (setq tramp-default-method "scp")
 
-;; my-load-contextual-theme
-(defun my-load-contextual-theme ()
-  "Change Background color."
-  (interactive)
-  (if (tramp-tramp-file-p (buffer-file-name (current-buffer)))
-    (load-theme 'jidaikobo-tramp t)
-  (load-theme 'jidaikobo-dark t)))
-;; (add-hook 'switch-buffer-functions (lambda (prev cur) (my-load-contextual-theme)))
-
 ;;; ------------------------------------------------------------
 ;; .poファイルを保存したらmsgfmt -oする
 
