@@ -17,6 +17,16 @@
 ;;     (set-buffer grep-buffer)
 ;;     (rename-buffer (concat "*grep*" "<\"" (ad-get-arg 0) "\">" ) t)))
 
+;; マルチファイル検索置換
+;; M-x find-dired
+;; Run find in directory: /path/to/dir/
+;; Run find (with args): -name "*php"
+;; スペースキーでファイルを選択する or M-t で全選択
+;; Qで検索文字列と置換文字列を入力
+;; yで置換Yで問答無用で全置換
+;; C-x s
+;; ! で全保存
+
 ;;; Ussage:
 ;; "o" means smartrep mode
 ;; | s-f | C-x f f |   | show search/replace windows        | 検索置換窓の表示
@@ -90,6 +100,7 @@
 (package-initialize)
 
 (declare-function package-installed-p "package")
+(defvar foreign-regexp/regexp-type nil)
 
 ;; foreign-regexp
 (when (package-installed-p 'foreign-regexp)

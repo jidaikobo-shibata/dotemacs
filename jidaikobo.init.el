@@ -11,17 +11,17 @@
 ;; Emacsのメジャーバージョンが同じ場合は、emacsclientを使い回すので、ApplicationsディレクトリのEmacsをとっておくこと。
 ;;  メジャーバージョンが異なる場合は、Emacsのサイトから適当なパッケージ版を取得すること。
 ;; @ terminal
-;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-25.3.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-25.3-mac-6.8.tar.gz
-;; tar xfJ emacs-25.3.tar.xz
-;; tar xfz emacs-25.3-mac-6.8.tar.gz
-;; cd emacs-25.3
-;; patch -p 1 < ../emacs-25.3-mac-6.8/patch-mac
-;; cp -r ../emacs-25.3-mac-6.8/mac mac
-;; cp ../emacs-25.3-mac-6.8/src/* src
-;; cp ../emacs-25.3-mac-6.8/lisp/term/mac-win.el lisp/term
+;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-26.1.tar.xz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-26.1-mac-7.0.tar.gz
+;; tar xfJ emacs-26.1.tar.xz
+;; tar xfz emacs-26.1-mac-7.0.tar.gz
+;; cd emacs-26.1
+;; patch -p 1 < ../emacs-26.1-mac-7.0/patch-mac
+;; cp -r ../emacs-26.1-mac-7.0/mac mac
+;; cp ../emacs-26.1-mac-7.0/src/* src
+;; cp ../emacs-26.1-mac-7.0/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
-;; ./configure --prefix=$HOME/opt/emacs-25.3 --with-mac --without-x
+;; ./configure --prefix=$HOME/opt/emacs-26.1 --with-mac --without-x
 ;; make
 ;; make GZIP_PROG='' install
 ;; mkdir mac/Emacs.app/Contents/MacOS/bin
@@ -34,9 +34,6 @@
 
 ;; Update Packages
 ;; M-x package-list-packages U x
-
-;; Update specified Packages
-;; M-x package-utils-upgrade-by-name PACKAGE-NAME
 
 ;;; Usage: 利用前の準備
 ;; このjidaikobo.init.elを~/.emacs.dに入れる前に、以下手順を踏んでおくこと。
@@ -948,7 +945,7 @@ end tell"
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
-
+;; (require 'ange-ftp)
 (require 'tramp)
 
 ;; TRAMPでは自動バックアップしない
@@ -1573,7 +1570,7 @@ end tell"
     (lisp-interaction-mode . "Li")
     (python-mode . "Py")
     (ruby-mode   . "Rb")
-    (php-mode    . "Ph")
+    (php-mode    . "Php")
     (emacs-lisp-mode . "El")
     (markdown-mode . "Md")))
 
@@ -1971,10 +1968,10 @@ If gist-id exists update gist.  BEG END."
   (show-paren-mode 1)
   (setq-default show-paren-delay 0)
   (setq-default show-paren-style 'expression)
-  (set-face-attribute 'show-paren-match-face nil
+  (set-face-attribute 'show-paren-match nil
                       :background nil :foreground nil
                       :underline t)
-  (set-face-attribute 'show-paren-mismatch-face nil
+  (set-face-attribute 'show-paren-mismatch nil
                       :background nil :foreground nil
                       :strike-through t :weight 'extra-bold))
 (my-force-paren-view)
@@ -2139,6 +2136,8 @@ If gist-id exists update gist.  BEG END."
           (beginning-of-line)
           (delete-char (* (count 'arglist-cont-nonempty syntax)
                           c-basic-offset))) )))
+
+(setq php-mode-enable-project-coding-style nil)
 
 (add-hook 'php-mode-hook
           '(lambda()
