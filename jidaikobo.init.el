@@ -148,9 +148,6 @@
 (cua-mode t) ; C-RET
 (setq-default cua-enable-cua-keys nil)
 
-;; 原則画面分割しない
-(setq display-buffer-alist nil)
-
 ;; Helpバッファは、ウィンドウを分割せず、常に選択する
 (setq help-window-select t)
 (add-to-list 'same-window-buffer-names "*Help*")
@@ -430,7 +427,7 @@
   "Find file other window.  FRAME is optional."
   (interactive)
   (select-frame (if frame frame (selected-frame)))
-  (find-file-other-window
+  (find-file
    (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time))))
 
 ;; 新規フレームを開く

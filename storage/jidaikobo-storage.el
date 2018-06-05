@@ -1,3 +1,7 @@
+;; 原則画面分割しない
+;;(setq display-buffer-alist nil)
+;; (setq pop-up-windows nil)
+
 ;; 自分の意思でEmacsを複数起動する（Mac用）
 ;; (defun open-new-emacs ()
 ;;   "Open new Emacs."
