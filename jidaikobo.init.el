@@ -928,7 +928,11 @@ end tell"
 (define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
 (define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
 (define-key dired-mode-map (kbd "s-d") (lambda () (interactive) (find-file "~/Desktop")))
-(global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)))
+(global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)
+                                  (delete-other-windows)))
+
+;; 26.1からdiredで..やsubdirであたらしいwindowを開くようになったので抑止
+(advice-add 'dired-find-file :after 'delete-other-windows)
 
 ;; dired-download-to-desktop
 (defun dired-download-to-desktop ()
@@ -942,7 +946,7 @@ end tell"
 
 ;;; ------------------------------------------------------------
 ;;; TRAMP
-;; (require 'ange-ftp)
+(require 'ange-ftp)
 (require 'tramp)
 
 ;; TRAMPでは自動バックアップしない
