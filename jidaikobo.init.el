@@ -57,6 +57,7 @@
 
 ;; リージョンを上書きできるようにする
 (delete-selection-mode t)
+(global-set-key (kbd "C-c o") (lambda () (interactive) (delete-selection-mode t)))
 
 ;; 選択範囲を可視化
 (setq transient-mark-mode t)
@@ -172,6 +173,9 @@
 
 ;; M-¥でバックスラッシュを入力
 (global-set-key (kbd "M-¥") "\\")
+
+;; Emacs 26でforeign-regexpがエラーを出すので抑止
+(defvaralias 'lazy-highlight-face 'isearch-lazy-highlight)
 
 ;; 日本語入力時にM-/で全角スラッシュを入力（挙動不満）
 (global-set-key (kbd "M-/")
@@ -933,6 +937,7 @@ end tell"
 
 ;; 26.1からdiredで..やsubdirであたらしいwindowを開くようになったので抑止
 (advice-add 'dired-find-file :after 'delete-other-windows)
+(advice-add 'dired-up-directory :after 'delete-other-windows)
 
 ;; dired-download-to-desktop
 (defun dired-download-to-desktop ()
