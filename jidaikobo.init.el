@@ -12,14 +12,14 @@
 ;;  メジャーバージョンが異なる場合は、Emacsのサイトから適当なパッケージ版を取得すること。
 ;; @ terminal
 ;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-26.1.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-26.1-mac-7.0.tar.gz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-26.1-mac-7.4.tar.gz
 ;; tar xfJ emacs-26.1.tar.xz
-;; tar xfz emacs-26.1-mac-7.0.tar.gz
+;; tar xfz emacs-26.1-mac-7.4.tar.gz
 ;; cd emacs-26.1
-;; patch -p 1 < ../emacs-26.1-mac-7.0/patch-mac
-;; cp -r ../emacs-26.1-mac-7.0/mac mac
-;; cp ../emacs-26.1-mac-7.0/src/* src
-;; cp ../emacs-26.1-mac-7.0/lisp/term/mac-win.el lisp/term
+;; patch -p 1 < ../emacs-26.1-mac-7.4/patch-mac
+;; cp -r ../emacs-26.1-mac-7.4/mac mac
+;; cp ../emacs-26.1-mac-7.4/src/* src
+;; cp ../emacs-26.1-mac-7.4/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
 ;; ./configure --prefix=$HOME/opt/emacs-26.1 --with-mac --without-x
 ;; make
@@ -799,9 +799,9 @@
   (do-applescript
    (format "tell application \"Terminal\"
 activate
-tell application \"System Events\" to keystroke \"t\" using command down
+#tell application \"System Events\" to keystroke \"t\" using command down
 repeat while contents of selected tab of window 1 starts with linefeed
-delay 0.01
+delay 0.02
 end repeat
 do script \"%s\" in window 1
 end tell"
@@ -849,7 +849,7 @@ end tell"
     (start-process "gtags-update" nil
                    "global" "-uv")
     (message "gtags updated successfully.")))
-(add-hook 'after-save-hook 'my-update-gtags)
+;; (add-hook 'after-save-hook 'my-update-gtags)
 
 ;;; ------------------------------------------------------------
 ;;; ファイラ (dired)
@@ -1689,6 +1689,7 @@ end tell"
 ;; thx http://d.hatena.ne.jp/khiker/20061014/1160861915
 (put-char-code-property ?ー 'ascii nil)
 (put-char-code-property ?〜 'ascii nil)
+(put-char-code-property ?～ 'ascii nil)
 (put-char-code-property ?、 'ascii nil)
 (put-char-code-property ?。 'ascii nil)
 (put-char-code-property ?＆ 'ascii nil)
