@@ -984,6 +984,7 @@ Curl
 curl
 currency
 current
+current_user_can('administrator')
 current_user_can()
 currently
 curriculum
