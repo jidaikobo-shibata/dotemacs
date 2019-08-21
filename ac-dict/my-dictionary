@@ -2296,6 +2296,7 @@ is_nan
 is_null
 is_numeric
 is_object
+is_post_type_archive()
 is_scalar
 is_string
 is_subclass_of
