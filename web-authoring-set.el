@@ -94,9 +94,10 @@
 (global-set-key (kbd "s-M-z")
                 (lambda () (interactive)
                   (dump-values "php" ""))) ; cmd+opt+z
-(global-set-key (kbd "s-M-@")
+(global-set-key (kbd "s-M-ω")
                 (lambda () (interactive)
                   (dump-values "php" "")))
+
 ;; php with ip
 (global-set-key (kbd "s-M-Z")
                 (lambda (ip) (interactive "sIP:")
@@ -134,6 +135,7 @@
     (insert ret)
     (goto-char (+ (point) cursor))))
 (global-set-key (kbd "s-M-h") 'put-php-opener-closer) ; cmd+shift+h
+(global-set-key (kbd "s-M-˙") 'put-php-opener-closer) ; cmd+shift+h
 
 ;;; ------------------------------------------------------------
 ;;; 編集中の文書がXHTMLかどうかを判定する
@@ -234,8 +236,8 @@
         (setq tag (concat "<input type=\"image\" name=\"str\" id=\"str\" alt=\"\" value=\"\""
                           close-tag)))
        ((eq type 8)
-        (setq tag "<input type=\"file\" name=\"str\" id=\"str\" value=\"\""
-                          close-tag))))
+        (setq tag (concat "<input type=\"file\" name=\"str\" id=\"str\" value=\"\""
+                          close-tag)))))
 
      ;; singular tag - hr, br
      ((find tag '("hr" "br") :test #'string=)
@@ -359,8 +361,8 @@
 
      ;; script
      ((string= tag "script")
-      (setq tag (concat "<script type=\"text/javascript\">\n<!--\n" word "\n// -->\n</script>")
-            cursor- -18))
+      (setq tag (concat "<script>\n" word "\n</script>")
+            cursor- -12))
 
      ;; style
      ((string= tag "style")
@@ -399,6 +401,7 @@
       (setq cursor (+ (point) cursor-)))
     (goto-char cursor)))
 (global-set-key (kbd "s-M-v") 'any-html-tag)
+(global-set-key (kbd "s-M-√") 'any-html-tag)
 
 ;;; ------------------------------------------------------------
 ;;; ブラケット
@@ -413,6 +416,7 @@
     (when (region-active-p) (delete-region beg end))
     (insert tag)))
 (global-set-key (kbd "s-M-b") 'sand-brackets)
+(global-set-key (kbd "s-M-∫") 'sand-brackets)
 
 ;;; ------------------------------------------------------------
 ;;; headings
@@ -452,9 +456,19 @@
 (global-set-key [M-s-kp-4] 'h4-tag)
 (global-set-key [M-s-kp-5] 'h5-tag)
 (global-set-key [M-s-kp-6] 'h6-tag)
+(global-set-key (kbd "s-M-¡") 'h1-tag)
+(global-set-key (kbd "s-M-™") 'h2-tag)
+(global-set-key (kbd "s-M-£") 'h3-tag)
+(global-set-key (kbd "s-M-¢") 'h4-tag)
+(global-set-key (kbd "s-M-∞") 'h5-tag)
+(global-set-key (kbd "s-M-§") 'h6-tag)
 
 ;;; a
 (global-set-key (kbd "s-M-a")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "a")))
+(global-set-key (kbd "s-M-å")
                 '(lambda ()
                    (interactive)
                    (any-html-tag "a")))
@@ -470,9 +484,17 @@
                 '(lambda ()
                    (interactive)
                    (any-html-tag "comment-out")))
+(global-set-key (kbd "s-M-ç")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "comment-out")))
 
 ;;; dl-dt-dd
 (global-set-key (kbd "s-M-d")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "dl-dt-dd")))
+(global-set-key (kbd "s-M-∂")
                 '(lambda ()
                    (interactive)
                    (any-html-tag "dl-dt-dd")))
@@ -482,9 +504,17 @@
                 '(lambda ()
                    (interactive)
                    (any-html-tag "img")))
+(global-set-key (kbd "s-M-ˆ")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "img")))
 
 ;;; em
 (global-set-key (kbd "s-M-e")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "em")))
+(global-set-key (kbd "s-M-´")
                 '(lambda ()
                    (interactive)
                    (any-html-tag "em")))
@@ -494,9 +524,17 @@
                 '(lambda ()
                    (interactive)
                    (any-html-tag "strong")))
+(global-set-key (kbd "s-M-©")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "strong")))
 
 ;;; li-each
 (global-set-key (kbd "s-M-l")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "li-each")))
+(global-set-key (kbd "s-M-¬")
                 '(lambda ()
                    (interactive)
                    (any-html-tag "li-each")))
@@ -506,9 +544,17 @@
                 '(lambda ()
                    (interactive)
                    (any-html-tag "ol-li")))
+(global-set-key (kbd "s-M-ø")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "ol-li")))
 
 ;;; p-each
 (global-set-key (kbd "s-M-p")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "p-each")))
+(global-set-key (kbd "s-M-π")
                 '(lambda ()
                    (interactive)
                    (any-html-tag "p-each")))
@@ -518,14 +564,27 @@
                 '(lambda ()
                    (interactive)
                    (any-html-tag "blockquote")))
+(global-set-key (kbd "s-M-œ")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "blockquote")))
 
 ;;; span
 (global-set-key (kbd "s-M-s")
                 '(lambda ()
                    (interactive)
                    (any-html-tag "span")))
+(global-set-key (kbd "s-M-ß")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "span")))
+
 ;;; table
 (global-set-key (kbd "s-M-t")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "table-intaractive")))
+(global-set-key (kbd "s-M-†")
                 '(lambda ()
                    (interactive)
                    (any-html-tag "table-intaractive")))
@@ -535,9 +594,17 @@
                 '(lambda ()
                    (interactive)
                    (any-html-tag "ul-li")))
+(global-set-key (kbd "s-M-¨")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "ul-li")))
 
 ;;; ruby
 (global-set-key (kbd "s-M-y")
+                '(lambda ()
+                   (interactive)
+                   (any-html-tag "ruby-intaractive")))
+(global-set-key (kbd "s-M-¥")
                 '(lambda ()
                    (interactive)
                    (any-html-tag "ruby-intaractive")))
@@ -555,7 +622,8 @@
    ;; famous block tags
    ((string= tag "2") (progn
                              (replace-strings-in-region-by-list
-                              '(("</*p.*?>\\|</*h[1-6].*?>\\|</*ul.*?>\\|</*ol.*?>\\|</*li.*?>\\|</*pre.*?>\\|</*dl.*?>\\|</*dt.*?>\\|</*dd.*?>\\|</*div.*?>\\|</*center.*?>\\|</*blockquote.*?>\\|</*address.*?>\\|</*table.*?>\\|</*tr.*?>\\|</*td.*?>\\|</*th.*?>\\|</*thead.*?>\\|</*section.*?>\\|</*header.*?>\\|</*footer.*?>\\|</*article.*?>" . "")))
+
+'(("</*p.*?>\\|</*h[1-6].*?>\\|</*ul.*?>\\|</*ol.*?>\\|</*li.*?>\\|</*pre.*?>\\|</*dl.*?>\\|</*dt.*?>\\|</*dd.*?>\\|</*div.*?>\\|</*center.*?>\\|</*blockquote.*?>\\|</*address.*?>\\|</*table.*?>\\|</*tr.*?>\\|</*td.*?>\\|</*th.*?>\\|</*thead.*?>\\|</*section.*?>\\|</*header.*?>\\|</*footer.*?>\\|</*article.*?>" . "")))
                              (message "remove famous block tags")))
    ;; form elements tag except for text
    ((string= tag "3") (progn
@@ -596,6 +664,7 @@
           (insert word))
         (message "remove specified tag")))))
 (global-set-key (kbd "M-s-r") 'remove-html-tags) ; opt+cmd+r
+(global-set-key (kbd "M-s-®") 'remove-html-tags) ; opt+cmd+r
 
 ;;; ------------------------------------------------------------
 ;;; Shift+Returnで<br />を入力

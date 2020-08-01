@@ -1,6 +1,5 @@
 ;;; jidaikobo.init.el --- jidaikobo.init.el for jidaikobo.  Provides Mac OS like interface.
 ;; Copyright (C) 2017 by jidaikobo-shibata
-;; Copyright (C) 2018 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
@@ -11,23 +10,23 @@
 ;; Emacsのメジャーバージョンが同じ場合は、emacsclientを使い回すので、ApplicationsディレクトリのEmacsをとっておくこと。
 ;;  メジャーバージョンが異なる場合は、Emacsのサイトから適当なパッケージ版を取得すること。
 ;; @ terminal
-;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-26.1.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-26.1-mac-7.4.tar.gz
-;; tar xfJ emacs-26.1.tar.xz
-;; tar xfz emacs-26.1-mac-7.4.tar.gz
-;; cd emacs-26.1
-;; patch -p 1 < ../emacs-26.1-mac-7.4/patch-mac
-;; cp -r ../emacs-26.1-mac-7.4/mac mac
-;; cp ../emacs-26.1-mac-7.4/src/* src
-;; cp ../emacs-26.1-mac-7.4/lisp/term/mac-win.el lisp/term
+;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-26.3.tar.xz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-26.3-mac-7.9.tar.gz
+;; tar xfJ emacs-26.3.tar.xz
+;; tar xfz emacs-26.3-mac-7.9.tar.gz
+;; cd emacs-26.3
+;; patch -p 1 < ../emacs-26.3-mac-7.9/patch-mac
+;; cp -r ../emacs-26.3-mac-7.9/mac mac
+;; cp ../emacs-26.3-mac-7.9/src/* src
+;; cp ../emacs-26.3-mac-7.9/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
-;; ./configure --prefix=$HOME/opt/emacs-26.1 --with-mac --without-x
+;; ./configure --prefix=$HOME/opt/emacs-26.3 --with-mac --without-x
 ;; make
 ;; make GZIP_PROG='' install
 ;; mkdir mac/Emacs.app/Contents/MacOS/bin
 ;; cp /Applications/Emacs.app/Contents/MacOS/bin/emacsclient mac/Emacs.app/Contents/MacOS/bin/
 ;; cp -r mac/Emacs.app /Applications
-
+;;
 ;; install package
 ;; M-x package-refresh-contents
 ;; M-x package-install PACKAGENAME
@@ -327,7 +326,7 @@
 (setq-default foeb/non-ignore-buffers
               (rx
                (or
-                "*scratch*" "*grep*")))
+                "*scratch*" "*grep*" "*eww*")))
 (require 'focus-on-editable-buffers)
 (require 'anything-focus-on-editable-buffers)
 
@@ -772,7 +771,7 @@
 (defun get-current-path ()
   "Get current file path."
   (interactive)
-  (insert (or (buffer-file-name) (expand-file-name default-directory))))
+  (message (or (buffer-file-name) (expand-file-name default-directory))))
 (global-set-key (kbd "M-s-k") 'get-current-path)
 
 ;; Finderで現在バッファのファイルを表示
@@ -932,6 +931,7 @@ end tell"
 (define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
 (define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
 (define-key dired-mode-map (kbd "s-d") (lambda () (interactive) (find-file "~/Desktop")))
+(define-key dired-mode-map (kbd "s-u") (lambda () (interactive) (find-file "~/Desktop/uploads")))
 (global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)
                                   (delete-other-windows)))
 
@@ -950,7 +950,23 @@ end tell"
 (define-key dired-explorer-mode-map (kbd "C-d") 'dired-download-to-desktop)
 
 ;;; ------------------------------------------------------------
+;;; eww
+
+(defun eww-mode-hook--rename-buffer ()
+  "Rename eww browser's buffer so sites open in new page."
+  (rename-buffer "eww" t))
+(add-hook 'eww-mode-hook 'eww-mode-hook--rename-buffer)
+
+;; (defun eww-heading-jump ()
+;;   "Insert tab, indent, jump to link etc."
+;;   (interactive)
+;;   (if (eq major-mode 'eww-mode)
+;;     (shr-next-link)))
+;; (global-set-key (kbd "<tab>") 'eww-heading-jump)
+
+;;; ------------------------------------------------------------
 ;;; TRAMP
+
 (require 'ange-ftp)
 (require 'tramp)
 
@@ -1056,7 +1072,6 @@ end tell"
             (message (concat "Did nothing with: " strings)))
         (message (concat "Not found: " strings))))))
 
-
 (defun add-strings-to-ac-my-dictionary-f ()
   "For `which-key'."
   (interactive)
@@ -1117,6 +1132,26 @@ end tell"
      (t "\\(?:\\sw\\|\\s_\\)"))))
 
 
+;;; ------------------------------------------------------------
+;;; 大きいファイルを早く開きたい
+;; gist-description: Emacs(Elisp): Open large file quickly. 大きいファイルを早く開きたい
+;; gist-id: 96e00bd843c838f45ab8183e286150ec
+;; gist-name: open-large-file-quickly.el
+;; gist-private: nil
+(defun open-large-file-quickly()
+  "To read large file."
+  (interactive)
+  (progn
+    (let* ((file-name (buffer-file-name (current-buffer)))
+           (f-attr (file-attributes file-name))
+           (f-size (nth 7 f-attr))
+           (is-large (>= f-size 2000000)))
+      (setq-local ac-auto-start (not is-large))
+      (setq-local show-paren-mode (not is-large))
+      (setq-local linum-mode (not is-large))
+      (when is-large (message "File Size: %s Bytes, Opened by less function mode" f-size)))))
+(add-hook 'find-file-hooks 'open-large-file-quickly)
+
 ;;; ------------------------------------------------------------
 ;;; popwin
 ;;; ------------------------------------------------------------
@@ -2112,6 +2147,9 @@ If gist-id exists update gist.  BEG END."
              (flycheck-mode t)
              (setq js-indent-level 2)
              (setq indent-tabs-mode t)))
+
+;; GAS - Google App Script
+(add-to-list 'auto-mode-alist '("\\.gs$" . js-mode))
 
 ;;; ------------------------------------------------------------
 ;;; yaml-mode

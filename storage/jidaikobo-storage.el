@@ -1,3 +1,11 @@
+;; switch-to-minibuffer-window
+;; (global-set-key (kbd "s-m") 'switch-to-minibuffer-window)
+;; (defun switch-to-minibuffer-window ()
+;;     "Switch to minibuffer window (if active)."
+;;     (interactive)
+;;     (when (active-minibuffer-window)
+;;         (select-window (active-minibuffer-window))))
+
 ;; 原則画面分割しない
 ;;(setq display-buffer-alist nil)
 ;; (setq pop-up-windows nil)
