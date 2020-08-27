@@ -10,17 +10,17 @@
 ;; Emacsのメジャーバージョンが同じ場合は、emacsclientを使い回すので、ApplicationsディレクトリのEmacsをとっておくこと。
 ;;  メジャーバージョンが異なる場合は、Emacsのサイトから適当なパッケージ版を取得すること。
 ;; @ terminal
-;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-26.3.tar.xz
-;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-26.3-mac-7.9.tar.gz
-;; tar xfJ emacs-26.3.tar.xz
-;; tar xfz emacs-26.3-mac-7.9.tar.gz
-;; cd emacs-26.3
-;; patch -p 1 < ../emacs-26.3-mac-7.9/patch-mac
-;; cp -r ../emacs-26.3-mac-7.9/mac mac
-;; cp ../emacs-26.3-mac-7.9/src/* src
-;; cp ../emacs-26.3-mac-7.9/lisp/term/mac-win.el lisp/term
+;; curl -LO http://ftp.gnu.org/pub/gnu/emacs/emacs-27.1.tar.xz
+;; curl -LO ftp://ftp.math.s.chiba-u.ac.jp/emacs/emacs-27.1-mac-8.0.tar.gz
+;; tar xfJ emacs-27.1.tar.xz
+;; tar xfz emacs-27.1-mac-8.0.tar.gz
+;; cd emacs-27.1
+;; patch -p 1 < ../emacs-27.1-mac-8.0/patch-mac
+;; cp -r ../emacs-27.1-mac-8.0/mac mac
+;; cp ../emacs-27.1-mac-8.0/src/* src
+;; cp ../emacs-27.1-mac-8.0/lisp/term/mac-win.el lisp/term
 ;; \cp nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns mac/Emacs.app/Contents/Resources/Emacs.icns
-;; ./configure --prefix=$HOME/opt/emacs-26.3 --with-mac --without-x
+;; ./configure --prefix=$HOME/opt/emacs-27.1 --with-mac --without-x
 ;; make
 ;; make GZIP_PROG='' install
 ;; mkdir mac/Emacs.app/Contents/MacOS/bin
@@ -45,6 +45,8 @@
 ;;; ------------------------------------------------------------
 ;;; minimal settings 最小限設定
 ;;; ------------------------------------------------------------
+
+;;(debug-on-entry 'package-initialize)
 
 ;; 設定ファイルのパス
 (defvar jidaikobo-dir (file-name-directory
@@ -268,7 +270,7 @@
   (require 'package)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (add-to-list 'package-archives '("marmalade" . "https://marmalade-repo.org/packages/") t)
-  (package-initialize)
+;;  (package-initialize)
 
   ;; package-refresh-contents
 	(unless (package-installed-p 'anything) (package-refresh-contents))
@@ -304,6 +306,12 @@
   (dolist (package my-packages)
     (unless (package-installed-p package)
       (package-install package))))
+
+
+;;; ------------------------------------------------------------
+;;; Package cl is deprecated in Emacs-27
+;;; ------------------------------------------------------------
+(setq byte-compile-warnings '(cl-functions))
 
 
 ;;; ------------------------------------------------------------
@@ -771,7 +779,9 @@
 (defun get-current-path ()
   "Get current file path."
   (interactive)
-  (message (or (buffer-file-name) (expand-file-name default-directory))))
+  (let ((path (or (buffer-file-name) (expand-file-name default-directory))))
+    (kill-new path)
+    (message path)))
 (global-set-key (kbd "M-s-k") 'get-current-path)
 
 ;; Finderで現在バッファのファイルを表示
@@ -813,6 +823,23 @@ end tell"
 
 (global-set-key (kbd "C-c d") 'cd-on-terminal)
 (global-set-key (kbd "C-c g") 'cd-on-terminal-and-git-ci)
+
+;;; ------------------------------------------------------------
+;;; sort by line length
+;; (defun sort-lines-by-length (reverse beg end)
+;;      "Sort lines by length."
+;;      (interactive "P\nr")
+;;      (save-excursion
+;;        (save-restriction
+;;          (narrow-to-region beg end)
+;;          (goto-char (point-min))
+;;          (let ;; To make `end-of-line' and etc. to ignore fields.
+;;              ((inhibit-field-text-motion t))
+;;            (sort-subr reverse 'forward-line 'end-of-line nil nil
+;;                       (lambda (l1 l2)
+;;                         (apply #'< (mapcar (lambda (range) (- (cdr range) (car range)))
+;;                                            (list l1 l2)))))))))
+;; (global-set-key (kbd "C-c l") 'sort-lines-by-length)
 
 ;;; ------------------------------------------------------------
 ;;; gtags
@@ -1142,15 +1169,20 @@ end tell"
   "To read large file."
   (interactive)
   (progn
-    (let* ((file-name (buffer-file-name (current-buffer)))
-           (f-attr (file-attributes file-name))
-           (f-size (nth 7 f-attr))
-           (is-large (>= f-size 2000000)))
-      (setq-local ac-auto-start (not is-large))
-      (setq-local show-paren-mode (not is-large))
-      (setq-local linum-mode (not is-large))
-      (when is-large (message "File Size: %s Bytes, Opened by less function mode" f-size)))))
+    (when (file-exists-p (buffer-file-name))
+      (let* ((file-name (buffer-file-name (current-buffer)))
+             (f-attr (file-attributes file-name))
+             (f-size (nth 7 f-attr))
+             (is-large (>= f-size 2000000)))
+        (if (not (string= (substring (buffer-file-name) 0 1) "*"))
+            (progn
+              (setq-local ac-auto-start (not is-large))
+              (setq-local show-paren-mode (not is-large))
+              (setq-local linum-mode (not is-large))
+              (when is-large
+                (message "File Size: %s Bytes, Opened by less function mode" f-size))))))))
 (add-hook 'find-file-hooks 'open-large-file-quickly)
+
 
 ;;; ------------------------------------------------------------
 ;;; popwin
@@ -1724,7 +1756,7 @@ end tell"
 ;; thx http://d.hatena.ne.jp/khiker/20061014/1160861915
 (put-char-code-property ?ー 'ascii nil)
 (put-char-code-property ?〜 'ascii nil)
-(put-char-code-property ?～ 'ascii nil)
+(put-char-code-property ?〜 'ascii nil)
 (put-char-code-property ?、 'ascii nil)
 (put-char-code-property ?。 'ascii nil)
 (put-char-code-property ?＆ 'ascii nil)

@@ -39,7 +39,6 @@
 ;;
 ;; cmd+opt+z: var_dump()
 ;; cmd+opt+shift+z: var_dump()でipを指定
-;; cmd+opt+k: 編集中のファイルのカレントパス
 
 ;;; Code:
 
