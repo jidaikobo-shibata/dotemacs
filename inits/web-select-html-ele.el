@@ -27,7 +27,7 @@
         (save-excursion
           ;; 前方のタグ名を取得
           (search-backward "<" (point-min) t)
-          (if (looking-at "<\\(/*[a-zA-Z1-6]+\\)") ; タグの要素名をキャプチャ
+          (if (looking-at "<\\(/*[a-zA-Z1-6!-]+\\)") ; タグの要素名をキャプチャ
               (setq element-name (match-string 1))))
         ;; (message "Caret is inside a tag: <%s>" element-name)
         element-name)
@@ -52,6 +52,7 @@
         (let* ((tag-info (get-html-element-at-caret)) ; タグ名とスラッシュ有無を取得
                (is-closing-tag (and tag-info (string-prefix-p "/" tag-info))) ; 閉じタグか判定
                (tag-name (if is-closing-tag (substring tag-info 1) tag-info))) ; タグ名を抽出
+          (message tag-name)
           ;; 単体要素の場合
           (if (member tag-name self-closing-tags)
               (select-range-for-self-closing-tag tag-name)
