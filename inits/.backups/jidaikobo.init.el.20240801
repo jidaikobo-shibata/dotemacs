@@ -1,0 +1,2075 @@
+;;; jidaikobo.init.el --- jidaikobo.init.el for jidaikobo.  Provides Mac OS like interface.
+;; Copyright (C) 2017 by jidaikobo-shibata
+;; Author: jidaikobo-shibata
+;; URL: https://github.com/jidaikobo-shibata/dotemacs
+
+;;; Commentary:
+
+;; install package
+;; M-x package-refresh-contents
+;; M-x package-install PACKAGENAME
+
+;; Update Packages
+;; M-x package-list-packages U x
+
+;;; Code:
+
+;;; ------------------------------------------------------------
+;;; minimal settings 最小限設定
+;;; ------------------------------------------------------------
+
+;;(debug-on-entry 'package-initialize)
+
+;; Emacs 27.2 以降 package-list-packages が失敗するので、これが必要
+(custom-set-variables
+ '(gnutls-algorithm-priority "normal:-vers-tls1.3"))
+
+;; 実行パス（homebrew）
+(setenv "PATH" (concat (getenv "PATH") ":/usr/local/bin"))
+(setq exec-path (append exec-path '("/usr/local/bin")))
+
+;; リージョンを上書きできるようにする
+(delete-selection-mode t)
+
+;; 選択範囲を可視化
+(setq transient-mark-mode t)
+
+;; font-lock-mode
+(global-font-lock-mode t)
+
+;; sort-linesはcase insensitiveで
+(setq-default sort-fold-case t)
+
+;; スクロールを一行ずつにする
+(setq scroll-step 1)
+
+;; クリップボードを他のアプリケーションと共用にする
+(setq select-enable-clipboard t)
+
+;; Meta/Super/Hyperキー
+;(setq mac-pass-command-to-system nil)
+;(setq mac-command-modifier 'super)
+;(setq mac-option-modifier 'meta)
+;(setq mac-right-option-modifier 'hyper)
+;(setq mac-right-command-modifier 'hyper)
+
+;; LinuxでSuperキーとCtrlキーを入れ替える
+(defun my-set-ctrl-key ()
+  "Set left Super key to act as Ctrl key in Emacs."
+  (interactive)
+  (setq x-super-keysym 'ctrl)
+  (setq x-ctrl-keysym 'super))
+(my-set-ctrl-key)
+
+;; Mozc - input method
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/emacs-mozc")
+(require 'mozc)
+(set-language-environment "Japanese")
+(setq default-input-method "japanese-mozc")
+(prefer-coding-system 'utf-8)
+
+;; (global-set-key (kbd "<muhenkan>")
+;; 		(lambda () (interactive)
+;; 		  (deactivate-input-method)))
+
+(defun my-deactivate-input-method ()
+  "Deactivate the input method."
+  (interactive)
+  (deactivate-input-method))
+(with-eval-after-load 'mozc
+  (define-key mozc-mode-map (kbd "<muhenkan>") 'my-deactivate-input-method))
+(global-set-key (kbd "<muhenkan>") 'my-deactivate-input-method)
+
+(global-set-key (kbd "<henkan>")
+		(lambda () (interactive)
+		  (activate-input-method default-input-method)))
+
+;; mozc-modeでもdelete-selection-modeを機能させる
+;; thx ChatGPT
+(defun my-mozc-handle-event (orig-fun &rest args)
+  "Override default mozc-event handling to ensure delete-selection-mode works with mozc-mode, excluding specific keys and including paste."
+  (let ((event (nth 0 args)))
+    (if (and (use-region-p)
+             (not (or (member event '(left right up down henkan muhenkan))
+                      (member 'shift (event-modifiers event))
+                      (member 'super (event-modifiers event))
+                      (member 'meta (event-modifiers event)))))
+        (delete-region (region-beginning) (region-end)))
+    (apply orig-fun args)))
+
+(advice-add 'mozc-handle-event :around #'my-mozc-handle-event)
+
+(defun my-delete-selection-before-yank (&rest _args)
+  "Delete the selection before yanking."
+  (if (use-region-p)
+      (delete-region (region-beginning) (region-end))))
+
+(advice-add 'yank :before #'my-delete-selection-before-yank)
+
+;; yes/noをy/nへ
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; 起動画面を抑止
+(setq inhibit-startup-message t)
+
+;; スクラッチメッセージを抑止
+(setq initial-scratch-message nil)
+
+;; 警告音とフラッシュを無効
+(setq ring-bell-function 'ignore)
+
+;; Emacs終了時に確認をする
+(setq confirm-kill-emacs 'y-or-n-p)
+
+;; バックアップ・自動保存を無効
+(setq make-backup-files nil)
+(setq auto-save-list-file-prefix nil)
+(setq create-lockfiles nil)
+(setq auto-save-default nil)
+(setq delete-auto-save-files t)
+
+;; オートインデント無効
+(when (functionp 'electric-indent-mode) (electric-indent-mode -1))
+
+;; whitespaceの可視化と自動クリーンアップ
+(global-whitespace-mode 1)
+(setq-default whitespace-action '(auto-cleanup))
+
+;; ツールバーを非表示
+(when (functionp 'tool-bar-mode) (tool-bar-mode -1))
+
+;; 28.2からタイトルバーが真っ黒になってしまったので、全部消す
+(setq frame-title-format nil)
+
+;; ミニバッファ履歴を保存
+(savehist-mode 1)
+
+;; キーストロークのミニバッファへの表示を早く
+(setq echo-keystrokes 0.1)
+
+;; ミニバッファのプロンプトにカーソルが入らないように
+;; reference | http://ergoemacs.org/emacs/emacs_stop_cursor_enter_prompt.html
+(setq minibuffer-prompt-properties
+      '(read-only t point-entered minibuffer-avoid-prompt
+                  face minibuffer-prompt))
+
+;; タブ幅
+(setq-default tab-width 2)
+
+;; backward-delete-char-untabifyは、タブをバラさない
+(setq backward-delete-char-untabify-method nil)
+
+;; cua-modeの設定
+(cua-mode t) ; C-RET
+(setq-default cua-enable-cua-keys nil)
+
+;; Helpバッファは、ウィンドウを分割せず、常に選択する
+(setq help-window-select t)
+(add-to-list 'same-window-buffer-names "*Help*")
+
+;; grepバッファは、ウィンドウを分割しない
+(add-to-list 'same-window-buffer-names "*grep*")
+
+;; ほとんどの場合、window分割はしない
+(add-to-list 'same-window-regexps "^[a-zA-Z0-9_ -]+")
+
+;; 複数フレームを開かないようにする
+(setq-default ns-pop-up-frames nil)
+
+;; emacsclientを使う
+(require 'server)
+(unless (server-running-p) (server-start))
+
+;; emacsclientバッファを落とす時に出る確認を抑止
+(remove-hook
+ 'kill-buffer-query-functions
+ 'server-kill-buffer-query-function)
+
+;; M-¥でバックスラッシュを入力
+(global-set-key (kbd "M-¥") "\\")
+
+;; Emacs 26でforeign-regexpがエラーを出すので抑止
+(defvaralias 'lazy-highlight-face 'isearch-lazy-highlight)
+
+;;; ------------------------------------------------------------
+;;; やっぱりキル時にリージョンを残したい……。
+;; gist-description: Emacs(Elisp): Preserve region when kill. 他のエディタだと選択範囲を作った後コピーしても選択範囲が解除されないが、Emacsは解除されちゃう。1年以上使っていてもどうしてもこれには慣れることができなかったので、選択範囲をキープするように変更。
+;; gist-id: 94f27670afed23696c6a2d0774982b01
+;; gist-name: preserve-region-when-kill.el
+;; gist-private: nil
+(defun f--around--cua-copy-region (cua-copy-region arg)
+  "Keep Region at kill.  CUA-COPY-REGION, ARG."
+  (let ((beg (region-beginning))
+        (end (region-end)))
+    (funcall cua-copy-region arg)
+    (goto-char beg)
+    (set-mark (point))
+    (goto-char end)
+    (setq deactivate-mark nil)))
+(advice-add 'cua-copy-region :around 'f--around--cua-copy-region)
+
+;; 設定ファイル用のメジャーモード
+(require 'generic-x)
+
+;; 機能の有効化
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
+(put 'scroll-left 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'narrow-to-page 'disabled nil)
+(put 'delete-region 'disabled nil)
+(custom-set-variables
+ '(delete-by-moving-to-trash t)
+ '(trash-directory "~/.Trash"))
+
+;;; ------------------------------------------------------------
+;;; font フォント
+
+(set-face-attribute 'default nil :family "MyricaM M" :height 160)
+(set-fontset-font t 'japanese-jisx0208 "MyricaM M")
+
+;; ------------------------------------------------------------
+;;; frame フレーム
+
+(add-to-list 'default-frame-alist '(alpha . (1.00 1.00)))
+(add-to-list 'default-frame-alist '(width . 105))
+(add-to-list 'default-frame-alist '(height . 42))
+(add-to-list 'default-frame-alist '(top . 0))
+(add-to-list 'default-frame-alist '(left . 800))
+
+;; フレームの大きさと位置を変更 (cmd+shift+w)
+(defun resize-selected-frame ()
+  "Resize frame to jidaikobo's default."
+  (interactive)
+  ;; フレームが一枚の時には左上に寄せる
+  (when (= 1 (safe-length (frame-list)))
+    (set-frame-position (selected-frame) 1900 0))
+  (set-frame-size (selected-frame) 105 42))
+(global-set-key (kbd "s-W") 'resize-selected-frame)
+(global-set-key (kbd "C-c W") 'resize-selected-frame)
+
+;;; ------------------------------------------------------------
+;;; package関連
+;;; ------------------------------------------------------------
+
+;;; ------------------------------------------------------------
+;;; Load packages
+
+;; load-pathの追加
+(add-to-list 'load-path "~/.emacs.d/elisp")
+
+;; package.override.el
+(defvar override-el "~/.emacs.d/package.override.el")
+
+;; load packages
+(if (file-exists-p override-el)
+    (load override-el)
+
+  ;; Packages
+  (require 'package)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+  ;(add-to-list 'package-archives '("marmalade" . "https://marmalade-repo.org/packages/") t)
+;;  (package-initialize)
+
+  ;; package-refresh-contents
+  (unless (package-installed-p 'anything) (package-refresh-contents))
+
+  ;; my-packages
+  (defvar my-packages
+    '(ace-jump-mode
+      anything
+      auto-async-byte-compile
+      auto-complete
+      cursor-chg
+      flycheck
+      foreign-regexp
+      google-translate
+      multiple-cursors
+      php-mode
+      rainbow-mode
+      smartrep
+      ;; undo-tree
+      ;; undohist
+      web-beautify
+      which-key
+      zlc))
+
+  ;; my-packagesからインストールしていないパッケージをインストール
+  (dolist (package my-packages)
+    (unless (package-installed-p package)
+      (package-install package))))
+
+;;; ------------------------------------------------------------
+;;; jidaikobo's elisp.
+;;; ------------------------------------------------------------
+
+;; テーマ - jidaikobo's theme
+(add-to-list 'custom-theme-load-path
+             (file-name-as-directory "~/.emacs.d/jidaikobo/themes/"))
+(load-theme 'jidaikobo-dark t)
+
+;;; ------------------------------------------------------------
+;;; undo、redo関連
+;;; ------------------------------------------------------------
+
+;; undohist
+;; ファイルを閉じてもundo履歴を残す
+;; (require 'undohist)
+;; (undohist-initialize)
+
+;; undo-tree
+;; undo履歴の分岐だが、普通のundoとして使っている。消さない
+;; (require 'undo-tree)
+;; (global-undo-tree-mode t)
+
+;; undo in regionしない
+;; (defadvice undo-tree-undo (before deactivate-region activate)
+;;  "Deactivate Region when attempt to undo."
+;;  (deactivate-mark))
+
+;;; ------------------------------------------------------------
+;;; recentf
+;;; 削除予定
+;;; ------------------------------------------------------------
+
+;; (require 'recentf-ext)
+;; (recentf-mode 1)
+;; (setq recentf-exclude
+;;       '("/TAGS$"
+;;         "/var/tmp/"
+;;         ".recentf"
+;;         "^/[^/:]+:" ; TRAMP
+;;         ".+Fetch Temporary Folder.+"))
+;; (setq recentf-max-saved-items nil)
+
+;;; ------------------------------------------------------------
+;;; which-key
+;;; ------------------------------------------------------------
+
+(which-key-mode 1)
+(which-key-setup-side-window-bottom)
+
+;;; ------------------------------------------------------------
+;;; キーボード操作
+;;; ------------------------------------------------------------
+
+;; mac-likeなcmd関係
+;; thx http://www.unixuser.org/~euske/doc/emacsref/#file
+(global-set-key (kbd "s-a") 'mark-whole-buffer)
+(global-set-key (kbd "s-c") 'kill-ring-save)
+(global-set-key (kbd "s-x") 'kill-region)
+(global-set-key (kbd "s-v") 'yank)
+(global-set-key (kbd "s-s") 'save-buffer)
+(global-set-key (kbd "s-S") 'write-file)
+(global-set-key (kbd "s-o") 'find-file)
+(global-set-key (kbd "s-z") 'undo)
+(global-set-key (kbd "s-Z") 'undo-redo)
+(global-set-key (kbd "s-+") 'text-scale-increase)
+(global-set-key (kbd "<s-kp-add>") 'text-scale-increase)
+(global-set-key (kbd "s--") 'text-scale-decrease)
+(global-set-key (kbd "<s-kp-subtract>") 'text-scale-decrease)
+(global-set-key (kbd "<s-kp-equal>") (lambda () (interactive) (text-scale-mode 0)))
+(global-set-key (kbd "s-=") (lambda () (interactive) (text-scale-mode 0)))
+(global-set-key (kbd "<s-kp-0>") (lambda () (interactive) (text-scale-mode 0)))
+(global-set-key (kbd "<s-0>") (lambda () (interactive) (text-scale-mode 0)))
+(global-set-key (kbd "s-q") 'save-buffers-kill-emacs)
+(global-set-key (kbd "<backspace>") 'delete-backward-char)
+(global-set-key (kbd "<s-up>") (lambda () (interactive "^") (goto-char (point-min))))
+(global-set-key (kbd "<s-down>") (lambda () (interactive "^") (goto-char (point-max))))
+(global-set-key (kbd "<s-left>") 'beginning-of-line)
+(global-set-key (kbd "<s-right>") 'end-of-line)
+(global-set-key (kbd "<prior>") 'backward-page)
+(global-set-key (kbd "<next>") 'forward-page)
+
+;; M-g or cmd+opt+j で指定行へジャンプ
+(global-set-key (kbd "M-g") 'goto-line)
+(global-set-key (kbd "M-s-j") 'goto-line)
+
+;; 編集履歴を使ってカーソル位置をたどる
+;; 削除予定
+;; (global-set-key (kbd "C-,") 'goto-last-change)
+;; (global-set-key (kbd "C-.") 'goto-last-change-reverse)
+
+;; 直前のバッファと行ったり来たりする
+;; 削除予定
+;; (global-set-key (kbd "C-¥") (lambda () (interactive) (switch-to-buffer (other-buffer))))
+
+;; フレーム切り替え
+(global-set-key (kbd "<s-f1>") (lambda () (interactive) (other-frame 1)))
+
+;; 新規バッファを開く
+;; thx open-junk-file by rubikitch
+(defun my-find-file-other-window (&optional frame)
+  "Find file other window.  FRAME is optional."
+  (interactive)
+  (select-frame (if frame frame (selected-frame)))
+  (find-file
+;   (format-time-string "~/Tasks/_tmp/%Y%m%d-%H%M%S.txt" (current-time))))
+   (format-time-string "~/.tmp/%Y%m%d-%H%M%S.txt" (current-time))))
+(global-set-key (kbd "s-n") 'my-find-file-other-window)
+(global-set-key (kbd "C-c n") 'my-find-file-other-window)
+(global-set-key (kbd "C-N") 'my-find-file-other-window)
+
+;; 新規フレームを開く
+(global-set-key (kbd "s-N") 'make-frame-command)
+
+;; kill-lineがkill ringをnewするのでdelete-lineにする
+(global-set-key (kbd "C-k")
+                (lambda ()
+                  (interactive)
+                  (delete-char (- (save-excursion (end-of-line) (point)) (point)))))
+
+;; window操作
+(global-set-key (kbd "C-o") (lambda () (interactive) (other-window 1)))
+(global-set-key (kbd "C-S-o") (lambda () (interactive) (other-window -1)))
+(global-set-key (kbd "C-!") 'delete-other-windows)
+(global-set-key (kbd "<C-kp-1>") 'delete-other-windows)
+(global-set-key (kbd "C-\"") 'split-window-vertically)
+(global-set-key (kbd "<C-kp-2>") 'split-window-vertically)
+(global-set-key (kbd "C-3") 'split-window-horizontally)
+(global-set-key (kbd "<C-kp-3>") 'split-window-horizontally)
+(global-set-key (kbd "C-0") 'delete-window)
+
+;; 能動的なsplit-windowは、フォーカスを移動してほしい
+(defadvice split-window (after split-window-and-select activate)
+  "Split window and select."
+  (when (memq last-input-event '(50 51 67108914 67108915 C-kp-2 C-kp-3))
+  (other-window 1)))
+
+;; escでC-g
+(setq-default normal-escape-enabled t)
+(define-key minibuffer-local-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-ns-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-completion-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-must-match-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
+(define-key minibuffer-inactive-mode-map [escape] 'minibuffer-keyboard-quit)
+(define-key isearch-mode-map [escape] 'isearch-abort) ; isearch
+(define-key isearch-mode-map "\e" 'isearch-abort) ; \e seems to work better for terminals
+(global-set-key (kbd "<escape>") 'keyboard-quit) ; everywhere else
+(global-set-key (kbd "M-ESC ESC") 'keyboard-quit)
+
+;; align-regexp
+(global-set-key (kbd "<backtab>") 'align-regexp)
+(global-set-key (kbd "<C-tab>") 'align-regexp)
+
+;; インデント整形
+(global-set-key (kbd "s-}") 'indent-rigidly-right-to-tab-stop)
+(global-set-key (kbd "s-]") 'indent-rigidly-right-to-tab-stop)
+(global-set-key (kbd "C-}") 'indent-rigidly-right-to-tab-stop)
+(global-set-key (kbd "s-{") 'indent-rigidly-left-to-tab-stop)
+(global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
+(global-set-key (kbd "C-{") 'indent-rigidly-left-to-tab-stop)
+
+;;; ------------------------------------------------------------
+;;; 選択範囲がある状態でshiftなしのカーソルが打鍵されたらリージョンを解除
+;; macふうの挙動だが、Emacsふうでないので、ちょっと様子見しつつ運用
+;; C-@とどちらをとるか悩ましい
+
+(defvar is-deactivate-region t)
+(when is-deactivate-region
+  ;; regionの解除advice版
+  (defadvice previous-line (before deactivate-region activate)
+    "Deactivate Region by cursor."
+    (my-deactivate-region))
+  (defadvice next-line (before deactivate-region activate)
+    "Deactivate Region by cursor."
+    (my-deactivate-region))
+  (defadvice left-char (before deactivate-region activate)
+    "Deactivate Region by cursor."
+    (my-deactivate-region))
+  (defadvice right-char (before deactivate-region activate)
+    "Deactivate Region by cursor."
+    (my-deactivate-region))
+
+  ;; リージョン解除関数
+  (defun my-deactivate-region ()
+    "Logic of deactivate region by cursor."
+    ;; (interactive "^")
+    ;; (message "l: %s c: %s" last-input-event this-command)
+    ;; (message "m:%s r:%s u:%s" mark-active (region-active-p) (use-region-p))
+    ;; (message "s:%s e:%s" (region-beginning) (region-end))
+
+    (when (and (not (memq last-input-event '(S-left S-right S-down S-up C-S-left C-S-right C-S-down C-S-up M-S-left M-S-right M-S-down M-S-up)))
+               mark-active)
+      (cond
+       ((memq last-input-event '(right down))
+        (goto-char (region-end)))
+       ((memq this-command '(left-char previous-line))
+        (goto-char (region-beginning))))
+      (deactivate-mark))))
+
+;;; ------------------------------------------------------------
+;;; ace-jump-mode
+
+(require 'ace-jump-mode)
+(setq ace-jump-mode-move-keys
+      (append "asdfghjkl;:]qwertyuiop@zxcvbnm,." nil))
+(setq ace-jump-word-mode-use-query-char nil)
+(defun do-ace-jump-mode (chr)
+  "Do ace jump mode.  CHR."
+  (interactive (list (read-char "Query Char:")))
+  ;; (mac-auto-ascii-select-input-source)
+  (ace-jump-char-mode chr))
+(global-set-key (kbd "M-z") 'do-ace-jump-mode)
+(global-set-key (kbd "C-z") 'do-ace-jump-mode)
+
+;;; ------------------------------------------------------------
+;;; 次/前の空行
+;; gist-description: Emacs(Elisp): forward/backward-paragraphだとparagraph判定がメジャーモードごとで異なり、字義通りの「次の空行」にならないので、別途用意。
+;; gist-id: ad27b19dd3779ccc1ff2
+;; gist-name: move-to-next(previous)-blank-line.el
+;; gist-private: nil
+
+(defun move-to-previous-blank-line ()
+  "Go to previous empty lines."
+  (interactive "^")
+  (goto-char
+   (or (save-excursion
+         (unless (bobp)
+           (backward-char)
+           (re-search-backward "^$" nil t)))
+       (point-min))))
+
+(defun move-to-next-blank-line ()
+  "Go to next empty lines."
+  (interactive "^")
+  (goto-char
+   (or (save-excursion
+         (unless (eobp)
+           (forward-char)
+           (re-search-forward "^$" nil t)))
+       (point-max))))
+
+(global-set-key (kbd "<M-up>") 'move-to-previous-blank-line)
+(global-set-key (kbd "<M-down>") 'move-to-next-blank-line)
+(global-set-key (kbd "<C-up>") 'move-to-previous-blank-line)
+(global-set-key (kbd "<C-down>") 'move-to-next-blank-line)
+
+;;; ------------------------------------------------------------
+;;; 自分好みのカーソル移動
+;; gist-description: Emacs(Elisp): forward/backward-wordだと、移動距離が微妙に大きい。単語境界も微妙だった。ので、ちょっと変質的にカーソル移動をカスタマイズ。
+;; gist-id: 467f4302c002049bfb95511bd21cdbe7
+;; gist-name: skip-chars-(forward|backward)-dwim.el
+;; gist-private: nil
+
+(defun skip-chars-forward-dwim ()
+  "Skip chars forward dwim."
+  (interactive "^")
+  (let ((start (point)))
+    (if (eq last-command this-command)
+        (skip-chars-forward "a-zA-Z0-9_-")
+      (skip-chars-forward "a-zA-Z0-9_"))
+    (when (eq start (point)) (skip-syntax-forward " "))
+    (when (eq start (point)) (skip-syntax-forward "()"))
+    (when (eq start (point)) (skip-syntax-forward "<>"))
+    (when (eq start (point)) (skip-chars-forward "-"))
+    (when (eq start (point)) (skip-chars-forward "ぁ-んー"))
+    (when (eq start (point)) (skip-chars-forward "ァ-ヶー"))
+    (when (eq start (point)) (skip-chars-forward "亜-黑ー"))
+    (when (eq start (point)) (goto-char (+ (point) 1)))))
+
+(defun skip-chars-backward-dwim ()
+  "Skip chars backward dwim."
+  (interactive "^")
+  (let ((start (point)))
+    (if (eq last-command this-command)
+        (skip-chars-backward "a-zA-Z0-9_-")
+      (skip-chars-backward "a-zA-Z0-9_"))
+    (when (eq start (point)) (skip-syntax-backward " "))
+    (when (eq start (point)) (skip-syntax-backward "()"))
+    (when (eq start (point)) (skip-syntax-backward "<>"))
+    (when (eq start (point)) (skip-chars-backward "-"))
+    (when (eq start (point)) (skip-chars-backward "ぁ-んー"))
+    (when (eq start (point)) (skip-chars-backward "ァ-ヶー"))
+    (when (eq start (point)) (skip-chars-backward "亜-黑ー"))
+    (when (eq start (point)) (goto-char (- (point) 1)))))
+
+(global-set-key (kbd "<M-left>") 'skip-chars-backward-dwim)
+(global-set-key (kbd "<M-right>") 'skip-chars-forward-dwim)
+
+;;; ------------------------------------------------------------
+;;; 複数箇所選択 - multiple-cursors and smartrep
+(require 'multiple-cursors)
+(require 'smartrep)
+
+(declare-function smartrep-define-key "smartrep")
+
+(define-key mc/keymap (kbd "<return>")
+  (lambda () (interactive) (insert (char-to-string 10))))
+
+(global-set-key (kbd "C-M-c") 'mc/edit-lines)
+(global-set-key (kbd "C-M-r") 'mc/mark-all-in-region)
+
+(global-unset-key "\C-t")
+
+(smartrep-define-key global-map "C-t"
+  '(("C-t" . 'mc/mark-next-like-this)
+    ("n"   . 'mc/mark-next-like-this)
+    ("p"   . 'mc/mark-previous-like-this)
+    ("m"   . 'mc/mark-more-like-this-extended)
+    ("u"   . 'mc/unmark-next-like-this)
+    ("U"   . 'mc/unmark-previous-like-this)
+    ("s"   . 'mc/skip-to-next-like-this)
+    ("S"   . 'mc/skip-to-previous-like-this)
+    ("*"   . 'mc/mark-all-like-this)
+    ("d"   . 'mc/mark-all-like-this-dwim)
+    ("i"   . 'my/mc/insert-numbers)
+    ("o"   . 'mc/sort-regions)
+    ("O"   . 'mc/reverse-regions)))
+
+;;; Insert specific serial number
+;; thx http://qiita.com/ShingoFukuyama/items/3ad7e24cb2d8f55b4cc5
+(defvar my/mc/insert-numbers-hist nil)
+(defvar my/mc/insert-numbers-inc 1)
+(defvar my/mc/insert-numbers-pad "%01d")
+
+(defun my/mc/insert-numbers (start inc pad)
+  "Insert increasing numbers for each cursor specifically.  START, INC, PAD."
+  (interactive
+   (list (read-number "Start from: " 0)
+         (read-number "Increment by: " 1)
+         (read-string "Padding (%01d): " nil my/mc/insert-numbers-hist "%01d")))
+  (setq mc--insert-numbers-number start)
+  (setq my/mc/insert-numbers-inc inc)
+  (setq my/mc/insert-numbers-pad pad)
+  (mc/for-each-cursor-ordered
+   (mc/execute-command-for-fake-cursor
+    'my/mc--insert-number-and-increase
+    cursor)))
+
+(defun my/mc--insert-number-and-increase ()
+  "Insert number and increase."
+  (interactive)
+  (insert (format my/mc/insert-numbers-pad mc--insert-numbers-number))
+  (setq mc--insert-numbers-number (+ mc--insert-numbers-number my/mc/insert-numbers-inc)))
+
+;;; ------------------------------------------------------------
+;;; 自分好みのタブの振る舞い（やや偏執的……）
+
+(defun my-tab-dwim ()
+  "Insert tab, indent, jump to link etc."
+  (interactive)
+  (cond
+   ;; ewwバッファだったら次のリンク
+   ((eq major-mode 'eww-mode)
+    (shr-next-link))
+   ;; read onlyバッファだったら次のリンク
+   (buffer-read-only
+    (forward-button 1 t))
+   ;; ミニバッファだったらミニバッファ補完
+   ((minibufferp (current-buffer))
+    (minibuffer-complete))
+   ;; 選択範囲に改行を含んでいるか、直前がエンターだったらインデント
+   ((or (memq last-command '(newline))
+        (and mark-active
+             (string-match
+              "\n"
+              (buffer-substring-no-properties (region-beginning)
+                                              (region-end)))))
+    (indent-for-tab-command))
+   ;; beginning-of-lineだったらインデント
+   ((bolp)
+    (indent-according-to-mode))
+   ;; tab連打だったらインデント
+   ;; ((eq last-command this-command)
+   ;;  (indent-according-to-mode))
+   ;; タブ／インデントを挿入
+   (t
+    ;; 選択範囲があったらタブで上書き
+    (when mark-active (delete-region (region-beginning) (region-end)))
+    (insert "\t"))))
+
+(global-set-key (kbd "<tab>") 'my-tab-dwim)
+
+(add-hook 'php-mode-hook
+          #'(lambda()
+             (define-key php-mode-map (kbd "TAB") 'my-tab-dwim)
+             (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
+
+;;; ------------------------------------------------------------
+;;; ファイル操作
+;;; ------------------------------------------------------------
+
+;; find-fileをzshライクに
+;; thx http://d.hatena.ne.jp/mooz/20101003/p1
+(require 'zlc)
+(zlc-mode 1)
+(let ((map minibuffer-local-map))
+  (define-key map (kbd "<down>") 'next-history-element)
+  (define-key map (kbd "<up>")   'previous-history-element))
+
+;; root権限でファイルを開き直す
+;; thx http://qiita.com/k_ui/items/d9e03ea9523036970519
+(defun reopen-with-sudo ()
+  "Reopen current buffer-file with sudo."
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+    (if file-name
+        (find-alternate-file (concat "/sudo::" file-name))
+      (error "Cannot get a file name"))))
+
+;; 現在バッファのファイルのフルパスを取得
+(defun get-current-path ()
+  "Get current file path."
+  (interactive)
+  (let ((path (or (buffer-file-name) (expand-file-name default-directory))))
+    (kill-new path)
+    (message path)))
+(global-set-key (kbd "M-s-k") 'get-current-path)
+
+;;; ------------------------------------------------------------
+;;; ファイラ (dired)
+
+(add-to-list 'load-path "~/.emacs.d/elisp/dired-explorer")
+
+(require 'dired)
+(require 'dired-aux)
+(require 'dired-explorer)
+(require 'wdired)
+
+;
+(setq ls-lisp-use-localized-time-format t)
+(setq ls-lisp-format-time-list (quote ("%Y-%m-%d %H:%M" "%Y-%m-%d %H:%M")))
+
+;; emacs-async
+(eval-after-load "dired-aux" '(require 'dired-async))
+
+;; omit .DS_Store
+;; thx https://www.emacswiki.org/emacs/DiredOmitMode
+(require 'dired-x)
+(add-hook 'dired-load-hook #'(lambda () (require 'dired-x)))
+(setq dired-omit-mode t)
+(setq-default dired-omit-files-p t)
+(setq dired-omit-files "^\\.DS_Store")
+
+;; dired-explorer
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
+            (dired-explorer-mode t)))
+
+;; diredでファイル名編集（M-rで編集モード。:でdired-explorerを切って作業。C-c C-cで確定）
+(define-key dired-mode-map "E" 'wdired-change-to-wdired-mode)
+(define-key dired-mode-map (kbd "<M-return>") 'dired-maybe-insert-subdir)
+(define-key dired-explorer-mode-map "\M-r" 'wdired-change-to-wdired-mode)
+(define-key wdired-mode-map (kbd "C-g") 'wdired-abort-changes)
+(define-key wdired-mode-map [escape] 'wdired-abort-changes)
+
+;; spaceでtoggle marks
+(define-key dired-mode-map " " 'dired-toggle-mark)
+(define-key dired-explorer-mode-map " " 'dired-toggle-mark)
+(defun dired-toggle-mark (arg)
+  "Toggle the current (or next ARG) file."
+  (interactive "P")
+  (let ((dired-marker-char
+         (if (save-excursion (beginning-of-line)
+                             (looking-at " "))
+             dired-marker-char " ")))
+    (dired-mark arg)))
+
+;; diredの前後の行移動をshift対応に
+;; thx rubikitch
+(defun dired-next-line--shift-select (&rest them)
+  "Dired next line shift select.  THEM."
+  (interactive "^p")
+  (apply them))
+(advice-add 'dired-next-line :around 'dired-next-line--shift-select)
+(advice-add 'dired-previous-line :around 'dired-next-line--shift-select)
+
+;; C-x C-f で現在位置を開く
+(ffap-bindings)
+
+;; diredでマークをつけたファイルを開く（F）
+(define-key dired-mode-map (kbd "F") 'my-dired-find-marked-files)
+(defun my-dired-find-marked-files (&optional arg)
+  "Open each of the marked files.  ARG."
+  (interactive "P")
+  (let* ((fn-list (dired-get-marked-files nil arg)))
+    (mapc 'find-file fn-list)))
+
+;; ディレクトリ操作は再帰的に
+(setq dired-recursive-copies 'always)
+
+;; diredバッファでC-sした時にファイル名だけにマッチするように
+(add-hook 'dired-mode-hook 'dired-isearch-filenames-mode)
+
+;; ウィンドウ分割で左右に違うDiredを開いているときにRやCのデフォルト値がもう片方になる
+(setq dired-dwim-target t)
+
+;; key-binds
+(define-key dired-mode-map (kbd "C-o") 'other-window)
+;; (define-key dired-mode-map (kbd "RET") 'dired-explorer-dired-open)
+;; (define-key dired-mode-map (kbd "<s-return>") 'dired-explorer-dired-open)
+(define-key dired-mode-map (kbd "a") 'dired-find-file)
+(define-key dired-mode-map (kbd "C-s") 'dired-isearch-filenames)
+(define-key dired-mode-map (kbd "M-s") 'dired-isearch-filenames-regexp)
+(define-key dired-mode-map (kbd "s-d") (lambda () (interactive) (find-file "~/Desktop")))
+(define-key dired-mode-map (kbd "s-u") (lambda () (interactive) (find-file "~/Desktop/uploads")))
+(global-set-key (kbd "C-x C-d") (lambda () (interactive) (find-file default-directory)
+                                  (delete-other-windows)))
+
+;; 26.1からdiredで..やsubdirであたらしいwindowを開くようになったので抑止
+;; (advice-add 'dired-find-file :after 'delete-other-windows)
+;; (advice-add 'dired-up-directory :after 'delete-other-windows)
+
+;; dired-download-to-desktop
+(defun dired-download-to-desktop ()
+  "Download to desktop."
+  (interactive)
+  (dired-copy-file-recursive
+   (dired-get-filename) "~/Desktop" t dired-copy-preserve-time t 'always)
+  (message "Download to desktop."))
+(define-key dired-mode-map (kbd "C-d") 'dired-download-to-desktop)
+(define-key dired-explorer-mode-map (kbd "C-d") 'dired-download-to-desktop)
+
+;;; ------------------------------------------------------------
+;;; TRAMP
+
+(require 'ange-ftp)
+(require 'tramp)
+
+;; TRAMPでは自動バックアップしない
+(add-to-list 'backup-directory-alist
+             (cons tramp-file-name-regexp nil))
+
+;; パッシブモードで接続しようとするとエラーになるようなので、様子見nil
+(setq-default ange-ftp-try-passive-mode nil)
+
+;; scpで接続
+(setq tramp-default-method "scp")
+
+;;; ------------------------------------------------------------
+;; .poファイルを保存したらmsgfmt -oする
+
+(add-hook 'after-save-hook
+          (lambda ()
+            (when (string= (file-name-extension (buffer-file-name)) "po")
+              (shell-command (concat
+                              "msgfmt -o "
+                              (substring (buffer-file-name) 0 -2) "mo "
+                              (buffer-file-name))))))
+
+;;; ------------------------------------------------------------
+;;; auto-complete
+;;; ------------------------------------------------------------
+
+(require 'auto-complete)
+(global-auto-complete-mode t)
+(setq ac-dwim t)
+(setq ac-auto-show-menu 0.1)
+(setq ac-delay 0.2)
+(setq ac-auto-start 2)
+(setq ac-ignore-case t)
+(setq ac-disable-faces nil)
+(setq ac-quick-help-delay 1)
+(setq ac-use-comphist nil)
+(setq ac-use-dictionary-as-stop-words nil)
+
+;; ユーザ辞書設定
+(defvar ac-my-dictionary "~/.emacs.d/jidaikobo/ac-dict/my-dictionary")
+(defvar ac-my-dictionary-dict '((candidates . (ac-file-dictionary ac-my-dictionary))))
+(setq-default ac-sources '(ac-my-dictionary-dict
+                           ac-source-words-in-same-mode-buffers))
+
+;; 条件の追加
+;; global-auto-complete-modeで足されていないものたち
+(add-to-list 'ac-modes 'conf-mode)
+(add-to-list 'ac-modes 'text-mode)
+(add-to-list 'ac-modes 'fundamental-mode)
+(add-to-list 'ac-modes 'html-mode)
+(add-to-list 'ac-modes 'yaml-mode)
+(add-to-list 'ac-modes 'default-generic-mode)
+
+;;; 辞書に文字列を足して、git commit
+(defun add-strings-to-ac-my-dictionary (dict-path)
+  "Add strings to ac my dictionary.  DICT-PATH."
+  (interactive)
+  (let* ((beg (if mark-active (region-beginning) nil))
+         (end (if mark-active (region-end) nil))
+         (strings (if mark-active
+                      (buffer-substring-no-properties beg end)
+                    (read-string " String: " ""))))
+    (with-temp-buffer
+      (insert-file-contents dict-path)
+      (goto-char (point-min))
+      (if (re-search-forward (concat "^" strings "$") nil t)
+          (message (concat "strings was already exists: " strings))
+        (goto-char (point-max))
+        (insert (concat "\n" strings))
+        (sort-lines nil (point-min) (point-max))
+        (delete-duplicate-lines (point-min) (point-max))
+        (write-file dict-path)
+        (shell-command (concat "git commit " dict-path " -m \"dictionary update.\""))
+        (ac-clear-dictionary-cache)
+        (message (concat "Add \"" strings "\"and git commit."))))))
+
+;;; 辞書から文字列を削除して、git commit
+(defun remove-strings-from-ac-my-dictionary (dict-path)
+  "Remove strings from ac my dictionary.  DICT-PATH."
+  (interactive)
+  (let* ((beg (if mark-active (region-beginning) nil))
+         (end (if mark-active (region-end) nil))
+         (strings (if mark-active
+                      (buffer-substring-no-properties beg end)
+                    (read-string " String: " ""))))
+    (with-temp-buffer
+      (insert-file-contents dict-path)
+      (goto-char (point-min))
+      (if (re-search-forward (concat "^" strings "$") nil t)
+          (if (yes-or-no-p (concat "Remove?:" strings))
+              (progn
+                (beginning-of-line)
+                (kill-whole-line)
+                (sort-lines nil (point-min) (point-max))
+                (delete-duplicate-lines (point-min) (point-max))
+                (write-file dict-path)
+                (shell-command (concat "git commit " dict-path " -m \"dictionary update.\""))
+                (ac-clear-dictionary-cache)
+                (message (concat "Remove \"" strings "\"and git commit.")))
+            (message (concat "Did nothing with: " strings)))
+        (message (concat "Not found: " strings))))))
+
+(defun add-strings-to-ac-my-dictionary-f ()
+  "For `which-key'."
+  (interactive)
+  (add-strings-to-ac-my-dictionary ac-my-dictionary))
+
+(defun remove-strings-from-ac-my-dictionary-f ()
+  "For `which-key'."
+  (interactive)
+  (remove-strings-from-ac-my-dictionary ac-my-dictionary))
+
+(global-set-key (kbd "C-c a") 'add-strings-to-ac-my-dictionary-f)
+(global-set-key (kbd "C-c r") 'remove-strings-from-ac-my-dictionary-f)
+
+;; auto-complete の候補に日本語を含む単語、数字から始まる単語が含まれないようにする
+;; thx http://d.hatena.ne.jp/IMAKADO/20090813/1250130343
+;; see also http://club.jidaikobo.com/knowledge/150.html
+(defadvice ac-candidates (after remove-specified-from-ac-candidates activate)
+  "Do not contain multi byte or start with numeric character in auto-complete candidates."
+  (let ((ignore-case (lambda (s) (or (string-match (rx (category japanese)) s)
+                                     (string-match "^[0-9]+.*" s)))))
+    (setq ad-return-value (remove-if ignore-case ad-return-value))))
+
+;; 候補と入力文字が完全に一致している時にRETでac-completeするとnewlineしてしまうので抑止
+(defadvice ac-complete (after advice-ac-complete-to-avoid-newline activate)
+  "Inhibit newline when full string was matched with candidate."
+  (when (memq this-command '(newline))
+    (delete-char -1)))
+
+;; 日本語に続く文字列でもauto-completeする
+;; thx https://github.com/lugecy/dot-emacs/blob/master/conf.d/050-auto-complete.el
+(defalias 'ac-prefix-default 'ac-prefix-for-ja)
+(defun ac-prefix-for-ja ()
+  "Alias fo ac-prefix-default."
+  (save-match-data
+    (let ((prefix-regexp "\\(?:\\sw\\|\\s_\\)+")
+          (category-regexp
+           (concat (lugecy-char-category-to-regexp (or (char-before) 0)) "+"))
+          prefix-limit)
+      (and
+       (looking-back prefix-regexp (line-beginning-position) t)
+       (setq prefix-limit (match-beginning 0))
+       (looking-back category-regexp prefix-limit t)
+       (max (match-beginning 0) prefix-limit)))))
+
+(defun lugecy-char-category-to-regexp (char)
+  "Multibyte CHAR."
+  (let ((c (char-category-set char)))
+    (cond
+     ((aref c ?j)                       ; Japanese
+      (cond
+       ((aref c ?K) "\\cK")             ; katakana
+       ((aref c ?A) "\\cA")             ; 2byte alphanumeric
+       ((aref c ?H) "\\cH")             ; hiragana
+       ((aref c ?C) "\\cC")             ; kanji
+       (t "\\cj")))
+     ((aref c ?k) "\\ck")               ; hankaku-kana
+     ((aref c ?a) "\\ca")               ; ASCII
+     (t "\\(?:\\sw\\|\\s_\\)"))))
+
+;; defadvice-indent-for-tab-command
+;; gist-description: Emacs(Elisp): To integrate indent style, delete existing whitespaces before indent-for-tab-command. indent-for-tab-commandの前に存在する行頭ホワイトスペースを削除することでインデントスタイルを統一する
+;; gist-id: 604173d11ff376036635fd4811df6abb
+;; gist-name: defadvice-indent-for-tab-command.el
+;; gist-private: nil
+
+(defadvice indent-for-tab-command (around advise-indent-for-tab-command activate)
+  "To integrate indent style, delete existing whitespaces before indentation."
+  (let (beg
+        end
+        (end-line nil))
+    (cond
+     ((use-region-p)
+      (setq beg (region-beginning)
+            end (region-end)
+            end-line (line-number-at-pos end)))
+     (t
+      (beginning-of-line)
+      (setq beg (point))
+      (end-of-line)
+      (setq end (point))))
+
+    (perform-replace "^[\t ]+" "" nil t nil nil nil beg end)
+    (goto-char beg)
+    (set-mark-command nil)
+    (goto-char end)
+
+    ad-do-it
+
+    (when end-line (forward-line -1)) ;; why should i have to do minus?
+    (back-to-indentation)))
+
+;;; Auto Setting `indent-tabs-mode' Variable
+;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
+
+(defvar inside-string-or-comment-p)
+(defvar re-search-forward-without-string-and-comments)
+
+(defun inside-string-or-comment-p ()
+  "Inside string or comment p."
+  (let ((state (parse-partial-sexp (point-min) (point))))
+    (or (nth 3 state) (nth 4 state))))
+
+(defun re-search-forward-without-string-and-comments (&rest args)
+  "Re search forward without string and comments.  ARGS."
+  (let ((value (apply #'re-search-forward args)))
+    (if (and value (inside-string-or-comment-p))
+        (apply #'re-search-forward-without-string-and-comments args)
+      value)))
+
+(defun my-buffer-indent-tabs-code-p (&optional buffer)
+  "Check first indent char.  BUFFER."
+  (let ((buffer (or buffer (current-buffer))))
+    (with-current-buffer buffer
+      (save-excursion
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (and (re-search-forward-without-string-and-comments "^[ \t]" (point-max) t)
+               (string= (match-string 0) "\t")))))))
+
+(defun my-set-indent-tabs-mode ()
+  "Set indent tab mode."
+  (setq indent-tabs-mode (my-buffer-indent-tabs-code-p)))
+
+(add-hook 'emacs-lisp-mode-hook #'my-set-indent-tabs-mode)
+(add-hook 'php-mode-hook #'my-set-indent-tabs-mode)
+(add-hook 'conf-mode-hook #'my-set-indent-tabs-mode)
+(add-hook 'sh-script-mode-hook #'my-set-indent-tabs-mode)
+(add-hook 'js-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'html-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'php-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'css-mode-hook (lambda () (show-line-number) (linum-mode t)))
+
+;; indent-tabs-modeをtoggle
+(defun toggle-indent-tabs-mode ()
+  "For `which-key'."
+  (interactive)
+  (if indent-tabs-mode
+      (progn (setq indent-tabs-mode nil)
+             (message "indent by SPACE"))
+    (setq indent-tabs-mode t)
+    (message "indent by TAB")))
+(global-set-key (kbd "C-c i") 'toggle-indent-tabs-mode)
+
+;;; ------------------------------------------------------------
+;;; Anything
+
+(require 'anything)
+(require 'anything-config)
+
+;; key binds
+(define-key anything-map [escape] 'anything-keyboard-quit)
+(define-key anything-map (kbd "C-;") 'anything-keyboard-quit)
+(define-key anything-map (kbd "<tab>") 'anything-select-action)
+
+;; Anythingでファイルを開く方法をFind file as rootにしたときにsudoで開くように
+(setq anything-su-or-sudo "sudo")
+
+;; Anythingのショートカットをoff
+(setq anything-enable-shortcuts nil)
+
+;; Anythingの画面更新を早く
+(setq anything-input-idle-delay 0.1)
+
+;; Anythingの表示されていない候補を遅延対象にする
+(setq anything-quick-update t)
+
+;; 編集対象でないバッファを除外(必要な場合、switch-to-buffer)
+(setq anything-c-boring-buffer-regexp
+      (rx
+       (or
+        ;; start with space / asterisk / plus
+        (group bos " ")
+        (group bos "*")
+        (group bos "+"))))
+
+;;; ------------------------------------------------------------
+;;; Anything - buffers
+
+;; 自分好みのバッファ選択。anythingの情報源にも - focus-on-editable-buffers
+(add-to-list 'load-path "~/.emacs.d/elisp/focus-on-editable-buffers")
+
+(setq-default foeb/is-use-advice-delete-window t)
+(setq-default foeb/is-use-anything-execute-persistent-action t)
+(setq-default foeb/non-ignore-buffers
+              (rx
+               (or
+                "*scratch*" "*grep*" "*eww*")))
+(require 'focus-on-editable-buffers)
+(require 'anything-focus-on-editable-buffers)
+
+(define-key anything-map (kbd "C-d") 'foeb/anything-execute-persistent-kill)
+(define-key anything-map (kbd "s-w") 'foeb/anything-execute-persistent-kill)
+(define-key anything-map (kbd "M-s-<left>") 'anything-previous-line)
+(define-key anything-map (kbd "M-s-<right>") 'anything-next-line)
+
+;;; ------------------------------------------------------------
+;; alist-anything-for-files
+(defvar alist-anything-for-files '())
+
+;;; ------------------------------------------------------------
+;;; ~/Sitesを対象にした候補
+
+;; (defvar anything-c-source-my-file-of-working-dir
+;;   '((name . "Works")
+;;     (candidates . (lambda ()
+;;                     (split-string
+;;                      (shell-command-to-string "ls -d ~/Sites/*")
+;;                      "\n")))
+;;     (type . file)))
+
+;;; ------------------------------------------------------------
+;;; ~/.ssh/configを情報源として、tramp接続
+;; thx rubikitch
+
+(defvar anything-c-source-my-hosts
+  '((name . "SSH hosts")
+    (candidates . anything-c-source-my-hosts-candidates)
+    (type . file)
+    (action . find-file)))
+
+(defun anything-c-source-my-hosts-candidates ()
+  "Tramp candidates."
+  (let ((source (split-string
+                 (with-temp-buffer
+;                   (insert-file-contents "/Users/shiba/.ssh/config")
+                   (insert-file-contents "~/.ssh/config")
+                   (buffer-string))
+                 "\n"))
+        (hosts (list)))
+    (dolist (host source)
+      (when (string-match "[H\\|h]ost +\\(.+?\\)$" host)
+        (setq host (string-trim (substring host (match-beginning 1) (match-end 2))))
+        (unless (string= host "*")
+          (add-to-list
+           'hosts
+           (concat "/" tramp-default-method ":" host ":") t))))
+    hosts))
+
+;;; ------------------------------------------------------------
+;;; ~/.ftp/configを情報源として、ftp接続
+
+(defvar anything-c-source-my-ftp-hosts
+  '((name . "FTP hosts")
+    (candidates . anything-c-source-my-ftp-hosts-candidates)
+    (type . file)
+    (action . (("FTP" . anything-tramp-ftp-open)))))
+
+(defun anything-c-source-my-ftp-hosts-candidates ()
+  "Tramp candidates."
+  (let (alias
+        path
+        password
+        (source (split-string
+                 (with-temp-buffer
+                   (insert-file-contents "~/.ftp/config")
+                   (buffer-string))
+                 "Alias"))
+        (hosts (list)))
+    (dolist (lines source)
+      (dolist (line (split-string lines "\n"))
+        (cond ((string-match "[P\\|p]ath +\\(.+?\\)$" line)
+               (setq path (string-trim (substring line (match-beginning 1) (match-end 2)))))
+              ((string-match "[P\\|p]assword +\\(.+?\\)$" line)
+               (setq password (string-trim (substring line (match-beginning 1) (match-end 2)))))
+              ((not (string= "" line))
+               (setq alias (string-trim (string-trim line))))))
+      (when path (add-to-list 'hosts (concat alias "  " path "  " password))))
+      hosts))
+
+(defun anything-tramp-ftp-open (str)
+  "Tramp FTP open.  STR is path and password."
+  (let* ((strs (split-string str "  "))
+         (path (car (cdr strs)))
+         (password (car (reverse strs))))
+    (kill-new password)
+    (find-file path)))
+
+;;; ------------------------------------------------------------
+;;; my-anything-for-files
+
+(add-to-list 'alist-anything-for-files 'foeb/anything-c-source-buffers t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-files-in-current-dir t)
+;(add-to-list 'alist-anything-for-files 'anything-c-source-my-file-of-working-dir t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-bookmarks t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-hosts t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-ftp-hosts t)
+;;(add-to-list 'alist-anything-for-files 'anything-c-source-buffers-list t)
+;; (add-to-list 'alist-anything-for-files 'anything-c-source-recentf t)
+;; (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-functions-with-abbrevs t)
+;; (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-commands t)
+;; (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-variables t)
+;; (add-to-list 'alist-anything-for-files 'anything-c-source-imenu t)
+
+(defun my-anything-for-files ()
+  "Anything command for files and commands."
+  (interactive)
+  (anything-other-buffer
+   alist-anything-for-files
+   "*my-anything-for-files*"))
+(global-set-key (kbd "C-;") 'my-anything-for-files)
+(global-set-key (kbd "M-s-<left>") 'foeb/anything-for-buffers)
+(global-set-key (kbd "M-s-<right>") 'foeb/anything-for-buffers)
+
+;;; ------------------------------------------------------------
+;;; Anything - Encode and Line folding
+
+(defvar anything-c-source-coding-system
+  '((name . "Encode and Line Folding")
+    (candidates . (lambda ()
+                    '("set UTF-8"
+                      "set EUC-JP"
+                      "set Shift-JIS"
+                      "set ISO-2022-JP"
+                      "set LF"
+                      "set CR"
+                      "set CR+LF")))
+    (action ("default" . anything-coding-system))))
+
+(defun anything-coding-system (act)
+  "Change Encode and Lin folding.  ACT is what to do."
+  (message act)
+  (cond ((string= act "set UTF-8")       (set-buffer-file-coding-system 'utf-8))
+        ((string= act "set EUC-JP")      (set-buffer-file-coding-system 'euc-jp))
+        ((string= act "set Shift-JIS")   (set-buffer-file-coding-system 'shift_jis))
+        ((string= act "set ISO-2022-JP") (set-buffer-file-coding-system 'iso-2022-jp))
+        ((string= act "set LF")          (set-buffer-file-coding-system 'unix))
+        ((string= act "set CR")          (set-buffer-file-coding-system 'mac))
+        ((string= act "set CR+LF")       (set-buffer-file-coding-system 'dos)))
+  (save-buffer)
+  (revert-buffer))
+
+(defun my-anything-for-coding-system ()
+  "Anything command for program."
+  (interactive)
+  (anything-other-buffer
+   '(anything-c-source-coding-system)
+   "*my-anything-c-source-coding-system*"))
+(global-set-key (kbd "C-^") 'my-anything-for-coding-system)
+
+;;; ------------------------------------------------------------
+;;; ウィンドウ/スクリーン/フレームを閉じる
+
+(defun my-delete-windows ()
+  "Contexual delete windows."
+  (interactive)
+  (cond
+   ;; ミニバッファにいたらまず抜ける
+   ((minibufferp (current-buffer))
+    (minibuffer-keyboard-quit)
+    (other-window 1)
+    (my-delete-windows))
+   ;; ウィンドウ構成が多ければまず自分を消す
+   ((not (one-window-p)) (delete-window))
+   ;; 複数のフレームを開いている時には、フレームを閉じる
+   ;; ((/= 1 (safe-length (frame-list))) (delete-frame))
+   ;; ウィンドウ構成がひとつでバッファに変更があれば破棄を確認する
+   ((or (and (buffer-modified-p)
+             ;; read-onlyなら無視
+             (not buffer-read-only)
+             ;; スクラッチ以外でアスタリスクで始まるバッファ名も保存を尋ねない
+             (not (string=
+                   (substring (buffer-name (current-buffer)) 0 1)
+                   "*")))
+        ;; スクラッチバッファでメモ代わりに使っていたら保存を尋ねる
+        (and (buffer-modified-p) (string= (buffer-name) "*scratch*")))
+    (unless (yes-or-no-p "Buffer is modified. Close anyway?")
+      (call-interactively (save-buffer)))
+    (foeb/kill-buffer))
+   ;; kill-buffer for other situation
+   (t (foeb/kill-buffer))))
+
+(global-set-key (kbd "s-w") 'my-delete-windows)
+(global-set-key (kbd "C-c w") 'my-delete-windows)
+
+(global-set-key (kbd "C-s-w") 'delete-frame)
+
+;;; ------------------------------------------------------------
+;;; カーソル関連
+;;; ------------------------------------------------------------
+
+;; cursor-chg
+;; カーソルの色と形状を変更（ブロックカーソルが苦手なので）
+(require 'cursor-chg)
+(change-cursor-mode 1)
+(toggle-cursor-type-when-idle 0)
+(setq curchg-default-cursor-color "White")
+(setq curchg-input-method-cursor-color "firebrick")
+(setq curchg-change-cursor-on-input-method-flag t)
+
+;;; ------------------------------------------------------------
+;;; 行設定
+;;; ------------------------------------------------------------
+
+;; 行カーソル
+;; thx http://rubikitch.com/tag/emacs-post-command-hook-timer/
+(require 'hl-line)
+(defun global-hl-line-timer-function ()
+  "Line cursor."
+  (global-hl-line-unhighlight-all)
+  (let ((global-hl-line-mode t))
+    (global-hl-line-highlight)))
+(setq-default global-hl-line-timer
+              (run-with-idle-timer 0.03 t 'global-hl-line-timer-function))
+;; (cancel-timer global-hl-line-timer)
+
+;; 行間隔を少し広げる
+(set-default 'line-spacing 3)
+
+;; 行番号を表示する
+(defun show-line-number ()
+  "Show line number."
+  (interactive)
+  (require 'linum)
+  (setq-default linum-delay t)
+  (defadvice linum-schedule (around my-linum-schedule () activate)
+    (run-with-idle-timer 0.2 nil #'linum-update-current))
+  ;; (global-linum-mode t)
+  (setq-default linum-format "%5d: "))
+(add-hook 'emacs-lisp-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'js-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'html-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'php-mode-hook (lambda () (show-line-number) (linum-mode t)))
+(add-hook 'css-mode-hook (lambda () (show-line-number) (linum-mode t)))
+
+;;; ------------------------------------------------------------
+;;; ヘッダーライン設定
+;;; ------------------------------------------------------------
+
+(defun show-header-line ()
+  "Show Header Line."
+  (if (not (active-minibuffer-window))
+      (progn
+        (setq-default my-header (format "%%b %%* %%f"))
+        (setq header-line-format '(:eval (substring my-header
+                                                    (min (length my-header)
+                                                         (window-hscroll))))))))
+(add-hook 'buffer-list-update-hook 'show-header-line)
+
+;;; ------------------------------------------------------------
+;;; モードライン設定
+;;; ------------------------------------------------------------
+
+;; 関数名の表示
+(which-function-mode 1)
+
+;; フレーム情報は不要
+(setq-default mode-line-frame-identification "")
+
+;; titleに出ているのでバッファ名は不要
+(setq-default mode-line-buffer-identification "")
+
+;; titleに出ているのでバッファの変更状態も不要
+(setq-default mode-line-modified "")
+
+;;; 前に行番号、総行数、桁番号を表示
+;;; 総行数の計する%記法がないので遅延で計算させる
+;; thx rubikitch
+(defvar-local mode-line-last-line-number 0)
+(defvar-local clnaw-last-tick 0)
+(defun calculate-total-line-numbers ()
+  "Calculate total line numbers."
+  (unless (eq clnaw-last-tick (buffer-modified-tick))
+    (setq mode-line-last-line-number (line-number-at-pos (point-max)))
+    (setq clnaw-last-tick (buffer-modified-tick))
+    (force-mode-line-update)))
+(run-with-idle-timer 1 t 'calculate-total-line-numbers)
+
+;; 現在行、総行、文字位置、選択範囲の文字数など
+(setq mode-line-position
+      '(:eval (format "%d/%d %d/%d %s"
+                      (line-number-at-pos)
+                      mode-line-last-line-number
+                      (point)
+                      (point-max)
+                      (if mark-active
+                          (concat "["
+                                  (format "%s" (count-lines (region-end) (region-beginning)))
+                                  "-"
+                                  (format "%s" (- (region-end) (region-beginning)))
+                                  "]")
+                        ""))))
+
+;; 改行の種類表示の変更
+;; thx https://github.com/moriyamahiroshi/hm-dot-emacs-files/blob/master/init.el
+(setq-default eol-mnemonic-unix "(LF)")
+(setq-default eol-mnemonic-dos  "(CRLF)")
+(setq-default eol-mnemonic-mac  "(CR)")
+
+;; minor-mode名称を省略
+;; thx http://syohex.hatenablog.com/entry/20130131/1359646452
+(defvar mode-line-cleaner-alist
+  '( ;; For minor-mode, first char is 'space'
+    (yas-minor-mode . " Ys")
+    (paredit-mode . " Pe")
+    (rainbow-mode . "")
+    (eldoc-mode . "")
+    (abbrev-mode . "")
+    (undo-tree-mode . " Ut")
+    ;; (flycheck-mode . " Fc")
+    ;; Major modes
+    (lisp-interaction-mode . "Li")
+    (python-mode . "Py")
+    (ruby-mode   . "Rb")
+    (php-mode    . "Php")
+    (emacs-lisp-mode . "El")
+    (markdown-mode . "Md")))
+
+(defun clean-mode-line ()
+  "Clean mode-line."
+  (interactive)
+  (cl-loop for (mode . mode-str) in mode-line-cleaner-alist
+        do
+        (let ((old-mode-str (cdr (assq mode minor-mode-alist))))
+          (when old-mode-str
+            (setcar old-mode-str mode-str))
+          ;; major mode
+          (when (eq mode major-mode)
+            (setq mode-name mode-str)))))
+
+(add-hook 'after-change-major-mode-hook 'clean-mode-line)
+
+;;; ------------------------------------------------------------
+;;; マウス設定
+;;; ------------------------------------------------------------
+
+;; shift+clickでregion作成
+;; thx http://superuser.com/questions/521223/shift-click-to-extend-marked-region
+(define-key global-map (kbd "<S-down-mouse-1>") 'ignore) ; turn off font dialog
+(define-key global-map (kbd "<S-mouse-1>") 'mouse-set-point)
+(put 'mouse-set-point 'CUA 'move)
+
+;;; ------------------------------------------------------------
+;;; 編集支援
+;;; ------------------------------------------------------------
+
+;;; 行／選択範囲の複製 (cmd+d)
+;; gist-description: Emacs(Elisp): duplicate region or line.  if same command repeated, then duplicate sate strings.  選択範囲がある場合は選択範囲を、選択範囲がない場合は、行を複製します。繰り返した場合、同じ文字列を複製し続けます。
+;; gist-id: 297fe973cde66b384fa1
+;; gist-name: duplicate-region-or-line.el
+;; gist-private: nil
+
+(defvar previous-duplicate-region-or-line nil)
+(defvar previous-duplicate-region-or-line-was-line nil)
+(defun duplicate-region-or-line ()
+  "Duplicate region or line."
+  (interactive)
+  (let* ((beg (if mark-active (region-beginning) (line-beginning-position)))
+         (end (if mark-active (region-end) (line-end-position)))
+         (strings (buffer-substring-no-properties beg end))
+         (is-repeat (eq last-command this-command))
+         (is-line (if is-repeat
+                      previous-duplicate-region-or-line-was-line
+                    (not (region-active-p))))
+         (strings (if (region-active-p)
+                      strings
+                    (concat "\n" strings))))
+    (if is-line
+        (progn
+          (end-of-line)
+          (setq previous-duplicate-region-or-line-was-line is-line))
+      (setq previous-duplicate-region-or-line-was-line nil))
+    (if is-repeat
+        (insert previous-duplicate-region-or-line)
+      (insert strings)
+      (setq previous-duplicate-region-or-line strings))))
+
+(global-set-key (kbd "s-d") 'duplicate-region-or-line)
+(global-set-key (kbd "C-c d") 'duplicate-region-or-line)
+
+;; 行の複製をsmartrepしたかったがいったん挫折
+;; (global-unset-key "\C-c d")
+;; (global-set-key (kbd "C-c d") 'duplicate-region-or-line)
+;; (smartrep-define-key global-map "C-c d"
+;;   '(("d"   . 'mc/reverse-regions)))
+
+;;; ------------------------------------------------------------
+;;; 選択範囲を[大文字|小文字|キャピタライズ]に
+
+(global-set-key (kbd "s-U") 'upcase-region)
+(global-set-key (kbd "s-L") 'downcase-region)
+(global-set-key (kbd "s-C") 'capitalize-region)
+(global-set-key (kbd "C-c U") 'upcase-region)
+(global-set-key (kbd "C-c L") 'downcase-region)
+(global-set-key (kbd "C-c C") 'capitalize-region)
+
+;;; ------------------------------------------------------------
+;;; 全角英数字を半角英数字に、半角カナを全角に、UTF-8の濁点分離を直す
+;; http://d.hatena.ne.jp/nakamura001/20120529/1338305696
+;; http://www.sakito.com/2010/05/mac-os-x-normalization.html
+;; gist-description: Emacs(Elisp): 全角英数字を半角英数字に、半角カナを全角に、UTF-8の濁点分離を直す。
+;; gist-id: 08a752b04107dbc50ef5
+;; gist-name: normalize-chars.el
+;; gist-private: nil
+
+(require 'ucs-normalize)
+;;(prefer-coding-system 'utf-8)
+(setq file-name-coding-system 'utf-8-hfs)
+(setq locale-coding-system 'utf-8-hfs)
+(defun normalize-chars ()
+  "Normarize chars."
+  (interactive)
+  ;; 選択範囲があればそこを対象にする
+  (let (type
+        beg
+        end)
+    (if (region-active-p)
+        (progn
+          (setq beg (region-beginning))
+          (setq end (region-end)))
+      (progn
+        (setq type (read-string "normalize whole buffer?(y, n): " nil))
+        (if (string= type "y")
+            (progn
+              (setq beg (point-min))
+              (setq end (point-max)))
+          (error "Error: no target region"))))
+    (japanese-zenkaku-region beg end t)
+    (japanese-hankaku-region beg end t)
+    (ucs-normalize-NFC-region beg end)))
+
+;; 音引、句読点等を除外
+(eval-after-load "japan-util"
+  '(progn
+    (put-char-code-property ?ー 'ascii nil)
+    (put-char-code-property ?〜 'ascii nil)
+    (put-char-code-property ?〜 'ascii nil)
+    (put-char-code-property ?～ 'ascii nil)
+    (put-char-code-property ?（ 'ascii nil)
+    (put-char-code-property ?） 'ascii nil)
+    (put-char-code-property ?、 'ascii nil)
+    (put-char-code-property ?。 'ascii nil)
+    (put-char-code-property ?＆ 'ascii nil)
+    (put-char-code-property ?？ 'ascii nil)
+    (put-char-code-property ?！ 'ascii nil)))
+
+(global-set-key (kbd "s-u") 'normalize-chars)
+(global-set-key (kbd "C-c u") 'normalize-chars)
+
+;;; ------------------------------------------------------------
+;;; 選択範囲を1行にする。最初のインデントは残す。
+;; gist-description: Emacs(Elisp): Join multi lines to one. 選択範囲を1行にまとめます。
+;; gist-id: ee6b2f8ef659ed58605d
+;; gist-name: join-multi-lines-to-one.el
+;; gist-private: nil
+
+(defun join-multi-lines-to-one ()
+  "Join multi lines."
+  (interactive)
+  (let ((beg (region-beginning))
+        (end (region-end))
+        strings)
+    (goto-char beg)
+    (back-to-indentation)
+    (setq beg (point))
+    (goto-char end)
+    (goto-char (- (point) 1))
+    (end-of-line)
+    (setq end (point))
+    (setq strings (buffer-substring-no-properties beg end))
+    (setq strings (replace-regexp-in-string "\n\\|^>+ *\\|^[\t　 ]+" "" strings))
+    (setq strings (replace-regexp-in-string "  +" " " strings))
+    (delete-region beg end)
+    (insert strings)
+    (goto-char beg)))
+
+(global-set-key (kbd "<s-kp-divide>") 'join-multi-lines-to-one)
+(global-set-key (kbd "s-/") 'join-multi-lines-to-one)
+
+;;; ------------------------------------------------------------
+;;; align-regexpが、indent-tabs-modeがtでも、スペースを詰めるように
+
+(defadvice align-regexp (around advise-align-regexp activate)
+  "Let ALIGN-REGEXP indent by spaces."
+  (when indent-tabs-mode (setq indent-tabs-mode nil))
+  ad-do-it
+  (my-set-indent-tabs-mode))
+
+;;; ------------------------------------------------------------
+;;; ユーティリティ
+;;; ------------------------------------------------------------
+
+;;; ------------------------------------------------------------
+;;; 選択範囲を計算してバッファに出力
+;; gist-description: Emacs(Elisp): calculate region and insert. 選択範囲の数式を計算して、次の行にinsertします。数字が羅列されている場合は、加算します。数字や式と自然な文章が混在している場合は、数式のみを計算します。
+;; gist-id: b967d6a7441f85aa541d
+;; gist-name: calculate-region-and-insert.el
+;; gist-private: nil
+
+(defun add-number-grouping (number &optional separator)
+  "Add commas to NUMBER and return it as a string.
+Optional SEPARATOR is the string to use to separate groups.
+It defaults to a comma."
+  (let ((num (number-to-string number))
+        (op (or separator ",")))
+    (while (string-match "\\(.*[0-9]\\)\\([0-9][0-9][0-9].*\\)" num)
+      (setq num (concat
+                 (match-string 1 num) op
+                 (match-string 2 num))))
+    num))
+
+(defun calculate-region-and-insert (beg end)
+  "Calculate natural text of region and insert to current buffer.  BEG, END."
+  (interactive "r")
+  (let* ((strings (if mark-active
+                      (buffer-substring-no-properties beg end)
+                    (read-string " Expression: " "")))
+         (is_num_format (string-match "," (buffer-substring-no-properties beg end)))
+         result)
+    ;; 余計なものを取り払って計算の準備
+    (when mark-active
+      (with-temp-buffer
+        (insert strings)
+        (perform-replace "[\t,　 ]+" "" nil t nil nil nil (point-min) (point-max))
+        (perform-replace "\n" "+" nil t nil nil nil (point-min) (point-max))
+        (perform-replace "[^0-9\\+\\*/\\(\\)^\\.-]" "+" nil t nil nil nil (point-min) (point-max))
+        (perform-replace "\\++" "+" nil t nil nil nil (point-min) (point-max))
+        (perform-replace "\\+$" "" nil t nil nil nil (point-min) (point-max))
+        (perform-replace "^\\++" "" nil t nil nil nil (point-min) (point-max))
+        (setq strings (buffer-substring-no-properties (point-min) (point-max))))
+      (goto-char end)
+      (end-of-line)
+      (newline))
+    (setq result (calc-eval strings))
+    ;; カンマ整形されている計算式だったらカンマ区切りで返す
+    (when is_num_format (setq result (add-number-grouping (string-to-number result) ",")))
+    ;; (calc-eval)は、小数点を含んだ式の場合、整数でも末尾にピリオドをつけるので抑止
+    (when (string-match "\\.$" result)
+      (setq result (substring result 0 (match-beginning 0))))
+    (insert result)))
+(global-set-key (kbd "M-c") 'calculate-region-and-insert)
+
+;;; ------------------------------------------------------------
+;;; 選択範囲の言語を確認して翻訳 (C-c t)
+
+;; google-translate
+;; http://rubikitch.com/2014/12/07/google-translate/
+(require 'google-translate)
+;; (setq google-translate--tkk-url "http://translate.google.cn/")
+(defvar google-translate-english-chars "[:ascii:]"
+  "Ascii means English.")
+(defun google-translate-enja-or-jaen (&optional string)
+  "Google translate enja or jaen.  STRING in region."
+  (interactive)
+  (setq string
+        (cond ((stringp string) string)
+              (current-prefix-arg
+               (read-string "Google Translate: "))
+              ((use-region-p)
+               (buffer-substring (region-beginning) (region-end)))
+              (t
+               (save-excursion
+                 (let (s)
+                   (forward-char 1)
+                   (backward-sentence)
+                   (setq s (point))
+                   (forward-sentence)
+                   (buffer-substring s (point)))))))
+  (let* ((asciip (string-match
+                  (format "\\`[%s]+\\'" google-translate-english-chars)
+                  string)))
+    (run-at-time 0.1 nil 'deactivate-mark)
+    (google-translate-translate
+     (if asciip "en" "ja")
+     (if asciip "ja" "en")
+     string)))
+
+(global-set-key (kbd "C-c t") 'google-translate-enja-or-jaen)
+
+;;; ------------------------------------------------------------
+;;; web-beautify
+
+(require 'web-beautify)
+(setq-default web-beautify-args
+              '("-f"
+                "-"
+                "--indent_with_tabs"
+                "--indent-size 2"
+                "--end-with-newline"))
+
+;;; ------------------------------------------------------------
+;;; Elisp
+;;; ------------------------------------------------------------
+
+;;; Elispのimenuをカスタマイズ
+(add-hook
+ 'emacs-lisp-mode-hook
+ #'(lambda ()
+    (setq imenu-generic-expression
+          '(("defun" "^\\s-*(defun\\s-+\\([-A-Za-z0-9/+]+\\)" 1)
+            ("defadvice" "^\\s-*(defadvice\\s-+\\([-A-Za-z0-9/+]+\\)" 1)))))
+
+;;; 自動バイトコンパイル
+;; thx http://www.emacswiki.org/emacs/auto-async-byte-compile.el
+(require 'auto-async-byte-compile)
+(setq auto-async-byte-compile-exclude-files-regexp "init.el\\|wl.el\\|storage.el")
+(add-hook 'emacs-lisp-mode-hook 'enable-auto-async-byte-compile-mode)
+
+;;; s+RETでeval-bufferかeval-region
+(global-set-key (kbd "<s-return>")
+                (lambda () (interactive)
+                  (if (region-active-p)
+                      (eval-region (region-beginning) (region-end))
+                    (eval-buffer))
+                  (message "eval done.")))
+
+;;; *Messages*バッファを自動スクロール
+;; thx http://stackoverflow.com/questions/4682033/in-emacs-can-i-set-up-the-messages-buffer-so-that-it-tails
+(defun modi/messages-auto-tail (&rest _)
+  "Make *Messages* buffer auto-scroll to the end after each message."
+  (let* ((buf-name "*Messages*")
+         (buf (get-buffer-create buf-name)))
+    (when (not (string= buf-name (buffer-name)))
+      (dolist (win (get-buffer-window-list buf-name nil :all-frames))
+        (with-selected-window win
+          (goto-char (point-max))))
+      (with-current-buffer buf
+        (goto-char (point-max))))))
+(advice-add 'message :after #'modi/messages-auto-tail)
+
+;;; ------------------------------------------------------------
+;;; 釣り合いのとれる括弧のハイライト
+;; 少々大袈裟だけれど、括弧同士のハイライトがカーソルの邪魔なのでアンダーラインにする
+(defun my-force-paren-view ()
+  "My force paren view."
+  (show-paren-mode 1)
+  (setq-default show-paren-delay 0)
+  (setq-default show-paren-style 'expression)
+  (set-face-attribute 'show-paren-match nil
+                      :background nil :foreground nil
+                      :underline t)
+  (set-face-attribute 'show-paren-mismatch nil
+                      :background nil :foreground nil
+                      :strike-through t :weight 'extra-bold))
+(my-force-paren-view)
+;; (add-hook 'after-make-frame-functions '(lambda (frame)
+;;                                          (my-force-paren-view)
+;;                                          (my-find-file-other-window)))
+(add-hook 'after-make-frame-functions 'my-make-frame-hook)
+
+(defun my-make-frame-hook (frame)
+  "Make new frame and buffer.  FRAME is unused."
+  (interactive)
+  (let* ((param (frame-parameters (selected-frame)))
+         (current-top-margin (if (integerp (cdr (assoc 'top param)))
+                                 (cdr (assoc 'top param))
+                               0))
+         (current-left-margin (if (integerp (cdr (assoc 'left param)))
+                                  (cdr (assoc 'left param))
+                                0)))
+    ;; (my-find-file-other-window frame)
+    (select-frame (if frame frame (selected-frame)))
+    (switch-to-buffer "*scratch*")
+    (my-force-paren-view)
+    (set-frame-position frame (+ current-left-margin 20) (+ current-top-margin 20))))
+
+;;; ------------------------------------------------------------
+;;; 各種モード
+;;; ------------------------------------------------------------
+
+;;; ------------------------------------------------------------
+;;; sh-script-mode
+
+(setq auto-mode-alist
+      (append '(("^\\." . sh-script-mode))
+              auto-mode-alist))
+
+(add-hook 'sh-script-mode-hook
+          #'(lambda ()
+             (setq sh-basic-offset 2)
+             (setq indent-tabs-mode nil)
+             (setq sh-indentation 2)))
+
+;;; ------------------------------------------------------------
+;;; text-mode
+
+(add-hook 'text-mode-hook
+          #'(lambda()
+             (font-lock-add-keywords nil '(("^# .+" . font-lock-comment-face)))
+             (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
+             (font-lock-add-keywords nil '(("^■.+" . font-lock-comment-face)))
+             (font-lock-add-keywords nil '(("^●.+" . font-lock-builtin-face)))
+             (font-lock-add-keywords nil '(("^○.+" . font-lock-keyword-face)))
+             (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
+             (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
+             (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
+
+;;; ------------------------------------------------------------
+;;; kontiki-mode - ワイアフレームモード
+
+(easy-mmode-define-minor-mode kontiki-mode
+                              "This is a Mode for Kontiki-Draft."
+                              :init-value nil
+                              :lighter " Kontiki-Draft")
+
+(add-hook 'kontiki-mode-hook
+          #'(lambda()
+             (font-lock-add-keywords nil '(("^//.+" . font-lock-comment-face)))
+             (font-lock-add-keywords nil '(("<.+?>" . font-lock-keyword-face)))
+             (font-lock-add-keywords nil '(("\\[memo:.+?\\]" . font-lock-builtin-face)))
+             (font-lock-add-keywords nil '(("^[a-zA-Z_]+?:" . font-lock-function-name-face)))
+             (font-lock-add-keywords nil '(("^\\*.+" . font-lock-function-name-face)))))
+
+;;; ------------------------------------------------------------
+;;; mail-mode
+
+(add-hook 'mail-mode-hook
+          #'(lambda()
+             (font-lock-add-keywords nil '(("^> .+" . font-lock-keyword-face)))
+             (font-lock-add-keywords nil '(("^>> .+" .font-lock-type-face)))
+             (font-lock-add-keywords nil '(("^>>>.+" . font-lock-string-face)))))
+
+;;; ------------------------------------------------------------
+;;; grep-mode
+
+(add-hook 'grep-mode-hook
+          #'(lambda()
+             (define-key grep-mode-map (kbd "C-o")
+               (lambda () (interactive) (other-window 1)))
+             (define-key grep-mode-map (kbd "C-S-o")
+               (lambda () (interactive) (other-window -1)))))
+
+;;; ------------------------------------------------------------
+;;; html-mode
+
+(add-hook 'html-mode-hook
+          #'(lambda()
+             (setq-local syntax-propertize-function
+                         (syntax-propertize-rules
+                          ;; xoops smarty comment-out
+                          ("\\(<\\){\\*" (1 "< c"))
+                          ("\\*}\\(>\\)" (1 "> c"))
+                          ;; html comment-out ; it seems wired and buggy...
+                          ("\\(<\\)!--" (1 "< c"))
+                          ("--[ \t\n]*\\(>\\)" (1 "> c"))
+                          ))
+             ;; xoops - peak smarty
+             (font-lock-add-keywords
+              nil
+              '(("<{.+?}>" . font-lock-keyword-face)))
+             (define-key html-mode-map "/" 'self-insert-command)))
+
+;;; ------------------------------------------------------------
+;;; css-mode
+
+(autoload 'css-mode "css-mode"
+  "Major mode for css files" t)
+;; (require 'css-mode)
+(setq auto-mode-alist
+      (cons '("\\.css$" . css-mode) auto-mode-alist))
+
+(add-hook 'css-mode-hook
+          (lambda ()
+            (setq css-indent-offset 2)
+            (setq cssm-indent-function #'cssm-c-style-indenter)))
+
+;;; ------------------------------------------------------------
+;;; js-mode
+
+(add-hook 'js-mode-hook
+          #'(lambda ()
+;;             (flycheck-mode t)
+             (setq js-indent-level 2)
+             (setq indent-tabs-mode t)))
+
+;; GAS - Google App Script
+(add-to-list 'auto-mode-alist '("\\.gs$" . js-mode))
+
+;;; ------------------------------------------------------------
+;;; yaml-mode
+
+(autoload 'yaml-mode "yaml-mode"
+  "Major mode for yaml files" t)
+;; (require 'yaml-mode)
+(add-to-list 'auto-mode-alist '("\\.ya?ml$" . yaml-mode))
+
+;;; ------------------------------------------------------------
+;;; php-mode
+;; not working at ubuntu
+
+(require 'php-mode)
+
+(setq auto-mode-alist
+       (append '(("\\.php$" . php-mode))
+           auto-mode-alist))
+
+(defun unindent-closure ()
+  "Fix php-mode indent for closures."
+  (let ((syntax (mapcar 'car c-syntactic-context)))
+    (if (and (member 'arglist-cont-nonempty syntax)
+             (or
+              (member 'statement-block-intro syntax)
+              (member 'brace-list-intro syntax)
+              (member 'brace-list-close syntax)
+              (member 'block-close syntax)))
+       (save-excursion
+          (beginning-of-line)
+          (delete-char (* (count 'arglist-cont-nonempty syntax)
+                          c-basic-offset))) )))
+
+(setq php-mode-enable-project-coding-style nil)
+
+(add-hook 'php-mode-hook
+          #'(lambda()
+
+             (setq-local syntax-propertize-function
+                         (syntax-propertize-rules
+                          ;; html
+                          ("\\(<\\)!--" (1 "< c"))
+                          ("--[ \t\n]*\\(>\\)" (1 "> c"))))
+
+             (setq tab-width 2)
+             (setq c-basic-offset 2)
+
+             (add-hook 'c-special-indent-hook 'unindent-closure)
+
+             (c-set-offset 'case-label 2)
+             (c-set-offset 'arglist-intro 2)
+             (c-set-offset 'arglist-cont-nonempty 2)
+             (c-set-offset 'arglist-close 0)
+
+             (setq php-speedbar-config nil)
+             (setq php-template-compatibility t)
+             (setq php-mode-warn-if-mumamo-off nil)
+             ;; (setq php-mode-coding-style 'default)
+             (setq php-manual-url "http://jp2.php.net/manual/ja/")
+
+             (define-key php-mode-map (kbd "C-.") 'goto-last-change-reverse) ; override `php-show-arglist'
+             (define-key php-mode-map ")" 'self-insert-command)
+             (define-key php-mode-map "(" 'self-insert-command)
+             (define-key php-mode-map "{" 'self-insert-command)
+             (define-key php-mode-map "}" 'self-insert-command)
+             (define-key php-mode-map "/" 'self-insert-command)
+             (define-key php-mode-map "#" 'self-insert-command)))
+
+;;; ------------------------------------------------------------
+;;; rainbow-mode
+;; thx http://qiita.com/ironsand/items/cf8c582da3ec20715677
+
+(autoload 'rainbow-mode "rainbow-mode"
+  "Major mode for rainbow" t)
+;; (require 'rainbow-mode)
+(with-eval-after-load 'rainbow-mode
+  (pop rainbow-hexadecimal-colors-font-lock-keywords)
+  (pop rainbow-hexadecimal-colors-font-lock-keywords)
+  (push '("[^&]\\(#\\(?:[0-9a-fA-F]\\{3\\}\\)+\\{2,4\\}\\)" (1 (rainbow-colorize-itself 1)))
+        rainbow-hexadecimal-colors-font-lock-keywords)
+  (push '("^\\(#\\(?:[0-9a-fA-F]\\{3\\}\\)+\\{2,4\\}\\)" (0 (rainbow-colorize-itself)))
+        rainbow-hexadecimal-colors-font-lock-keywords))
+(add-hook 'fundamental-mode-hook 'rainbow-mode)
+(add-hook 'text-mode-hook 'rainbow-mode)
+(add-hook 'html-mode-hook 'rainbow-mode)
+(add-hook 'lisp-mode-hook 'rainbow-mode)
+(add-hook 'emacs-lisp-mode-hook 'rainbow-mode)
+(add-hook 'css-mode-hook 'rainbow-mode)
+
+;;; ------------------------------------------------------------
+;;; flycheck
+;;; ------------------------------------------------------------
+
+;; (require 'flycheck)
+(autoload 'flycheck "flycheck-mode"
+  "Major mode for flycheck" t)
+
+(with-eval-after-load 'flycheck
+  (setq flycheck-emacs-lisp-load-path 'inherit)
+
+  ;; flycheckのwindowは単独で表示
+  (add-to-list 'same-window-buffer-names "*Flycheck errors*")
+
+  ;; キーバインド
+  (global-set-key (kbd "C-M-c") 'flycheck-buffer)
+  (global-set-key (kbd "C-M-l") 'flycheck-list-errors)
+  (global-set-key (kbd "<C-M-up>") 'flycheck-previous-error)
+  (global-set-key (kbd "<C-M-down>") 'flycheck-next-error)
+  (define-key flycheck-error-list-mode-map (kbd "C-g") 'quit-window)
+  (define-key flycheck-error-list-mode-map [escape] 'quit-window))
+
+;; enable
+(add-hook 'php-mode-hook 'flycheck-mode)
+;; (add-hook 'html-mode-hook 'flycheck-mode)
+(add-hook 'lisp-mode-hook 'flycheck-mode)
+(add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
+
+;;; ------------------------------------------------------------
+;;; 起動時には最後に作業していたファイルを開く
+;; gist-description: Emacs(Elisp): Preserve last buffers and its each point to reopen. 終了時のバッファとポイントを記憶して、起動時に同じ状態で開くelispです。
+;; gist-id: 35b4d739a149f70e86298f71e5b1f9e7
+;; gist-name: preserve-last-buffers-and-point.el
+;; gist-private: nil
+
+(defvar my-hist-dir (expand-file-name "~/.emacs.d/histories/"))
+(defvar my-hist-last-files (concat my-hist-dir "last-files"))
+
+(add-hook 'kill-emacs-hook
+          (lambda ()
+            (let ((strings "")
+                  buf-path)
+              (with-temp-buffer
+                (dolist (buf (buffer-list))
+                  (save-current-buffer
+                    (setq buf-path (buffer-file-name buf))
+                    (when (and buf-path (file-exists-p buf-path))
+                      (set-buffer buf)
+                      (setq strings
+                            (concat strings "\n" buf-path ":" (number-to-string (point)))))))
+                (insert (string-trim strings))
+                (write-file my-hist-last-files)))))
+
+(when (file-exists-p my-hist-last-files)
+  (let (tmp
+        path
+        pt
+        (files (split-string
+                (with-temp-buffer
+                  (insert-file-contents my-hist-last-files)
+                  (buffer-string))
+                "\n")))
+    (when files
+      (dolist (file files)
+        (setq tmp (split-string file ":"))
+        (setq path (car tmp))
+        (setq pt (string-to-number(car (reverse tmp))))
+        (when (file-exists-p path)
+          (find-file path)
+          (goto-char  pt))))))
+
+;;; ------------------------------------------------------------
+;;; Todo:
+;;; ------------------------------------------------------------
+
+;; 整理する
+
+;;; ------------------------------------------------------------
+;;; experimental area
+;;; ------------------------------------------------------------
+
+;; (global-set-key (kbd "C--") 'func)
+;; (message "this-event: %s this-command: %s" last-input-event this-command)
+;; (message "initial: %s point: %s" initial-point (point))
+
+;;; jidaikobo.init.el ends here
