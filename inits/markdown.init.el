@@ -3,16 +3,23 @@
 ;; provide markdown.init.
 ;;; Code:
 
-;; キーマップを定義
-(defvar my-md-mode-map (make-sparse-keymap)
-  "Keymap for `my-md-mode`.")
+(autoload 'markdown-mode "markdown-mode"
+   "Major mode for editing Markdown files" t)
+(add-to-list 'auto-mode-alist
+             '("\\.\\(?:md\\|markdown\\|mkd\\|mdown\\|mkdn\\|mdwn\\|txt\\)\\'" . markdown-mode))
 
-;; マイナーモード定義
-(easy-mmode-define-minor-mode my-md-mode
-  "This is a custom mode for enhanced Markdown display."
-  :init-value nil
-  :lighter " My-MD"
-  :keymap my-md-mode-map)
+(autoload 'gfm-mode "markdown-mode"
+   "Major mode for editing GitHub Flavored Markdown files" t)
+(add-to-list 'auto-mode-alist '("README\\.md\\'" . gfm-mode))
+
+;; markdown-modeでも等幅フォントを使いたい……というか、なんでデフォルトで等幅じゃないんだ？ エディタで使うんだぞ……。
+
+(defun my-markdown-set-monospace ()
+  "Ensure monospace font in markdown-mode."
+  (when (derived-mode-p 'markdown-mode)
+    (buffer-face-set 'fixed-pitch)))
+
+(add-hook 'markdown-mode-hook 'my-markdown-set-monospace)
 
 ;; キーバインドの設定
 
@@ -46,24 +53,25 @@
   (interactive)
   (my-insert-markdown-heading 6))
 
-(define-key my-md-mode-map (kbd "s-M-1") 'my-insert-markdown-h1)
-(define-key my-md-mode-map (kbd "<s-M-kp-1>") 'my-insert-markdown-h1)
-(define-key my-md-mode-map (kbd "s-M-2") 'my-insert-markdown-h2)
-(define-key my-md-mode-map (kbd "<s-M-kp-2>") 'my-insert-markdown-h2)
-(define-key my-md-mode-map (kbd "s-M-3") 'my-insert-markdown-h3)
-(define-key my-md-mode-map (kbd "<s-M-kp-3>") 'my-insert-markdown-h3)
-(define-key my-md-mode-map (kbd "s-M-4") 'my-insert-markdown-h4)
-(define-key my-md-mode-map (kbd "<s-M-kp-4>") 'my-insert-markdown-h4)
-(define-key my-md-mode-map (kbd "s-M-5") 'my-insert-markdown-h5)
-(define-key my-md-mode-map (kbd "<s-M-kp-5>") 'my-insert-markdown-h5)
-(define-key my-md-mode-map (kbd "s-M-6") 'my-insert-markdown-h6)
-(define-key my-md-mode-map (kbd "<s-M-kp-6>") 'my-insert-markdown-h6)
-(define-key my-md-mode-map (kbd "s-M-a") 'my-insert-markdown-link)
-(define-key my-md-mode-map (kbd "s-M-i") 'my-insert-markdown-img)
-(define-key my-md-mode-map (kbd "s-M-l") 'my-markdown-toggle-list)
-(define-key my-md-mode-map (kbd "s-M-u") 'my-markdown-toggle-list)
-(define-key my-md-mode-map (kbd "s-M-o") 'my-markdown-toggle-ordered-list)
-(define-key my-md-mode-map (kbd "s-M-t") 'my-markdown-convert-table)
+(with-eval-after-load 'markdown-mode
+  (define-key markdown-mode-map (kbd "s-M-1") 'my-insert-markdown-h1)
+  (define-key markdown-mode-map (kbd "<s-M-kp-1>") 'my-insert-markdown-h1)
+  (define-key markdown-mode-map (kbd "s-M-2") 'my-insert-markdown-h2)
+  (define-key markdown-mode-map (kbd "<s-M-kp-2>") 'my-insert-markdown-h2)
+  (define-key markdown-mode-map (kbd "s-M-3") 'my-insert-markdown-h3)
+  (define-key markdown-mode-map (kbd "<s-M-kp-3>") 'my-insert-markdown-h3)
+  (define-key markdown-mode-map (kbd "s-M-4") 'my-insert-markdown-h4)
+  (define-key markdown-mode-map (kbd "<s-M-kp-4>") 'my-insert-markdown-h4)
+  (define-key markdown-mode-map (kbd "s-M-5") 'my-insert-markdown-h5)
+  (define-key markdown-mode-map (kbd "<s-M-kp-5>") 'my-insert-markdown-h5)
+  (define-key markdown-mode-map (kbd "s-M-6") 'my-insert-markdown-h6)
+  (define-key markdown-mode-map (kbd "<s-M-kp-6>") 'my-insert-markdown-h6)
+  (define-key markdown-mode-map (kbd "s-M-a") 'my-insert-markdown-link)
+  (define-key markdown-mode-map (kbd "s-M-i") 'my-insert-markdown-img)
+  (define-key markdown-mode-map (kbd "s-M-l") 'my-markdown-toggle-list)
+  (define-key markdown-mode-map (kbd "s-M-u") 'my-markdown-toggle-list)
+  (define-key markdown-mode-map (kbd "s-M-o") 'my-markdown-toggle-ordered-list)
+  (define-key markdown-mode-map (kbd "s-M-t") 'my-markdown-convert-table))
 
 ;; my-insert-markdown-heading
 
@@ -209,44 +217,6 @@ If no region is selected, it inserts a default image Markdown syntax."
                     "-|-")
                    "-|\n")))))
     (message "No region selected."))
-
-;; カラーリング
-
-(defface my-strong-heading-face
-  '((t :foreground "orange red" :weight bold))
-  "Face for strong headings in my-md-mode.")
-
-(add-hook 'my-md-mode-hook
-          (lambda ()
-            ;; 見出しのスタイル (それぞれのレベルに色を設定)
-            (font-lock-add-keywords nil
-                                    '(("^# .+" . 'font-lock-function-name-face)
-                                      ("^## .+" . 'my-strong-heading-face)  ; 強い色に変更
-                                      ("^### .+" . 'font-lock-keyword-face)
-                                      ("^#### .+" . 'font-lock-variable-name-face) ; 弱めの色に変更
-                                      ("^##### .+" . 'font-lock-string-face)
-                                      ("^###### .+" . 'font-lock-constant-face)))
-            ;; リスト項目（`-` または `+` で始まる行）
-            (font-lock-add-keywords nil
-                                    '(("^[ \t]*[-+*] " . 'font-lock-builtin-face)))
-            ;; インラインコード (`code`)
-            (font-lock-add-keywords nil
-                                    '(("\\(`[^`\n]+`\\)" . 'font-lock-constant-face)))
-            ;; コードブロック (```で囲まれた部分)
-            (font-lock-add-keywords nil
-                                    '(("```[a-zA-Z]*\n\\(.\\|\n\\)*?```" . 'font-lock-constant-face)))
-            ;; 強調 (**bold** や *italic*)
-            (font-lock-add-keywords nil
-                                    '(("\\*\\*\\(.*?\\)\\*\\*" . 'font-lock-warning-face)
-                                      ("\\*\\(.*?\\)\\*" . 'font-lock-variable-name-face)))
-            ;; リンク
-            (font-lock-add-keywords nil
-                                    '(("\\[\\([^]]+\\)\\](\\([^)]*\\))" . 'font-lock-type-face)))
-            ;; 水平線
-            (font-lock-add-keywords nil
-                                    '(("^[ \t]*[-=]\\{3,\\}$" . 'font-lock-comment-face)))))
-
-(setq auto-mode-alist (cons '("\\.md\\'" . my-md-mode) auto-mode-alist))
 
 ;;; ------------------------------------------------------------
 ;;; provides

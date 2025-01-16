@@ -50,7 +50,7 @@
  '(delete-by-moving-to-trash t)
  '(foreign-regexp/regexp-type 'perl)
  '(package-selected-packages
-   '(gtags-mode ace-window zlc yaml-mode which-key web-mode-edit-element web-beautify smartrep rainbow-mode popwin php-mode multiple-cursors mic-paren google-translate foreign-regexp flycheck cursor-chg auto-complete auto-async-byte-compile async anything ace-jump-mode))
+   '(markdown-mode gtags-mode ace-window zlc yaml-mode which-key web-mode-edit-element web-beautify smartrep rainbow-mode popwin php-mode multiple-cursors mic-paren google-translate foreign-regexp flycheck cursor-chg auto-complete auto-async-byte-compile async anything ace-jump-mode))
  '(reb-re-syntax 'foreign-regexp)
  '(sc/is-use-super t)
  '(sc/split-direction "vertical" t)
