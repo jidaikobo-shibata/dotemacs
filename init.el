@@ -102,9 +102,11 @@
 (load-theme 'jidaikobo-dark t)
 
 ;;; init.el ends here
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(markdown-code-face ((t (:inherit fixed-pitch :family "MyricaM M"))))
+ '(markdown-pre-face ((t (:inherit (## font-lock-constant-face) :height 1.0)))))

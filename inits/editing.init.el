@@ -407,8 +407,8 @@
 (setq-default web-beautify-args
               '("-f"
                 "-"
-                "--indent_with_tabs"
-                "--indent-size 2"
+                ;; "--indent_with_tabs"
+                ;; "--indent-size 2"
                 "--end-with-newline"))
 
 ;;; ------------------------------------------------------------

@@ -14,12 +14,16 @@
 
 ;; markdown-modeでも等幅フォントを使いたい……というか、なんでデフォルトで等幅じゃないんだ？ エディタで使うんだぞ……。
 
-(defun my-markdown-set-monospace ()
-  "Ensure monospace font in markdown-mode."
-  (when (derived-mode-p 'markdown-mode)
-    (buffer-face-set 'fixed-pitch)))
+(defun my-markdown-setup ()
+  "Setup font and size for markdown-mode."
+  ;; フォントを等幅に設定
+  (buffer-face-set 'fixed-pitch)
+  ;; フォントサイズを調整
+  (buffer-face-set '(:height 90))
+  ;; variable-pitch-modeを無効化
+  (variable-pitch-mode -1))
 
-(add-hook 'markdown-mode-hook 'my-markdown-set-monospace)
+(add-hook 'markdown-mode-hook 'my-markdown-setup)
 
 ;; キーバインドの設定
 
