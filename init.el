@@ -50,7 +50,7 @@
  '(delete-by-moving-to-trash t)
  '(foreign-regexp/regexp-type 'perl)
  '(package-selected-packages
-   '(markdown-mode gtags-mode ace-window zlc yaml-mode which-key web-mode-edit-element web-beautify smartrep rainbow-mode popwin php-mode multiple-cursors mic-paren google-translate foreign-regexp flycheck cursor-chg auto-complete auto-async-byte-compile async anything ace-jump-mode))
+   '(gtags-mode ace-window zlc yaml-mode which-key web-mode-edit-element web-beautify smartrep rainbow-mode popwin php-mode multiple-cursors mic-paren google-translate foreign-regexp flycheck cursor-chg auto-complete auto-async-byte-compile async anything ace-jump-mode))
  '(reb-re-syntax 'foreign-regexp)
  '(sc/is-use-super t)
  '(sc/split-direction "vertical" t)
@@ -108,5 +108,4 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(markdown-code-face ((t (:inherit fixed-pitch :family "MyricaM M"))))
- '(markdown-pre-face ((t (:inherit (## font-lock-constant-face) :height 1.0)))))
+)
