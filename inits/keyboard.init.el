@@ -136,23 +136,37 @@
 ;;; ------------------------------------------------------------
 ;;; タブキー
 
+(defvar my-tab-dwim-last-time 0
+  "The last time TAB key was pressed in seconds.")
+
 (defun my-tab-dwim ()
-  "Insert tab, jump to link etc."
+  "Insert tab, jump to link, or handle consecutive TAB presses."
   (interactive)
-  (cond
-   ;; read onlyバッファだったら次のリンク
-   (buffer-read-only
-    (forward-button 1 t))
-   ;; ミニバッファだったらミニバッファ補完
-   ((minibufferp (current-buffer))
-    (minibuffer-complete))
-   ;; beginning-of-lineだったらモードに応じたインデント移動
-   ((bolp)
-    (indent-according-to-mode))
-   (t
-    ;; 選択範囲があったらタブで上書き
-    (when mark-active (delete-region (region-beginning) (region-end)))
-    (insert "\t"))))
+  (let ((current-time (float-time)))
+    (cond
+     ;; read-onlyバッファだったら次のリンク
+     (buffer-read-only
+      (forward-button 1 t))
+     ;; ミニバッファだったらミニバッファ補完
+     ((minibufferp (current-buffer))
+      (minibuffer-complete))
+     ;; beginning-of-lineだったらモードに応じたインデント移動
+     ;; 0.5秒以内の打鍵ならタブ文字を入力
+     ((bolp)
+      (if (< (- current-time my-tab-dwim-last-time) 0.5)
+          (insert-tab-context)
+        (indent-according-to-mode)))
+     (t
+      ;; 選択範囲があったらタブで上書き
+      (when mark-active (delete-region (region-beginning) (region-end)))
+      (insert-tab-context)))
+    (setq my-tab-dwim-last-time current-time)))
+
+(defun insert-tab-context ()
+  "Insert tab or space."
+  (if indent-tabs-mode
+      (insert "\t")
+    (insert (make-string tab-width ?\s))))
 
 (global-set-key (kbd "<tab>") 'my-tab-dwim)
 
