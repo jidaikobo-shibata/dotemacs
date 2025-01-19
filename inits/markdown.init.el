@@ -67,11 +67,17 @@
 
 (defun my-insert-markdown-heading (level)
   "Insert a Markdown heading of the specified LEVEL.
-Move to the beginning of the line and insert the appropriate number of '#'."
+If a heading already exists, replace it with the specified level.
+Move to the beginning of the line and adjust '#' characters."
   (interactive "p")  ; プレフィックス引数でレベルを指定
-  (beginning-of-line)  ; 行頭に移動
-  (insert (make-string level ?#))  ; プレフィックス引数に応じて'#'を生成
-  (insert " "))       ; スペースを挿入
+  (save-excursion
+    (beginning-of-line)  ; 行頭に移動
+    ;; 行頭の`#+`を削除
+    (when (looking-at "^#+\\s-*")  ; 行頭に`#`がある場合を確認
+      (replace-match ""))          ; マッチ部分を削除
+    ;; 指定レベルの`#`を挿入
+    (insert (make-string level ?#))
+    (insert " ")))
 
 ;; my-markdown-toggle-list
 
