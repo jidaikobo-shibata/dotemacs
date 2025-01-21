@@ -176,6 +176,39 @@
               (define-key php-mode-map (kbd "<tab>") 'my-tab-dwim)))
 
 ;;; ------------------------------------------------------------
+;;; 対応する括弧を選択
+
+(defun select-enclosing-parens ()
+  "Select the text between the current position and its matching parenthesis.
+If the cursor is after a closing parenthesis, select the enclosing pair."
+  (interactive)
+  (let ((start (point)))
+    (cond
+     ;; キャレットが閉じ括弧の直後にある場合
+     ((and (not (bobp)) ; バッファの先頭でない
+           (member (char-before) '(?\) ?\] ?\}))) ; 直前が閉じ括弧
+      (ignore-errors
+        (mark-sexp -1))           ; 対応する開き括弧を選択
+      (exchange-point-and-mark))  ; 範囲を確定
+     ;; 通常の括弧選択（カーソル位置から始める場合）
+     ((ignore-errors (mark-sexp 1) t)
+      (exchange-point-and-mark))
+     ;; 対応する括弧が見つからない場合
+     (t
+      (goto-char start)
+      (message "No matching parenthesis found")))))
+
+;; lisp-mode と emacs-lisp-mode 専用のキーバインド設定
+(defun my-lisp-mode-setup ()
+  "Set up custom keybindings for Lisp modes."
+  (define-key lisp-mode-map (kbd "s-A") 'select-enclosing-parens)
+  (define-key emacs-lisp-mode-map (kbd "s-A") 'select-enclosing-parens))
+
+;; フックでモード起動時に設定
+(add-hook 'lisp-mode-hook 'my-lisp-mode-setup)
+(add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-setup)
+
+;;; ------------------------------------------------------------
 ;;; provides
 
 (provide 'keyboard.init)

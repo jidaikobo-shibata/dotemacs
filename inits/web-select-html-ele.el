@@ -46,7 +46,7 @@
 (defun select-html-element-at-caret ()
   "Select a range of HTML elements based on the caret position."
   (interactive)
-  (let ((self-closing-tags '("img" "br" "hr" "!DOCTYPE" "meta" "!--")))
+  (let ((self-closing-tags '("img" "br" "hr" "!DOCTYPE" "meta" "link" "!--")))
     (if (is-caret-inside-tag)
         ;; タグの内側の場合
         (let* ((tag-info (get-html-element-at-caret)) ; タグ名とスラッシュ有無を取得

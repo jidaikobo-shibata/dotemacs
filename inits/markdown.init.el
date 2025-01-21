@@ -44,6 +44,21 @@
   (interactive)
   (my-insert-markdown-heading 6))
 
+(defun my-insert-markdown-em ()
+  "Insert a Markdown em."
+  (interactive)
+  (my-markdown-emphasis 1))
+
+(defun my-insert-markdown-strong ()
+  "Insert a Markdown strong."
+  (interactive)
+  (my-markdown-emphasis 2))
+
+(defun my-insert-markdown-strong-em ()
+  "Insert a Markdown strong em."
+  (interactive)
+  (my-markdown-emphasis 3))
+
 (define-key md-mode-map (kbd "s-M-1") 'my-insert-markdown-h1)
 (define-key md-mode-map (kbd "<s-M-kp-1>") 'my-insert-markdown-h1)
 (define-key md-mode-map (kbd "s-M-2") 'my-insert-markdown-h2)
@@ -62,6 +77,9 @@
 (define-key md-mode-map (kbd "s-M-u") 'my-markdown-toggle-list)
 (define-key md-mode-map (kbd "s-M-o") 'my-markdown-toggle-ordered-list)
 (define-key md-mode-map (kbd "s-M-t") 'my-markdown-convert-table)
+(define-key md-mode-map (kbd "s-M-e") 'my-insert-markdown-em)
+(define-key md-mode-map (kbd "s-M-g") 'my-insert-markdown-strong)
+(define-key md-mode-map (kbd "s-M-G") 'my-insert-markdown-strong-em)
 
 ;; my-insert-markdown-heading
 
@@ -214,6 +232,25 @@ If no region is selected, it inserts a default image Markdown syntax."
                    "-|\n")))))
     (message "No region selected."))
 
+;; my-markdown-emphasis
+
+(defun my-markdown-emphasis (level)
+  "Surround the active region with LEVEL asterisks (*).
+If no region is active, insert the asterisks at the cursor position and place the cursor in between."
+  (interactive "p") ; プレフィックス引数でLEVELを指定
+  (let ((asterisks (make-string level ?*))) ; LEVELに基づいてアスタリスクを生成
+    (if (use-region-p)
+        (let ((start (region-beginning))
+              (end (region-end)))
+          (save-excursion
+            (goto-char end)
+            (insert asterisks)
+            (goto-char start)
+            (insert asterisks)))
+      ;; If no region is selected
+      (insert asterisks asterisks)
+      (backward-char level))))
+
 ;; カラーリング
 
 (defface my-strong-heading-face
@@ -241,7 +278,8 @@ If no region is selected, it inserts a default image Markdown syntax."
                                     '(("```[a-zA-Z]*\n\\(.\\|\n\\)*?```" . 'font-lock-constant-face)))
             ;; 強調 (**bold** や *italic*)
             (font-lock-add-keywords nil
-                                    '(("\\*\\*\\(.*?\\)\\*\\*" . 'font-lock-warning-face)
+                                    '(("\\*\\*\\*\\(.*?\\)\\*\\*\\*" . 'font-lock-warning-face)
+                                      ("\\*\\*\\(.*?\\)\\*\\*" . 'font-lock-warning-face)
                                       ("\\*\\(.*?\\)\\*" . 'font-lock-variable-name-face)))
             ;; リンク
             (font-lock-add-keywords nil
