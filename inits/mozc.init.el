@@ -10,14 +10,23 @@
 (prefer-coding-system 'utf-8)
 
 ;;; ------------------------------------------------------------
-;; muhenkanでMozcを抜ける
-(defun my-deactivate-input-method ()
-  "Deactivate the input method."
+;; muhenkanキーでMozcを抜ける際に、現在の入力を確定する
+(defun my-confirm-and-deactivate-input-method ()
+  "Confirm the current input and deactivate the input method."
   (interactive)
+  ;; Mozcがアクティブだったら入力中の文字を確定
+  (when (and (boundp 'mozc-mode) mozc-mode)
+    (let ((enter-key-event 13))
+      (mozc-handle-event enter-key-event)))
+  ;; 入力メソッドを無効化
   (deactivate-input-method))
+
+;; Mozcロード後にキーバインドを設定
 (with-eval-after-load 'mozc
-  (define-key mozc-mode-map (kbd "<muhenkan>") 'my-deactivate-input-method))
-(global-set-key (kbd "<muhenkan>") 'my-deactivate-input-method)
+  (define-key mozc-mode-map (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method))
+
+;; グローバルキーバインドも設定
+(global-set-key (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method)
 
 ;;; ------------------------------------------------------------
 ;; henkanでMozcを起こす
