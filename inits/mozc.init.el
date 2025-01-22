@@ -15,11 +15,16 @@
   "Confirm the current input and deactivate the input method."
   (interactive)
   ;; Mozcがアクティブだったら入力中の文字を確定
-  (when (and (boundp 'mozc-mode) mozc-mode)
+  (when (and (boundp 'mozc-mode) mozc-mode (mozc-input-pending-p))
     (let ((enter-key-event 13))
       (mozc-handle-event enter-key-event)))
   ;; 入力メソッドを無効化
   (deactivate-input-method))
+
+;; 未変換の入力文字があるかどうか確認
+(defun mozc-input-pending-p ()
+  "Check if Mozc has pending input in the preedit session."
+  (and (boundp 'mozc-preedit-in-session-flag) mozc-preedit-in-session-flag))
 
 ;; Mozcロード後にキーバインドを設定
 (with-eval-after-load 'mozc
