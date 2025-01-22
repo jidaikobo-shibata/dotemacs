@@ -198,15 +198,48 @@ If the cursor is after a closing parenthesis, select the enclosing pair."
       (goto-char start)
       (message "No matching parenthesis found")))))
 
-;; lisp-mode と emacs-lisp-mode 専用のキーバインド設定
-(defun my-lisp-mode-setup ()
-  "Set up custom keybindings for Lisp modes."
-  (define-key lisp-mode-map (kbd "s-A") 'select-enclosing-parens)
-  (define-key emacs-lisp-mode-map (kbd "s-A") 'select-enclosing-parens))
+(defun adjust-selection-based-on-context ()
+  "Adjust selection or create a selection based on context.
+1. If a region is already selected, narrow or expand the selection.
+2. If no region is selected, select enclosing parentheses or select quotes."
+  (interactive)
+  (if (use-region-p)
+      ;; 選択範囲がある場合
+      (let ((start (region-beginning))
+            (end (region-end)))
+        (cond
+         ;; 両端が括弧または引用符の場合に範囲を狭める
+         ((and (member (char-after start) '(?\( ?\[ ?\{ ?\" ?\' ?\`))
+               (member (char-before end) '(?\) ?\] ?\} ?\" ?\' ?\`)))
+          (goto-char (1+ start)) ; 範囲を狭める
+          (set-mark (1- end)))
+         ;; 両端の外側が括弧または引用符の場合に範囲を拡大する
+         ((and (not (bobp)) (not (eobp))
+               (member (char-before start) '(?\( ?\[ ?\{ ?\" ?\' ?\`))
+               (member (char-after end) '(?\) ?\] ?\} ?\" ?\' ?\`)))
+          (goto-char (1- start)) ; 範囲を拡大する
+          (set-mark (1+ end)))
+         (t
+          (message "Selection does not match enclosing brackets or quotes"))))
+    ;; 選択範囲がない場合
+    (cond
+     ;; キャレットの前後が括弧の場合、括弧を選択
+     ((or (and (not (bobp))
+               (member (char-before) '(?\) ?\] ?\} ?\( ?\[ ?\{)))
+          (and (not (eobp))
+               (member (char-after) '(?\) ?\] ?\} ?\( ?\[ ?\{))))
+      (select-enclosing-parens))
+     ;; 引用符を後方に検索して選択
+     ((re-search-backward "[\"'`]" nil t)
+      (let ((quote-char (char-after (point))))
+        (set-mark (point))
+        (forward-char)
+        (search-forward (char-to-string quote-char))))
+     ;; 何もしない
+     (t
+      (message "No brackets or quotes found")))))
 
-;; フックでモード起動時に設定
-(add-hook 'lisp-mode-hook 'my-lisp-mode-setup)
-(add-hook 'emacs-lisp-mode-hook 'my-lisp-mode-setup)
+(global-set-key (kbd "C-s-a") 'adjust-selection-based-on-context)
 
 ;;; ------------------------------------------------------------
 ;;; provides
