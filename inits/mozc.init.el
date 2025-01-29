@@ -32,6 +32,15 @@
 
 ;; グローバルキーバインドも設定
 (global-set-key (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method)
+(define-key anything-map (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method)
+
+;; ミニバッファではmozcをオフに
+(defun my-confirm-and-deactivate-input-method-on-minibuffer ()
+  "Automatically confirm and deactivate Mozc when entering the minibuffer."
+  (when (and (boundp 'mozc-mode) mozc-mode)
+    (my-confirm-and-deactivate-input-method)))
+
+(add-hook 'minibuffer-setup-hook 'my-confirm-and-deactivate-input-method-on-minibuffer)
 
 ;;; ------------------------------------------------------------
 ;; henkanでMozcを起こす
