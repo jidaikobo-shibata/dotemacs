@@ -86,16 +86,21 @@
 (defun my-insert-markdown-heading (level)
   "Insert a Markdown heading of the specified LEVEL.
 If a heading already exists, replace it with the specified level.
-Move to the beginning of the line and adjust '#' characters."
+Move to the beginning of the line and adjust '#' characters.
+If the line is empty, move the cursor to the end of the line."
   (interactive "p")  ; プレフィックス引数でレベルを指定
-  (save-excursion
-    (beginning-of-line)  ; 行頭に移動
-    ;; 行頭の`#+`を削除
-    (when (looking-at "^#+\\s-*")  ; 行頭に`#`がある場合を確認
-      (replace-match ""))          ; マッチ部分を削除
-    ;; 指定レベルの`#`を挿入
-    (insert (make-string level ?#))
-    (insert " ")))
+  (let ((is-empty-line (looking-at "^[[:space:]]*$")))  ; 空行かどうかを判定
+    (save-excursion
+      (beginning-of-line)  ; 行頭に移動
+      ;; 行頭の`#+`を削除
+      (when (looking-at "^#+\\s-*")  ; 行頭に`#`がある場合を確認
+        (replace-match ""))          ; マッチ部分を削除
+      ;; 指定レベルの`#`を挿入
+      (insert (make-string level ?#))
+      (insert " "))
+    ;; 空行の場合は行末にカーソルを移動
+    (when is-empty-line
+      (end-of-line))))
 
 ;; my-markdown-toggle-list
 
