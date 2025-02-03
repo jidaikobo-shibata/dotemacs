@@ -29,10 +29,11 @@
 ;; Mozcロード後にキーバインドを設定
 (with-eval-after-load 'mozc
   (define-key mozc-mode-map (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method))
+(with-eval-after-load 'anything
+  (define-key anything-map (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method))
 
 ;; グローバルキーバインドも設定
 (global-set-key (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method)
-(define-key anything-map (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method)
 
 ;; ミニバッファではmozcをオフに
 (defun my-confirm-and-deactivate-input-method-on-minibuffer ()
