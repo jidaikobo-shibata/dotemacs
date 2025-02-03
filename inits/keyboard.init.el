@@ -13,6 +13,14 @@
 (my-set-ctrl-key)
 
 ;;; ------------------------------------------------------------
+;; UbuntuでSuperキーとCtrlキーを入れ替える
+(defun my-undo-ignore-region ()
+  "Undo the entire buffer even if there is a selection."
+  (interactive)
+  (let ((mark-active nil))
+    (undo)))
+
+;;; ------------------------------------------------------------
 ;; mac-likeなキーボード設定
 ;; thx http://www.unixuser.org/~euske/doc/emacsref/#file
 (global-set-key (kbd "s-a") 'mark-whole-buffer)
@@ -22,7 +30,7 @@
 (global-set-key (kbd "s-s") 'save-buffer)
 (global-set-key (kbd "s-S") 'write-file)
 (global-set-key (kbd "s-o") 'find-file)
-(global-set-key (kbd "s-z") 'undo)
+(global-set-key (kbd "s-z") 'my-undo-ignore-region)
 (global-set-key (kbd "s-Z") 'undo-redo)
 (global-set-key (kbd "s-+") 'text-scale-increase)
 (global-set-key (kbd "<s-kp-add>") 'text-scale-increase)
@@ -151,15 +159,15 @@
      ((minibufferp (current-buffer))
       (minibuffer-complete))
      ;; beginning-of-lineだったらモードに応じたインデント移動
-     ;; 0.5秒以内の打鍵ならタブ文字を入力
+     ;; 0.5秒以内の打鍵ならタブを入力
      ((bolp)
       (if (< (- current-time my-tab-dwim-last-time) 0.5)
           (insert-tab-context)
         (indent-according-to-mode)))
      (t
-      ;; 選択範囲があったらタブで上書き
+      ;; 選択範囲があったらタブ文字（\t）で上書き
       (when mark-active (delete-region (region-beginning) (region-end)))
-      (insert-tab-context)))
+      (insert "\t")))
     (setq my-tab-dwim-last-time current-time)))
 
 (defun insert-tab-context ()
