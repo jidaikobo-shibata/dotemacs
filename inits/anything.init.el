@@ -155,9 +155,25 @@
     (find-file path)))
 
 ;;; ------------------------------------------------------------
+;;; diredを情報源
+
+(defvar anything-c-source-my-dired-buffer
+  '((name . "Dired Buffers")
+    (candidates . (lambda ()
+                    (mapcar (lambda (buf)
+                              (with-current-buffer buf
+                                (cons (or (expand-file-name default-directory) (buffer-name buf)) buf)))
+                            (cl-remove-if-not
+                             (lambda (buf)
+                               (with-current-buffer buf
+                                 (eq major-mode 'dired-mode)))
+                             (buffer-list)))))
+    (action . (("Switch to Dired Buffer" . switch-to-buffer)))))
+;;; ------------------------------------------------------------
 ;;; my-anything-for-files
 
 (add-to-list 'alist-anything-for-files 'foeb/anything-c-source-buffers t)
+(add-to-list 'alist-anything-for-files 'anything-c-source-my-dired-buffer t)
 (add-to-list 'alist-anything-for-files 'anything-c-source-bookmarks t)
 (add-to-list 'alist-anything-for-files 'anything-c-source-my-hosts t)
 (add-to-list 'alist-anything-for-files 'anything-c-source-my-ftp-hosts t)

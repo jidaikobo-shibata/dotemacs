@@ -4,7 +4,7 @@
 ;; Load Packages and elisps.
 
 ;;; Update Packages:
-;; M-x package-list-packages U x は残念ながら有効にならない
+;; M-x package-list-packages U x
 ;; M-x list-packages
 ;; したあと、updateしたいパッケージを探して、手動でinstallする
 
@@ -50,7 +50,12 @@
  '(delete-by-moving-to-trash t)
  '(foreign-regexp/regexp-type 'perl)
  '(package-selected-packages
-   '(gtags-mode ace-window zlc yaml-mode which-key web-mode-edit-element web-beautify smartrep rainbow-mode popwin php-mode multiple-cursors mic-paren google-translate foreign-regexp flycheck cursor-chg auto-complete auto-async-byte-compile async anything ace-jump-mode))
+   '(ace-jump-mode ace-window ack anything async auto-async-byte-compile
+                   auto-complete cursor-chg flycheck foreign-regexp
+                   google-translate gtags-mode mic-paren
+                   multiple-cursors php-mode popwin rainbow-mode
+                   smartrep web-beautify web-mode-edit-element
+                   which-key yaml-mode zlc))
  '(reb-re-syntax 'foreign-regexp)
  '(sc/is-use-super t)
  '(sc/split-direction "vertical" t)
@@ -108,4 +113,4 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
-)
+ )

@@ -87,19 +87,19 @@
 (global-unset-key "\C-t")
 
 (smartrep-define-key global-map "C-t"
-  '(("C-t" . 'mc/mark-next-like-this)
-    ("n"   . 'mc/mark-next-like-this)
-    ("p"   . 'mc/mark-previous-like-this)
-    ("m"   . 'mc/mark-more-like-this-extended)
-    ("u"   . 'mc/unmark-next-like-this)
-    ("U"   . 'mc/unmark-previous-like-this)
-    ("s"   . 'mc/skip-to-next-like-this)
-    ("S"   . 'mc/skip-to-previous-like-this)
-    ("*"   . 'mc/mark-all-like-this)
-    ("d"   . 'mc/mark-all-like-this-dwim)
-    ("i"   . 'my/mc/insert-numbers)
-    ("o"   . 'mc/sort-regions)
-    ("O"   . 'mc/reverse-regions)))
+'(("C-t" . 'mc/mark-next-like-this)
+  ("n"   . 'mc/mark-next-like-this)
+  ("p"   . 'mc/mark-previous-like-this)
+  ("m"   . 'mc/mark-more-like-this-extended)
+  ("u"   . 'mc/unmark-next-like-this)
+  ("U"   . 'mc/unmark-previous-like-this)
+  ("s"   . 'mc/skip-to-next-like-this)
+  ("S"   . 'mc/skip-to-previous-like-this)
+  ("*"   . 'mc/mark-all-like-this)
+  ("d"   . 'mc/mark-all-like-this-dwim)
+  ("i"   . 'my/mc/insert-numbers)
+  ("o"   . 'mc/sort-regions)
+  ("O"   . 'mc/reverse-regions)))
 
 ;;; Insert specific serial number
 ;; thx http://qiita.com/ShingoFukuyama/items/3ad7e24cb2d8f55b4cc5
