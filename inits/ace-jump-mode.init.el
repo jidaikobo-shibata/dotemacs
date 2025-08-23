@@ -13,6 +13,7 @@
   ;; (mac-auto-ascii-select-input-source)
   (ace-jump-char-mode chr))
 (global-set-key (kbd "M-z") 'do-ace-jump-mode)
+(global-set-key (kbd "C-z") 'do-ace-jump-mode)
 
 ;;; ------------------------------------------------------------
 ;;; provides

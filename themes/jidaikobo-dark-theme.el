@@ -204,7 +204,7 @@
      ((,class (:background "grey60"))
       (t :weight bold)))
    `(hl-line
-     ((,class (:foreground nil
+     ((,class (:foreground unspecified
                            :background "grey30"))
       (t :weight bold
          :underline nil)))

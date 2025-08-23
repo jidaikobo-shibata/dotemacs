@@ -5,6 +5,8 @@
 
 (require 'anything)
 (require 'anything-config)
+;; (require 'anything-migemo)
+;; (setq anything-use-migemo t)
 
 ;; key binds
 (define-key anything-map [escape] 'anything-keyboard-quit)
@@ -57,8 +59,9 @@
 (require 'gtags)
 (require 'anything-gtags)
 
-;; isearchをanything-occurで上書き（isearchは必要だった上書きしない）
-;; (global-set-key (kbd "C-S") 'anything-occur)
+;; isearchをanything-occurで上書き
+
+(global-set-key (kbd "C-s") 'anything-occur)
 
 ;; ------------------------------------------------------------
 ;;; Anything - buffers

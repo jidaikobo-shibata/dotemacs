@@ -13,7 +13,7 @@
 (my-set-ctrl-key)
 
 ;;; ------------------------------------------------------------
-;; UbuntuでSuperキーとCtrlキーを入れ替える
+;; 選択範囲内のundoをしない
 (defun my-undo-ignore-region ()
   "Undo the entire buffer even if there is a selection."
   (interactive)
@@ -64,7 +64,6 @@
 (define-key minibuffer-local-isearch-map [escape] 'minibuffer-keyboard-quit)
 (define-key minibuffer-inactive-mode-map [escape] 'minibuffer-keyboard-quit)
 (define-key isearch-mode-map [escape] 'isearch-abort) ; isearch
-(define-key isearch-mode-map "\e" 'isearch-abort) ; \e seems to work better for terminals
 (global-set-key (kbd "<escape>") 'keyboard-quit) ; everywhere else
 (global-set-key (kbd "M-ESC ESC") 'keyboard-quit)
 

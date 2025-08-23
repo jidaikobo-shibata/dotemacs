@@ -6,11 +6,17 @@
 (require 'gtags)
 (with-eval-after-load 'gtags
   (setq gtags-global-command "/home/jdkb/bin/global")
-  (setq gtags-auto-update t)
+  ;; (setq gtags-auto-update t)
   (define-key gtags-mode-map (kbd "M-.") 'gtags-find-tag)
   (define-key gtags-mode-map (kbd "M->") 'gtags-find-rtag) ; M-shift-.
   (define-key gtags-mode-map (kbd "M-s-.") 'gtags-parse-current-file) ; M-super-.
   (define-key gtags-mode-map (kbd "M-,") 'gtags-pop-stack))
+
+;; ホスト名が jidaikobo.dev のときだけ自動更新を有効にする
+(when (and (file-remote-p default-directory)
+          (string= (tramp-file-name-host (tramp-dissect-file-name default-directory))
+                   "jidaikobo.dev"))
+ (setq gtags-auto-update t))
 
 ;;; ------------------------------------------------------------
 ;;; gtags-parse-fileをカレントバッファに対して行う

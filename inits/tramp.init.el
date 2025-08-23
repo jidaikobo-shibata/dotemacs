@@ -13,8 +13,10 @@
 ;; パッシブモードで接続しようとするとエラーになるようなのでnil
 (setq-default ange-ftp-try-passive-mode nil)
 
-;; scpで接続
-(setq tramp-default-method "scp")
+;; 接続方法
+;; (setq tramp-default-method "scp")
+;; (setq tramp-methods (assq-delete-all "scp" tramp-methods))
+(setq tramp-default-method "ssh")
 
 ;;; ------------------------------------------------------------
 ;;; provides

@@ -150,27 +150,37 @@
 ;; C-@とどちらをとるか悩ましい
 
 (defvar is-deactivate-region t)
-
-(defun my-deactivate-region-and-call-original (orig-fun &rest args)
-  "Deactivate region if needed, then call ORIG-FUN with ARGS."
-  ;; まずリージョン解除
-  (when (and (not (memq last-input-event
-                        '(S-left S-right S-down S-up
-                          C-S-left C-S-right C-S-down C-S-up
-                          M-S-left M-S-right M-S-down M-S-up)))
-             mark-active)
-    (cond
-     ((memq last-input-event '(right down))
-      (goto-char (region-end)))
-     ((memq this-command '(left-char previous-line))
-      (goto-char (region-beginning))))
-    (deactivate-mark))
-  ;; そしてオリジナル関数呼び出し
-  (apply orig-fun args))
-
 (when is-deactivate-region
-  (dolist (cmd '(previous-line next-line left-char right-char))
-    (advice-add cmd :around #'my-deactivate-region-and-call-original)))
+  ;; regionの解除advice版
+  (defadvice previous-line (before deactivate-region activate)
+    "Deactivate Region by cursor."
+    (my-deactivate-region))
+  (defadvice next-line (before deactivate-region activate)
+    "Deactivate Region by cursor."
+    (my-deactivate-region))
+  (defadvice left-char (before deactivate-region activate)
+    "Deactivate Region by cursor."
+    (my-deactivate-region))
+  (defadvice right-char (before deactivate-region activate)
+    "Deactivate Region by cursor."
+    (my-deactivate-region))
+
+  ;; リージョン解除関数
+  (defun my-deactivate-region ()
+    "Logic of deactivate region by cursor."
+    ;; (interactive "^")
+    ;; (message "l: %s c: %s" last-input-event this-command)
+    ;; (message "m:%s r:%s u:%s" mark-active (region-active-p) (use-region-p))
+    ;; (message "s:%s e:%s" (region-beginning) (region-end))
+
+    (when (and (not (memq last-input-event '(S-left S-right S-down S-up C-S-left C-S-right C-S-down C-S-up M-S-left M-S-right M-S-down M-S-up)))
+               mark-active)
+      (cond
+       ((memq last-input-event '(right down))
+        (goto-char (region-end)))
+       ((memq this-command '(left-char previous-line))
+        (goto-char (region-beginning))))
+      (deactivate-mark))))
 
 ;;; ------------------------------------------------------------
 ;; defadvice-indent-for-tab-command

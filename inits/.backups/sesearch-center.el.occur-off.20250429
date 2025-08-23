@@ -1,4 +1,4 @@
-;;; search-center.el --- search center. -*- lexical-binding: t; -*-
+;;; search-center.el --- search center.
 ;; Copyright (C) 2016 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
@@ -85,7 +85,7 @@
 (defvar sc/modeline-foreground)
 (defvar sc/re-modeline-background "orange")
 (defvar sc/re-modeline-foreground "black")
-(defvar sc/is-foreign-regexp nil)
+(defvar sc/is-foregin-regexp nil)
 (defvar sc/is-use-timer-for-modeline t)
 (defvar sc/is-use-timer-for-buffers t)
 (defvar sc/split-direction "horizontal")
@@ -95,8 +95,14 @@
 ;;; ------------------------------------------------------------
 ;;; dependencies
 
+(require 'package)
+(package-initialize)
+
+(declare-function package-installed-p "package")
+(defvar foreign-regexp/regexp-type nil)
+
 ;; Emacs 26でforeign-regexpがエラーを出すので抑止
-;; (defvaralias 'lazy-highlight-face 'isearch-lazy-highlight)
+(defvaralias 'lazy-highlight-face 'isearch-lazy-highlight)
 
 ;; foreign-regexp
 (when (package-installed-p 'foreign-regexp)
@@ -106,7 +112,7 @@
       (custom-set-variables
        '(foreign-regexp/regexp-type 'perl)
        '(reb-re-syntax 'foreign-regexp))
-      (setq sc/is-foreign-regexp t)))
+      (setq sc/is-foregin-regexp t)))
   (declare-function foreign-regexp/search/forward "foreign-regexp")
   (declare-function foreign-regexp/search/backward "foreign-regexp")
   (declare-function foreign-regexp/replace/perform-replace "foreign-regexp"))
@@ -204,6 +210,24 @@
       ;; keep strings
       ;; 次回用に文字列を保存
       (setq sc/previous-searched-str isearch-string))))
+
+;; compatible with Anything-occur command
+;; Anything-occurで入力した文字は同期し、検索対象にする
+
+(defun my-save-anything-occur-input-to-buffer (input)
+  "Save the INPUT string from `anything-occur` to the buffer `sc/search-str-buffer`."
+  (when (get-buffer-create sc/search-str-buffer)
+    (with-current-buffer sc/search-str-buffer
+      (erase-buffer)
+      (insert input))))
+
+(advice-add 'anything-occur :around
+            (lambda (orig-fun &rest args)
+              "Capture the input string of `anything-occur` and save it to the buffer."
+              (let ((result (apply orig-fun args)))
+                (when anything-input ;; anythingで入力された文字列を取得
+                  (my-save-anything-occur-input-to-buffer anything-input))
+                result)))
 
 ;;; ------------------------------------------------------------
 ;;; function alias for key-binds
@@ -479,7 +503,7 @@
       (progn
         ;; prepare replace string or replace by foreign-regexp
         (when is-re
-          (if sc/is-foreign-regexp
+          (if sc/is-foregin-regexp
               ;; perform repalce by foreign-regexp
               (progn
                 (foreign-regexp/replace/perform-replace
@@ -560,7 +584,7 @@
 ;;; search and replace
 ;; 検索用バッファの文字列で検索・置換する
 
-;; (declare-function sc/move-region "sc/move-region" ())
+(declare-function sc/move-region "sc/move-region" ())
 (defun sc/search-replace (mode)
   "Do search from other window string.  MODE [next|prev|re-next|re-prev|rep-here|rep-next|rep-prev|re-rep-next|re-rep-prev]."
   (interactive)
@@ -620,57 +644,27 @@
     ;; move cursor and generate region
     ;; 検索文字列にキャレットを移動しリージョンにする関数
     (defun sc/move-region ()
-      (let (found)
-        (setq found
-              (cond
-               ((and (not is-re) is-next)
-                (search-forward search-str nil t))
-               ((and (not is-re) is-prev)
-                (search-backward search-str nil t))
-               ((and is-re is-next)
-                (if sc/is-foreign-regexp
-                    (foreign-regexp/search/forward search-str)
-                  (re-search-forward search-str nil t)))
-               ((and is-re is-prev)
-                (if sc/is-foreign-regexp
-                    (foreign-regexp/search/backward search-str)
-                  (re-search-backward search-str nil t)))))
-        (if (not found)
-            (progn
-              (message "Not found: %s" search-str)
-              (deactivate-mark)
-              (keyboard-quit))
-          ;; get length of searched strings
-          ;; ヒットした文字長の取得
-          (if is-re
-              (setq len-search-string (length (match-string-no-properties 0)))
-            (setq len-search-string (length search-str)))
-          ;; generate region
-          ;; リージョン作成
-          (sc/generate-region (if is-next "next" "prev") len-search-string))))
-
-    ;; (defun sc/move-region ()
-    ;;   (cond
-    ;;    ((and (not is-re) is-next)
-    ;;     (search-forward search-str nil t))
-    ;;    ((and (not is-re) is-prev)
-    ;;     (search-backward search-str nil t))
-    ;;    ((and is-re is-next)
-    ;;     (if sc/is-foreign-regexp
-    ;;         (foreign-regexp/search/forward search-str)
-    ;;       (re-search-forward search-str nil t)))
-    ;;    ((and is-re is-prev)
-    ;;     (if sc/is-foreign-regexp
-    ;;         (foreign-regexp/search/backward search-str)
-    ;;       (re-search-backward search-str nil t))))
-    ;;   ;; get length of searched strings
-    ;;   ;; ヒットした文字長の取得
-    ;;   (if is-re
-    ;;       (setq len-search-string (length (match-string-no-properties 0)))
-    ;;     (setq len-search-string (length search-str)))
-    ;;   ;; generate region
-    ;;   ;; リージョン作成
-    ;;   (sc/generate-region (if is-next "next" "prev") len-search-string))
+      (cond
+       ((and (not is-re) is-next)
+        (search-forward search-str))
+       ((and (not is-re) is-prev)
+        (search-backward search-str))
+       ((and is-re is-next)
+        (if sc/is-foregin-regexp
+            (foreign-regexp/search/forward search-str)
+          (re-search-forward search-str)))
+       ((and is-re is-prev)
+        (if sc/is-foregin-regexp
+            (foreign-regexp/search/backward search-str)
+          (re-search-backward search-str))))
+      ;; get length of searched strings
+      ;; ヒットした文字長の取得
+      (if is-re
+          (setq len-search-string (length (match-string-no-properties 0)))
+        (setq len-search-string (length search-str)))
+      ;; generate region
+      ;; リージョン作成
+      (sc/generate-region (if is-next "next" "prev") len-search-string))
 
     ;; main process
     ;; 処理本体
@@ -762,7 +756,7 @@
       (save-excursion
         (save-restriction
           (narrow-to-region beg end)
-          (cond ((and is-re sc/is-foreign-regexp)
+          (cond ((and is-re sc/is-foregin-regexp)
                  (foreign-regexp/replace/perform-replace
                   search-str replace-str nil nil nil nil nil beg end))
                 (is-re
@@ -810,12 +804,12 @@
   (rgrep string ext pwd nil))
 
 ;; defadvice rgrep
-(defun my-confirm-kill-grep-buffer (&rest _args)
-  "Confirm deleting existing *grep* buffer before running rgrep."
+;; thx http://d.hatena.ne.jp/kitokitoki/20101009/p6
+(defadvice rgrep (before my-rgrep activate)
+  "Confirm delete grep buffer."
   (when (get-buffer "*grep*")
     (when (y-or-n-p "Delete existing *grep* buffer? ")
-      (kill-buffer "*grep*"))))
-(advice-add 'rgrep :before #'my-confirm-kill-grep-buffer)
+      (kill-buffer (get-buffer "*grep*")))))
 
 ;;; ------------------------------------------------------------
 ;;; experimental area

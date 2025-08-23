@@ -15,8 +15,6 @@
 (setq migemo-use-default-isearch-keybinding nil)
 (migemo-init)
 
-;; anything.init.elでもmigemoの設定を行っている
-
 ;;; ------------------------------------------------------------
 ;;; provides
 

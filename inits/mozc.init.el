@@ -10,6 +10,29 @@
 (prefer-coding-system 'utf-8)
 
 ;;; ------------------------------------------------------------
+;; henkan/muhenkanキーisearchを抜けないようにする
+
+(with-eval-after-load 'isearch
+  ;; IME切替系キーは isearch を抜けず、その場で IME をトグル
+  (dolist (k '("<muhenkan>" "<henkan>" "<eisu-toggle>" "<kana>" "<zenkaku-hankaku>"))
+    (define-key isearch-mode-map (kbd k) #'isearch-toggle-input-method))
+
+  ;; （任意）変換/無変換を無視したい場合は ignore に
+  ;; (define-key isearch-mode-map [henkan]   #'ignore)
+  ;; (define-key isearch-mode-map [muhenkan] #'ignore)
+
+  ;; isearchで通常入力時も IME を使えるように（既定オフなので有効化推奨）
+  (setq isearch-use-input-method t)
+  ;; 念のため M-s (= ESC s) は isearch 中も prefix のまま
+  (define-key isearch-mode-map (kbd "M-s") search-map)
+  (define-key isearch-mode-map (kbd "ESC") search-map)
+  (define-key isearch-mode-map [escape] #'isearch-abort))
+
+(with-eval-after-load 'mozc
+  (when (require 'mozc-isearch nil t)
+    (mozc-isearch-setup)))
+
+;;; ------------------------------------------------------------
 ;; muhenkanキーでMozcを抜ける際に、現在の入力を確定する
 (defun my-confirm-and-deactivate-input-method ()
   "Confirm the current input and deactivate the input method."
@@ -36,18 +59,17 @@
 (global-set-key (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method)
 
 ;; ミニバッファではmozcをオフに
-(defun my-confirm-and-deactivate-input-method-on-minibuffer ()
-  "Automatically confirm and deactivate Mozc when entering the minibuffer."
-  (when (and (boundp 'mozc-mode) mozc-mode)
-    (my-confirm-and-deactivate-input-method)))
-
-(add-hook 'minibuffer-setup-hook 'my-confirm-and-deactivate-input-method-on-minibuffer)
+;; (defun my-confirm-and-deactivate-input-method-on-minibuffer ()
+;;   "Automatically confirm and deactivate Mozc when entering the minibuffer."
+;;   (when (and (boundp 'mozc-mode) mozc-mode)
+;;     (my-confirm-and-deactivate-input-method)))
+;; (add-hook 'minibuffer-setup-hook 'my-confirm-and-deactivate-input-method-on-minibuffer)
 
 ;;; ------------------------------------------------------------
 ;; henkanでMozcを起こす
 (global-set-key (kbd "<henkan>")
-		(lambda () (interactive)
-		  (activate-input-method default-input-method)))
+                (lambda () (interactive)
+                  (activate-input-method default-input-method)))
 
 ;;; ------------------------------------------------------------
 ;; mozc-modeでもdelete-selection-modeを機能させる
