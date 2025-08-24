@@ -189,21 +189,33 @@
 
 ;; compatible with isearch command
 ;; i-search、i-search-backwardコマンドとの同期
+;; (when sc/is-sync-isearch
+;;   (add-hook 'isearch-update-post-hook 'sc/isearch-update-string)
+;;   (defun sc/isearch-update-string ()
+;;     (when (and (not (or isearch-regexp isearch-regexp-function))
+;;                (eq this-command 'isearch-printing-char))
+;;       (unless (get-buffer sc/search-str-buffer) (get-buffer-create sc/search-str-buffer))
+;;       (sc/keep-target-buffer)
+;;       ;; set strings
+;;       ;; 文字列をセット
+;;       (with-current-buffer sc/search-str-buffer
+;;         (delete-region (point-min) (point-max))
+;;         (insert isearch-string))
+;;       ;; keep strings
+;;       ;; 次回用に文字列を保存
+;;       (setq sc/previous-searched-str isearch-string))))
+
 (when sc/is-sync-isearch
   (add-hook 'isearch-update-post-hook 'sc/isearch-update-string)
   (defun sc/isearch-update-string ()
-    (when (and (not (or isearch-regexp isearch-regexp-function))
-               (eq this-command 'isearch-printing-char))
-      (unless (get-buffer sc/search-str-buffer) (get-buffer-create sc/search-str-buffer))
-      (sc/keep-target-buffer)
-      ;; set strings
-      ;; 文字列をセット
-      (with-current-buffer sc/search-str-buffer
-        (delete-region (point-min) (point-max))
-        (insert isearch-string))
-      ;; keep strings
-      ;; 次回用に文字列を保存
-      (setq sc/previous-searched-str isearch-string))))
+    (when (not (or isearch-regexp isearch-regexp-function))
+  (unless (get-buffer sc/search-str-buffer)
+    (get-buffer-create sc/search-str-buffer))
+  (sc/keep-target-buffer)
+  (with-current-buffer sc/search-str-buffer
+    (delete-region (point-min) (point-max))
+    (insert isearch-string))
+  (setq sc/previous-searched-str isearch-string))))
 
 ;;; ------------------------------------------------------------
 ;;; function alias for key-binds

@@ -9,16 +9,30 @@
 (setq default-input-method "japanese-mozc")
 (prefer-coding-system 'utf-8)
 
+(require 'mozc-isearch)
+
+(with-eval-after-load 'mozc
+  (when (require 'mozc-isearch nil t)
+    (mozc-isearch-setup)))
+
 ;;; ------------------------------------------------------------
 ;; henkan/muhenkanキーisearchを抜けないようにする
 
 (with-eval-after-load 'isearch
   ;; IME切替系キーは isearch を抜けず、その場で IME をトグル
-  (dolist (k '("<muhenkan>" "<henkan>" "<eisu-toggle>" "<kana>" "<zenkaku-hankaku>"))
+  (dolist (k '("<eisu-toggle>" "<kana>" "<zenkaku-hankaku>"))
     (define-key isearch-mode-map (kbd k) #'isearch-toggle-input-method))
 
-  ;; （任意）変換/無変換を無視したい場合は ignore に
-  ;; (define-key isearch-mode-map [henkan]   #'ignore)
+  ;; <henkan> は “必ず ON”。isearch は抜けない
+  (define-key isearch-mode-map (kbd "<henkan>")
+    (lambda () (interactive) (activate-input-method default-input-method) (isearch-update)))
+
+  ;; <muhenkan> は “必ず OFF”。isearch は抜けない
+  (define-key isearch-mode-map (kbd "<muhenkan>")
+    (lambda () (interactive) (deactivate-input-method) (isearch-update)))
+
+	;; （任意）変換/無変換を無視したい場合は ignore に
+ 	;; (define-key isearch-mode-map [henkan] #'ignore)
   ;; (define-key isearch-mode-map [muhenkan] #'ignore)
 
   ;; isearchで通常入力時も IME を使えるように（既定オフなので有効化推奨）
