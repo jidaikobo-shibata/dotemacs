@@ -15,23 +15,6 @@
 (deftheme jidaikobo-dark "Dark theme for jidaikobo.")
 
 ;;; ------------------------------------------------------------
-;;; whitespace関連設定
-;; thx http://qiita.com/itiut@github/items/4d74da2412a29ef59c3a
-(require 'whitespace)
-(setq whitespace-style '(face       ; faceで可視化
-                         trailing   ; 行末
-                         tabs       ; タブ
-                         spaces     ; スペース
-                         empty      ; 先頭/末尾の空行
-                         space-mark ; 表示のマッピング
-                         tab-mark
-                         ))
-(setq whitespace-display-mappings
-      '((tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t])
-        ;;(space-mark ?\u3000 [?\u25a1])
-        ))
-
-;;; ------------------------------------------------------------
 ;;; color palette
 (let ((class '((class color) (min-colors 89) (background dark)))
       (jidaikobo-fg            "#ffffff")
@@ -60,32 +43,21 @@
 
 ;;; ------------------------------------------------------------
 ;;; base
-   `(default
-      ((t (:foreground ,jidaikobo-fg
-           :background ,jidaikobo-bg))))
-
-   `(fringe ; フレームの余白
-     ((t (:foreground ,jidaikobo-fg
-          :background ,jidaikobo-bg))))
-   `(highlight
-     ((t (:background ,jidaikobo-olive))))
-   `(region
-     ((t (:background ,jidaikobo-blue))
-      (t :inverse-video t)))
-   `(warning
-     ((t (:foreground ,jidaikobo-palevioletred
-          :weight bold))))
-
-   `(whitespace-tab
-     ((t (:background ,jidaikobo-bg
-          :foreground ,jidaikobo-gray
-          :weight bold))))
+   `(default   ((t (:foreground ,jidaikobo-fg :background ,jidaikobo-bg))))
+   `(fringe    ((t (:foreground ,jidaikobo-fg :background ,jidaikobo-bg)))) ; フレームの余白
+   `(highlight ((t (:background ,jidaikobo-olive))))
+   `(region    ((t (:background ,jidaikobo-blue :extend t))))
+   `(warning   ((t (:foreground ,jidaikobo-palevioletred :weight bold))))
+   `(error     ((t (:foreground ,jidaikobo-pink :weight bold))))
+   `(success   ((t (:foreground ,jidaikobo-chartreuse :weight bold))))
+   `(shadow    ((t (:foreground ,jidaikobo-gray))))
+   `(link      ((t (:foreground ,jidaikobo-lightblue :underline t))))
+   `(minibuffer-prompt ((t (:foreground ,jidaikobo-lightblue :weight bold))))
+   `(secondary-selection ((t (:background ,jidaikobo-darkwine))))
 
 ;;; ------------------------------------------------------------
 ;;; cursor
-   `(cursor
-  	 ((t (:foreground ,jidaikobo-bg
-  				:background ,jidaikobo-fg))))
+   `(cursor ((t (:foreground ,jidaikobo-bg :background ,jidaikobo-fg))))
 
    ;; multiple-cursors
    `(mc/cursor-bar-face
@@ -96,151 +68,99 @@
 ;;; font lock
 
    ;; コメント
-   `(font-lock-comment-face
-     ((t (:foreground ,jidaikobo-orange
-                      :background ,jidaikobo-bg))))
-   `(font-lock-comment-delimiter-face
-     ((t (:foreground ,jidaikobo-orange
-                      :background ,jidaikobo-bg))))
+   `(font-lock-comment-face ((t (:foreground ,jidaikobo-orange :background ,jidaikobo-bg))))
+   `(font-lock-comment-delimiter-face ((t (:foreground ,jidaikobo-orange :background ,jidaikobo-bg))))
 
    ;; ビルトイン関数
-   `(font-lock-builtin-face
-     ((t (:foreground ,jidaikobo-aqua))))
+   `(font-lock-builtin-face ((t (:foreground ,jidaikobo-aqua))))
 
    ;; 関数名
-   `(font-lock-function-name-face
-     ((t (:foreground ,jidaikobo-chartreuse))))
+   `(font-lock-function-name-face ((t (:foreground ,jidaikobo-chartreuse))))
 
    ;; 変数名
-   `(font-lock-variable-name-face
-     ((t (:foreground ,jidaikobo-darkgoldenrod))))
-   `(font-lock-warning-face
-     ((t (:foreground ,jidaikobo-palevioletred
-                      :weight bold))))
+   `(font-lock-variable-name-face ((t (:foreground ,jidaikobo-darkgoldenrod))))
+   `(font-lock-warning-face ((t (:foreground ,jidaikobo-palevioletred :weight bold))))
 
    ;; 定数
-   `(font-lock-constant-face
-     ((t (:foreground ,jidaikobo-wheat))))
-   `(font-lock-doc-string-face
-     ((t (:foreground ,jidaikobo-darkgoldenrod))))
+   `(font-lock-constant-face ((t (:foreground ,jidaikobo-wheat))))
+   `(font-lock-doc-face ((t (:foreground ,jidaikobo-darkgoldenrod))))
 
    ;; キーワード
-   `(font-lock-keyword-face
-     ((t (:foreground ,jidaikobo-lightblue))))
+   `(font-lock-keyword-face ((t (:foreground ,jidaikobo-lightblue))))
 
    ;; for easily-overlooked negation characters.
-   `(font-lock-negation-char-face
-     ((t (:foreground ,jidaikobo-deeporange
-                      :weight bold))))
+   `(font-lock-negation-char-face ((t (:foreground ,jidaikobo-deeporange :weight bold))))
 
    ;; 数値
-   `(font-lock-number-face
-     ((t (:foreground ,jidaikobo-pink))))
-   `(font-lock-preprocessor-face
-     ((t (:inherit (font-lock-builtin-face)))))
-   `(font-lock-regexp-grouping-backslash
-     ((t (:inherit (bold)))))
-   `(font-lock-regexp-grouping-construct
-     ((t (:inherit (bold)))))
+   `(font-lock-number-face ((t (:foreground ,jidaikobo-pink))))
+   `(font-lock-preprocessor-face ((t (:inherit (font-lock-builtin-face)))))
+   `(font-lock-regexp-grouping-backslash ((t (:inherit (bold)))))
+   `(font-lock-regexp-grouping-construct ((t (:inherit (bold)))))
 
    ;; 文字列
-   `(font-lock-string-face
-     ((t (:foreground ,jidaikobo-cloudyred))))
+   `(font-lock-string-face ((t (:foreground ,jidaikobo-cloudyred))))
 
    ;; データ型名
-   `(font-lock-type-face
-     ((t (:foreground ,jidaikobo-pink))))
+   `(font-lock-type-face ((t (:foreground ,jidaikobo-pink))))
 
 ;;; ------------------------------------------------------------
 ;;; mode line
-   `(mode-line
-     ((t (:foreground "black"
-                      :background ,jidaikobo-wheat
-                      :box nil))))
-   `(mode-line-buffer-id
-     ((t (:weight bold))))
-   `(mode-line-inactive
-     ((t (:foreground "grey30"
-                      :background ,jidaikobo-bg
-                      :box nil))))
-   `(mode-line-read-only-face
-     ((t (:foreground "black"
-                      :background ,jidaikobo-red
-                      :box nil))))
+   `(mode-line ((t (:foreground "black" :background ,jidaikobo-wheat :box nil))))
+   `(mode-line-buffer-id ((t (:weight bold))))
+   `(mode-line-inactive ((t (:foreground "grey30" :background ,jidaikobo-bg :box nil))))
+
+   ;; 標準の補助フェイス
+   `(mode-line-emphasis  ((t (:weight bold))))
+   `(mode-line-highlight ((t (:inherit highlight))))
 
 ;;; ------------------------------------------------------------
 ;;; header-line
-   `(header-line
-     ((t (:foreground ,jidaikobo-bg
-                      :background ,jidaikobo-wheat
-                      :weight bold))))
+   `(header-line ((t (:foreground ,jidaikobo-bg :background ,jidaikobo-wheat :weight bold))))
 
 ;;; ------------------------------------------------------------
 ;;; isearch
-   `(isearch
-     ((t (:foreground "black"
-                      :background ,jidaikobo-wheat
-                      :weight bold))))
-   `(isearch-fail
-     ((t (:foreground ,jidaikobo-wine
-                      :background ,jidaikobo-darkwine))))
+   `(isearch ((t (:foreground "black" :background ,jidaikobo-wheat :weight bold))))
+   `(isearch-fail ((t (:foreground ,jidaikobo-wine :background ,jidaikobo-darkwine))))
+
+   ;; 2番目以降の候補（インクリメンタル検索の“薄い強調”）
+   `(lazy-highlight ((t (:background ,jidaikobo-gray :foreground ,jidaikobo-fg))))
+
+;;; ------------------------------------------------------------
+;;; flycheck
+   `(flycheck-error   ((t (:underline (:style wave :color ,jidaikobo-pink)))))
+   `(flycheck-warning ((t (:underline (:style wave :color ,jidaikobo-palevioletred)))))
+   `(flycheck-info    ((t (:underline (:style wave :color ,jidaikobo-lightblue)))))
 
 ;;; ------------------------------------------------------------
 ;;; anything
-   `(anything-selection-face
-     ((t (:foreground "black"
-                      :background ,jidaikobo-wheat
-                      :weight bold))))
+   `(anything-selection-face ((t (:foreground "black" :background ,jidaikobo-wheat :weight bold))))
 
 ;;; ------------------------------------------------------------
 ;;; linum
-   `(linum
-     ((t (:foreground "grey30"
-                      :background ,jidaikobo-bg))))
+   `(linum ((t (:foreground "grey30" :background ,jidaikobo-bg))))
+
+;;; ------------------------------------------------------------
+;;; line numbers (display-line-numbers-mode)
+   `(line-number ((t (:foreground "grey30" :background ,jidaikobo-bg))))
+   `(line-number-current-line ((t (:foreground ,jidaikobo-wheat :background ,jidaikobo-bg :weight bold))))
 
 ;;; ------------------------------------------------------------
 ;;; hl-line-mode
-   `(hl-line-face
-     ((,class (:background "grey60"))
-      (t :weight bold)))
-   `(hl-line
-     ((,class (:foreground unspecified
-                           :background "grey30"))
-      (t :weight bold
-         :underline nil)))
+   `(hl-line ((t (:foreground unspecified :background "grey30" :extend t))))
 
 ;;; ------------------------------------------------------------
 ;;; whitespace
-   `(whitespace-trailing
-     ((t (:background ,jidaikobo-bg
-                      :underline t))))
-   `(whitespace-space
-     ((t (:background ,jidaikobo-bg
-                      :underline nil))))
-   `(whitespace-empty
-     ((t (:background ,jidaikobo-bg
-                      :underline nil))))
-   `(whitespace-tab
-     ((t (:foreground "grey20"
-                      :background ,jidaikobo-bg
-                      :underline nil))))
+   `(whitespace-trailing ((t (:background ,jidaikobo-bg :underline t))))
+   `(whitespace-space ((t (:background ,jidaikobo-bg :underline nil))))
+   `(whitespace-empty ((t (:background ,jidaikobo-bg :underline nil))))
+   `(whitespace-tab ((t (:foreground "grey20" :background ,jidaikobo-bg :underline nil))))
 
 ;;; ------------------------------------------------------------
 ;;; auto-complete and popup
-   `(ac-completion-face
-     ((t (:foreground "purple"
-                      :background "grey10"))))
-   `(ac-candidate-face
-     ((t (:foreground "grey50"))))
-   `(ac-selection-face
-     ((t (:background "grey40"))))
-   `(popup-face
-     ((t (:foreground "grey40"
-                      :background "grey20"))))
-
-   ;; TODO
-   ;; flycheck
-   ;; show-paren
+   `(ac-completion-face ((t (:foreground "purple" :background "grey10"))))
+   `(ac-candidate-face ((t (:foreground "grey50"))))
+   `(ac-selection-face ((t (:background "grey40"))))
+   `(popup-face ((t (:foreground "grey40" :background "grey20"))))
    ))
 
 ;;; ------------------------------------------------------------

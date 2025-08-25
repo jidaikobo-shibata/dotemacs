@@ -32,10 +32,34 @@
 (when (functionp 'electric-indent-mode) (electric-indent-mode -1))
 
 ;;; ------------------------------------------------------------
-;; whitespaceによるタブ文字の可視化と自動クリーンアップ
+;;; whitespace関連設定
+
+(require 'whitespace)
+
+;; 可視化するものの設定
+(setq whitespace-style '(face       ; faceで可視化
+                         trailing   ; 行末
+                         tabs       ; タブ
+                         spaces     ; スペース
+                         empty      ; 先頭/末尾の空行
+                         tab-mark   ; タブを記号に置き換える
+                         ))
+
+;; tab-mark（»）の記号を設定
+(setq whitespace-display-mappings
+      '((tab-mark ?\t [?\u00BB ?\t] [?\\ ?\t])))
+
+;; whitespaceの自動クリーンアップを無効化
+(setq-default whitespace-action nil)
+
+;; プログラミング系（Emacs Lisp / C / Python / PHP / JS）だけ保存時に行末空白を削除
+(add-hook 'before-save-hook
+          (lambda ()
+            (when (and (derived-mode-p 'prog-mode)
+                       (not (derived-mode-p 'makefile-mode)))
+              (delete-trailing-whitespace))))
+
 (global-whitespace-mode 1)
-(setq whitespace-style '(tabs))
-(setq-default whitespace-action '(auto-cleanup))
 
 ;;; ------------------------------------------------------------
 ;; タブ幅
