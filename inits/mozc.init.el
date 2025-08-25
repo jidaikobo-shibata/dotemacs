@@ -42,10 +42,6 @@
   (define-key isearch-mode-map (kbd "ESC") search-map)
   (define-key isearch-mode-map [escape] #'isearch-abort))
 
-(with-eval-after-load 'mozc
-  (when (require 'mozc-isearch nil t)
-    (mozc-isearch-setup)))
-
 ;;; ------------------------------------------------------------
 ;; muhenkanキーでMozcを抜ける際に、現在の入力を確定する
 (defun my-confirm-and-deactivate-input-method ()
