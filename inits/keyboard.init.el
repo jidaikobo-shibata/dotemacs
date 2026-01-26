@@ -44,8 +44,10 @@
 (global-set-key (kbd "<backspace>") 'delete-backward-char)
 (global-set-key (kbd "<s-up>") (lambda () (interactive "^") (goto-char (point-min))))
 (global-set-key (kbd "<s-down>") (lambda () (interactive "^") (goto-char (point-max))))
-(global-set-key (kbd "<s-left>") 'beginning-of-line)
-(global-set-key (kbd "<s-right>") 'end-of-line)
+;; (global-set-key (kbd "<s-left>") 'beginning-of-line)
+;; (global-set-key (kbd "<s-right>") 'end-of-line)
+(global-set-key (kbd "<s-left>") 'skip-chars-backward-dwim)
+(global-set-key (kbd "<s-right>") 'skip-chars-forward-dwim)
 (global-set-key (kbd "<prior>") 'backward-page)
 (global-set-key (kbd "<next>") 'forward-page)
 

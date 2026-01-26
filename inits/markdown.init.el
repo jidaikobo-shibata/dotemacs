@@ -3,6 +3,8 @@
 ;; provide markdown.init.
 ;;; Code:
 
+(require 'cl-lib)
+
 (defvar md-mode-map (make-sparse-keymap)
   "Keymap for `md-mode`.")
 
@@ -256,6 +258,28 @@ If no region is active, insert the asterisks at the cursor position and place th
       (insert asterisks asterisks)
       (backward-char level))))
 
+;; コードブロックのカラーリング
+
+(defun my-md-syntax-propertize (start end)
+  (goto-char start)
+  (funcall
+   (syntax-propertize-rules
+    ;; 行頭のフェンス（バッククォート3つ）“だけ”を文字列フェンスにする
+    ("^\\(```\\)"
+     (1 (ignore
+         (put-text-property
+          (match-beginning 1)
+          (match-end 1)
+          'syntax-table (string-to-syntax "|"))))))
+   start end))
+(add-hook 'md-mode-hook
+          (lambda ()
+            (setq-local syntax-propertize-function
+                        #'my-md-syntax-propertize)
+            (face-remap-add-relative
+             'font-lock-string-face
+             'font-lock-constant-face)))
+
 ;; カラーリング
 
 (defface my-strong-heading-face
@@ -263,6 +287,7 @@ If no region is active, insert the asterisks at the cursor position and place th
   "Face for strong headings in md-mode.")
 
 (add-hook 'md-mode-hook
+
           (lambda ()
             ;; 見出しのスタイル (それぞれのレベルに色を設定)
             (font-lock-add-keywords nil
@@ -279,8 +304,9 @@ If no region is active, insert the asterisks at the cursor position and place th
             (font-lock-add-keywords nil
                                     '(("\\(`[^`\n]+`\\)" . 'font-lock-constant-face)))
             ;; コードブロック (```で囲まれた部分)
-            (font-lock-add-keywords nil
-                                    '(("```[a-zA-Z]*\n\\(.\\|\n\\)*?```" . 'font-lock-constant-face)))
+            ;; (font-lock-add-keywords nil
+            ;;                         '(("```[a-zA-Z]*\n\\(.\\|\n\\)*?```" . 'font-lock-constant-face)))
+
             ;; 強調 (**bold** や *italic*)
             (font-lock-add-keywords nil
                                     '(("\\*\\*\\*\\(.*?\\)\\*\\*\\*" . 'font-lock-warning-face)
