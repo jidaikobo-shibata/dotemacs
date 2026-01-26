@@ -25,6 +25,9 @@
 (setq auto-save-default nil)
 (setq delete-auto-save-files t)
 
+;; rootパスワードを ~/.authinfo に保存しない
+(setq auth-source-save-behavior nil)
+
 ;; ミニバッファ履歴を保存
 (savehist-mode 1)
 

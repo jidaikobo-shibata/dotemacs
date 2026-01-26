@@ -10,6 +10,12 @@
 (add-to-list 'backup-directory-alist
              (cons tramp-file-name-regexp nil))
 
+;; TRAMP ファイルでは trash を使わない
+(add-hook 'dired-mode-hook
+          (lambda ()
+            (when (file-remote-p default-directory)
+              (setq-local delete-by-moving-to-trash nil))))
+
 ;; パッシブモードで接続しようとするとエラーになるようなのでnil
 (setq-default ange-ftp-try-passive-mode nil)
 

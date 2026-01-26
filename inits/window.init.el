@@ -58,6 +58,9 @@
 (defun my-delete-windows ()
   "Contexual delete windows."
   (interactive)
+  ;; ミニバッファでプロンプト中なら絶対に処理しない
+  (when (> (minibuffer-depth) 0)
+    (user-error "Minibuffer is active"))
   (cond
    ;; ミニバッファにいたらまず抜ける
    ((minibufferp (current-buffer))

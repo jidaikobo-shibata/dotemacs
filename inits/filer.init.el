@@ -14,14 +14,15 @@
 
 ;;; ------------------------------------------------------------
 ;; root権限でファイルを開き直す
-;; thx http://qiita.com/k_ui/items/d9e03ea9523036970519
 (defun reopen-with-sudo ()
-  "Reopen current buffer-file with sudo."
+  "Open current file with sudo in a separate buffer."
   (interactive)
   (let ((file-name (buffer-file-name)))
-    (if file-name
-        (find-alternate-file (concat "/sudo::" file-name))
-      (error "Cannot get a file name"))))
+    (unless file-name
+      (error "Cannot get a file name"))
+    (when (file-remote-p file-name)
+      (error "Already a remote file"))
+    (find-file (concat "/sudo::" file-name))))
 
 ;;; ------------------------------------------------------------
 ;; 現在バッファのファイルのフルパスを取得
