@@ -3,6 +3,7 @@
 GPATH
 GRTAGS
 GTAGS
+gtags-allowed-dirs
 ac-comphist.dat
 ac-dict/
 bookmarks
