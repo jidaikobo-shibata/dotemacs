@@ -71,7 +71,10 @@
 (setq-default foeb/non-ignore-buffers
               (rx
                (or
-                "*scratch*" "*grep*" "*eww*")))
+                "*scratch*"
+                "*grep*"
+                (seq "*grep:" (* any) "*")
+                "*eww*")))
 (require 'focus-on-editable-buffers)
 (require 'anything-focus-on-editable-buffers)
 

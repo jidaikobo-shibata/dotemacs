@@ -8,7 +8,7 @@
 ;; 検索置換のためのマイナーモード。
 
 ;;; Todo:
-;; 補助的依存状態のforeign-regrexとsmartrepがなくても動くようにする
+;; 補助的依存状態のforeign-regexpとsmartrepがなくても動くようにする
 ;; http://qiita.com/mkit0031/items/85d66d08cd51c1c9e8a2 を参考に*grep*バッファの名称を変更したほうが便利か？ 現在は*grep*バッファを消すようにしている。
 ;; ;;; .emacs.elの末尾に追加
 ;; ;; grep実施時に複数のバッファで開けるよう設定
@@ -27,7 +27,7 @@
 ;; C-x s
 ;; ! で全保存
 
-;;; Ussage:
+;;; Usage:
 ;; | s-f | show search/replace windows        | 検索置換窓の表示
 ;; | s-F | toggle regexp or not               | 正規表現モードトグル
 ;; | s-e | set region to search               | 検索文字にセット
@@ -72,20 +72,20 @@
 ;;; defvar
 
 (defvar sc/target-window (selected-window))
-(defvar sc/target-buffer (get-buffer (buffer-name)))
+(defvar sc/target-buffer (current-buffer))
 (defvar sc/search-str-buffer "*search string*")
 (defvar sc/replace-str-buffer "*replace string*")
 (defvar sc/previous-searched-str)
 (defvar sc/previous-replaced-str)
 (defvar sc/previous-searced-direction nil)
 (defvar sc/previous-direction)
-(defvar sc/ignore-delete-window-hook nil)
 (defvar sc/modeline-saved nil)
 (defvar sc/modeline-background)
 (defvar sc/modeline-foreground)
 (defvar sc/re-modeline-background "orange")
 (defvar sc/re-modeline-foreground "black")
 (defvar sc/is-foreign-regexp nil)
+(defvar sc/is-renaming-rgrep-buffer nil)
 (defvar sc/is-use-timer-for-modeline t)
 (defvar sc/is-use-timer-for-buffers t)
 (defvar sc/split-direction "horizontal")
@@ -142,49 +142,82 @@
 
 ;; Toggle Mode line
 ;; モードラインのトグル
-(defun sc/toggle-mode-line ()
-  "Toggle Mode line."
+(defun sc/toggle-mode-line (&rest _args)
+  "Sync the mode line color with `search-center-re-mode'."
   (interactive)
-  ;; keep current color of mode line at the first time
-  ;; 最初に現在のモードラインを配色を保存しておく
-  (unless sc/modeline-saved
-    (setq sc/modeline-background (face-attribute 'mode-line :background)
-          sc/modeline-foreground (face-attribute 'mode-line :foreground)
-          sc/modeline-saved t))
-  (cond
-   ;; 正規表現モード
-   ((eq search-center-re-mode t)
-    (set-face-attribute 'mode-line nil
-                        :foreground sc/re-modeline-foreground
-                        :background sc/re-modeline-background))
-   ;; 標準モード
-   ((eq search-center-re-mode nil)
-    (set-face-attribute 'mode-line nil
-                        :foreground sc/modeline-foreground
-                        :background sc/modeline-background)))
+  (let* ((event-obj (car _args))
+         (target-window
+          (cond
+           ((window-live-p event-obj) event-obj)
+           ((framep event-obj) (frame-selected-window event-obj))
+           (t (selected-window))))
+         (target-buffer (and (window-live-p target-window)
+                             (window-buffer target-window)))
+         (is-re (and (buffer-live-p target-buffer)
+                     (buffer-local-value 'search-center-re-mode target-buffer))))
+    ;; keep current color of mode line at the first time
+    ;; 最初に現在のモードラインを配色を保存しておく
+    (unless sc/modeline-saved
+      (setq sc/modeline-background (face-attribute 'mode-line :background)
+            sc/modeline-foreground (face-attribute 'mode-line :foreground)
+            sc/modeline-saved t))
+    (cond
+     ;; 正規表現モード
+     (is-re
+      (set-face-attribute 'mode-line nil
+                          :foreground sc/re-modeline-foreground
+                          :background sc/re-modeline-background))
+     ;; 標準モード
+     (t
+      (set-face-attribute 'mode-line nil
+                          :foreground sc/modeline-foreground
+                          :background sc/modeline-background))))
   (force-mode-line-update))
 
-;; timer for mode line
-;; モードラインの配色を監視するタイマー
-(if sc/is-use-timer-for-modeline
-    (setq-default global-re-toggle-timer
-                  (run-with-idle-timer 0.03 t 'sc/toggle-mode-line)))
+(defun sc/reset-mode-line-cache (&rest _args)
+  "Forget cached normal mode-line colors and resync after theme changes."
+  (setq sc/modeline-saved nil)
+  (sc/toggle-mode-line))
 
-;; timer for search/replace buffer
-;; 検索置換窓はサクッと消す
-(if sc/is-use-timer-for-buffers
-    (setq-default
-     global-re-toggle-timer
-     (run-with-idle-timer
-      0.03
-      t
-      (lambda () (interactive)
-        (when (and (not (equal (selected-window) (get-buffer-window sc/search-str-buffer)))
-                   (not (equal (selected-window) (get-buffer-window sc/replace-str-buffer)))
-                   (or (windowp (get-buffer-window sc/search-str-buffer))
-                       (windowp (get-buffer-window sc/replace-str-buffer))))
-          (delete-window (get-buffer-window sc/search-str-buffer))
-          (delete-window (get-buffer-window sc/replace-str-buffer)))))))
+;; event-driven mode line sync
+;; モードラインの配色はイベント発火時だけ同期する
+(when sc/is-use-timer-for-modeline
+  (add-hook 'search-center-re-mode-hook #'sc/toggle-mode-line)
+  (when (boundp 'window-selection-change-functions)
+    (add-hook 'window-selection-change-functions #'sc/toggle-mode-line))
+  (when (boundp 'window-buffer-change-functions)
+    (add-hook 'window-buffer-change-functions #'sc/toggle-mode-line))
+  (advice-add 'load-theme :after #'sc/reset-mode-line-cache)
+  (advice-add 'enable-theme :after #'sc/reset-mode-line-cache)
+  (advice-add 'disable-theme :after #'sc/reset-mode-line-cache))
+
+;; event-driven auto close for search/replace windows
+;; 検索置換窓は選択が外れたときだけ閉じる
+(defun sc/close-string-windows ()
+  "Close visible search-center helper windows."
+  (let ((search-window (get-buffer-window sc/search-str-buffer))
+        (replace-window (get-buffer-window sc/replace-str-buffer)))
+    (when (window-live-p search-window)
+      (delete-window search-window))
+    (when (window-live-p replace-window)
+      (delete-window replace-window))))
+
+(defun sc/maybe-close-string-windows (&rest _args)
+  "Close helper windows when focus is no longer on them."
+  (let ((selected (selected-window))
+        (search-window (get-buffer-window sc/search-str-buffer))
+        (replace-window (get-buffer-window sc/replace-str-buffer)))
+    (when (and (or (window-live-p search-window)
+                   (window-live-p replace-window))
+               (not (eq selected search-window))
+               (not (eq selected replace-window)))
+      (sc/close-string-windows))))
+
+(when sc/is-use-timer-for-buffers
+  (when (boundp 'window-selection-change-functions)
+    (add-hook 'window-selection-change-functions #'sc/maybe-close-string-windows))
+  (when (boundp 'window-buffer-change-functions)
+    (add-hook 'window-buffer-change-functions #'sc/maybe-close-string-windows)))
 
 ;;; ------------------------------------------------------------
 ;;; hook
@@ -272,18 +305,18 @@
   (global-set-key (kbd "s-r") 'sc/alias-replace-here)
   (global-set-key (kbd "s-R") 'sc/alias-replace-region)
   (global-set-key (kbd "s-M") 'sc/grep) ;; s-m is used by Mac OS X
-  (global-set-key (kbd "s-h") (lambda () (interactive) (select-window sc/target-window)))
+  (global-set-key (kbd "s-h") 'sc/select-target-window)
   (global-set-key (kbd "C-g") 'sc/quit-str-windows))
 
 ;;; ------------------------------------------------------------
 ;;; Quit
 
 (defun sc/quit-str-windows ()
-  "Quit string windows.  Delete string windows by idle timer."
+  "Quit string windows.  Delete string windows via event hooks."
   (interactive)
   (if (or (equal (selected-window) (get-buffer-window sc/search-str-buffer))
           (equal (selected-window) (get-buffer-window sc/replace-str-buffer)))
-      (select-window sc/target-window)
+      (sc/select-target-window)
     (keyboard-quit)))
 
 ;;; ------------------------------------------------------------
@@ -294,7 +327,47 @@
   (unless (or (equal (selected-window) (get-buffer-window sc/search-str-buffer))
               (equal (selected-window) (get-buffer-window sc/replace-str-buffer)))
     (setq sc/target-window (selected-window)
-          sc/target-buffer (buffer-name))))
+          sc/target-buffer (current-buffer))))
+
+(defun sc/string-buffer-p (buffer)
+  "Return non-nil when BUFFER is a search-center helper buffer."
+  (and (buffer-live-p buffer)
+       (member (buffer-name buffer)
+               (list sc/search-str-buffer sc/replace-str-buffer))))
+
+(defun sc/find-target-window ()
+  "Return a live non-helper window to use as the search target."
+  (catch 'target-window
+    (dolist (window (window-list nil 'no-minibuf))
+      (unless (sc/string-buffer-p (window-buffer window))
+        (throw 'target-window window)))
+    nil))
+
+(defun sc/get-target-buffer ()
+  "Return the current target buffer, falling back to another live buffer."
+  (cond
+   ((and (buffer-live-p sc/target-buffer)
+         (not (sc/string-buffer-p sc/target-buffer)))
+    sc/target-buffer)
+   ((when-let ((target-window (sc/find-target-window)))
+     (setq sc/target-window target-window
+           sc/target-buffer (window-buffer target-window))))
+   (t
+    (user-error "Error: no target buffer"))))
+
+(defun sc/select-target-window ()
+  "Select the current target window, falling back to another live window."
+  (interactive)
+  (cond
+   ((and (window-live-p sc/target-window)
+         (not (sc/string-buffer-p (window-buffer sc/target-window))))
+    (select-window sc/target-window))
+   ((when-let ((target-window (sc/find-target-window)))
+     (setq sc/target-window target-window
+           sc/target-buffer (window-buffer target-window))
+     (select-window target-window)))
+   (t
+    (user-error "Error: no target window"))))
 
 ;;; ------------------------------------------------------------
 ;;; toggle re/search mode
@@ -302,29 +375,31 @@
 (defun sc/toggle-search-mode ()
   "Toggle search mode."
   (interactive)
-  (unless (get-buffer sc/search-str-buffer) (get-buffer-create sc/search-str-buffer))
-  (unless (get-buffer sc/replace-str-buffer) (get-buffer-create sc/replace-str-buffer))
-  (sc/keep-target-buffer)
-  (if (eq search-center-re-mode nil)
-      ;; turn into regrex
+  (let ((target-buffer nil))
+    (unless (get-buffer sc/search-str-buffer) (get-buffer-create sc/search-str-buffer))
+    (unless (get-buffer sc/replace-str-buffer) (get-buffer-create sc/replace-str-buffer))
+    (sc/keep-target-buffer)
+    (setq target-buffer (sc/get-target-buffer))
+    (if (eq search-center-re-mode nil)
+      ;; turn into regex
       ;; 正規表現モードをオン
-      (progn
-        (with-current-buffer sc/target-buffer
-          (search-center-re-mode t))
-        (with-current-buffer sc/search-str-buffer
-          (search-center-re-mode t))
-        (with-current-buffer sc/replace-str-buffer
-          (search-center-re-mode t))
-        (message "%s" (concat "turned into RE with " sc/target-buffer)))
-    ;; turn off regrex
-    ;; 正規表現モードをオフ
-    (with-current-buffer sc/target-buffer
-      (search-center-re-mode -1))
-    (with-current-buffer sc/search-str-buffer
-      (search-center-re-mode -1))
-    (with-current-buffer sc/replace-str-buffer
-      (search-center-re-mode -1))
-    (message "%s" (concat "turned off RE with " sc/target-buffer))))
+        (progn
+          (with-current-buffer target-buffer
+            (search-center-re-mode t))
+          (with-current-buffer sc/search-str-buffer
+            (search-center-re-mode t))
+          (with-current-buffer sc/replace-str-buffer
+            (search-center-re-mode t))
+          (message "%s" (concat "turned into RE with " (buffer-name target-buffer))))
+      ;; turn off regex
+      ;; 正規表現モードをオフ
+      (with-current-buffer target-buffer
+        (search-center-re-mode -1))
+      (with-current-buffer sc/search-str-buffer
+        (search-center-re-mode -1))
+      (with-current-buffer sc/replace-str-buffer
+        (search-center-re-mode -1))
+      (message "%s" (concat "turned off RE with " (buffer-name target-buffer))))))
 
 ;;; ------------------------------------------------------------
 ;;; set clip board strings to search buffer
@@ -426,10 +501,9 @@
   (let* ((is-search-window-exist (windowp (get-buffer-window sc/search-str-buffer)))
          (is-replace-window-exist (windowp (get-buffer-window sc/replace-str-buffer))))
 
-    (setq sc/ignore-delete-window-hook t)
     (sc/keep-target-buffer)
 
-    ;; search/replace wiondow cannot exists alone
+    ;; search/replace windows cannot exist alone
     ;; どちらかだけ開いていたら、もう片方を閉じる
     (when (and is-search-window-exist (not is-replace-window-exist))
       (delete-window (get-buffer-window sc/search-str-buffer)))
@@ -481,9 +555,7 @@
     ;; 全選択状態にする
     (goto-char (point-min))
     (set-mark (point)) ;; not into mark-ring
-    (goto-char (point-max))
-
-    (setq sc/ignore-delete-window-hook t)))
+    (goto-char (point-max))))
 
 ;;; ------------------------------------------------------------
 ;;; common function
@@ -501,7 +573,7 @@
         ;; prepare replace string or replace by foreign-regexp
         (when is-re
           (if sc/is-foreign-regexp
-              ;; perform repalce by foreign-regexp
+              ;; perform replace by foreign-regexp
               (progn
                 (foreign-regexp/replace/perform-replace
                  search-str replace-str nil nil nil nil nil beg end)
@@ -516,7 +588,7 @@
           (delete-region beg end)
           (insert replace-str))))))
 
-;; generate region and controll direction of search
+;; generate region and control direction of search
 ;; 選択範囲の作成用関数
 ;; 検索方向に応じて、キャレットの位置を適切にする
 (defun sc/generate-region (direction len-search-string)
@@ -623,7 +695,7 @@
     ;; 現在のウィンドウが検索・置換編集用ウィンドウだったら、主たるウィンドウに移動する
     (sc/keep-target-buffer)
     (unless (eq (selected-window) sc/target-window)
-      (select-window sc/target-window))
+      (sc/select-target-window))
 
     ;; get search strings
     ;; 検索用文字列の取得（必須）
@@ -709,7 +781,7 @@
      ;; replace here
      ;; その場を置換
      (is-replace-here (sc/replace-region search-str replace-str is-re))
-     ;; move corsor
+     ;; move cursor
      ;; 通常はただのキャレット移動
      (t (sc/move-region)))
 
@@ -740,7 +812,7 @@
     ;; target window
     ;; 現在のウィンドウが検索・置換編集用ウィンドウだったら、主たるウィンドウに移動する
     (unless (eq (selected-window) sc/target-window)
-      (select-window sc/target-window))
+      (sc/select-target-window))
 
     ;; get search strings
     ;; 検索用文字列の取得
@@ -784,19 +856,18 @@
 
     ;; replace
     ;; 選択範囲内を置換する
-    (ignore-errors
-      (save-excursion
-        (save-restriction
-          (narrow-to-region beg end)
-          (cond ((and is-re sc/is-foreign-regexp)
-                 (foreign-regexp/replace/perform-replace
-                  search-str replace-str nil nil nil nil nil beg end))
-                (is-re
-                 (perform-replace
-                  search-str replace-str nil t nil nil nil beg end))
-                (t
-                 (perform-replace
-                  search-str replace-str nil nil nil nil nil beg end))))))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region beg end)
+        (cond ((and is-re sc/is-foreign-regexp)
+               (foreign-regexp/replace/perform-replace
+                search-str replace-str nil nil nil nil nil beg end))
+              (is-re
+               (perform-replace
+                search-str replace-str nil t nil nil nil beg end))
+              (t
+               (perform-replace
+                search-str replace-str nil nil nil nil nil beg end)))))
 
     ;; keep strings
     ;; 今回検索・置換した文字を次回用に保存
@@ -806,8 +877,8 @@
 ;;; ------------------------------------------------------------
 ;; multi files search
 ;; マルチファイル検索
-;; 対象ディレクトリと拡張子を指定したら検索する。ただのrgrepのwrapper
-;; thx http://d.hatena.ne.jp/IMAKADO/20090225/1235526604
+;; 対象ディレクトリと拡張子を指定したら検索する。ただのrgrepのラッパー
+;; ref: http://d.hatena.ne.jp/IMAKADO/20090225/1235526604
 
 (require 'grep)
 ;; (require 'gtags)
@@ -818,9 +889,13 @@
   "It asks STRING and EXT for grep command line and IGNORE are for grep-find-ignored-directories and PWD for current directory."
   (interactive
    (progn
-     (let ((default (sc/get-strings "search"))
-           (target-ext (concat "*." (ignore-errors
-                                      (file-name-extension (buffer-file-name)))))
+     (let* ((default (sc/get-strings "search"))
+            (buffer-ext (when buffer-file-name
+                          (file-name-extension buffer-file-name)))
+            (target-ext (if (and buffer-ext
+                                 (not (string-empty-p buffer-ext)))
+                            (concat "*." buffer-ext)
+                          "*"))
            (target-dir default-directory))
            ;; (target-dir (if (gtags-get-rootpath)
            ;;                 (directory-file-name (gtags-get-rootpath))
@@ -830,18 +905,41 @@
              (read-from-minibuffer "Extension (plural available): " target-ext)
              (read-from-minibuffer "Ignored Directories: " "logs caches")
              (read-directory-name "Directory: " target-dir target-dir t)))))
-  (when ignore
-    (dolist (ignore-dir (split-string ignore " "))
-      (add-to-list 'grep-find-ignored-directories ignore-dir)))
-  (rgrep string ext pwd nil))
+  (when (or (not (stringp string))
+            (string-empty-p string))
+    (user-error "Error: search word is empty"))
+  (let ((grep-find-ignored-directories (copy-sequence grep-find-ignored-directories)))
+    (when ignore
+      (dolist (ignore-dir (split-string ignore " " t))
+        (add-to-list 'grep-find-ignored-directories ignore-dir)))
+    (let ((sc/is-renaming-rgrep-buffer t))
+      (rgrep string
+             (if (and (stringp ext)
+                      (not (string-empty-p ext)))
+                 ext
+               "*")
+             pwd
+             nil))))
 
-;; defadvice rgrep
-(defun my-confirm-kill-grep-buffer (&rest _args)
-  "Confirm deleting existing *grep* buffer before running rgrep."
-  (when (get-buffer "*grep*")
-    (when (y-or-n-p "Delete existing *grep* buffer? ")
-      (kill-buffer "*grep*"))))
-(advice-add 'rgrep :before #'my-confirm-kill-grep-buffer)
+;; name rgrep buffers per search so old results can be kept.
+(defun my/rgrep-buffer-name (regexp files dir)
+  "Build a descriptive grep buffer name from REGEXP, FILES and DIR."
+  (let* ((dir-name (file-name-nondirectory
+                    (directory-file-name (expand-file-name dir))))
+         (search-label (replace-regexp-in-string "[ \t\n\r]+" " " regexp))
+         (search-label (truncate-string-to-width search-label 30 nil nil t)))
+    (format "*grep: %s @ %s [%s]*" search-label dir-name files)))
+
+(defun my/rename-rgrep-buffer (regexp files dir &rest _args)
+  "Rename the latest rgrep buffer using REGEXP, FILES and DIR."
+  (when-let ((grep-buffer (and sc/is-renaming-rgrep-buffer
+                               (get-buffer "*grep*"))))
+    (with-current-buffer grep-buffer
+      (rename-buffer
+       (generate-new-buffer-name
+        (my/rgrep-buffer-name regexp files dir))
+       t))))
+(advice-add 'rgrep :after #'my/rename-rgrep-buffer)
 
 ;;; ------------------------------------------------------------
 ;;; experimental area
