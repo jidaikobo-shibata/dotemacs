@@ -213,9 +213,10 @@
 ;;; ------------------------------------------------------------
 ;;; flycheck
 ;;; ------------------------------------------------------------
-(require 'flycheck)
-(autoload 'flycheck "flycheck-mode"
-  "Major mode for flycheck" t)
+(defun my/enable-flycheck-if-available ()
+  "Enable Flycheck when the package is available."
+  (when (require 'flycheck nil t)
+    (flycheck-mode 1)))
 
 (with-eval-after-load 'flycheck
   (setq flycheck-emacs-lisp-load-path 'inherit)
@@ -232,10 +233,10 @@
   (define-key flycheck-error-list-mode-map [escape] 'quit-window))
 
 ;; enable
-(add-hook 'php-mode-hook 'flycheck-mode)
-(add-hook 'html-mode-hook 'flycheck-mode)
-(add-hook 'lisp-mode-hook 'flycheck-mode)
-(add-hook 'emacs-lisp-mode-hook 'flycheck-mode)
+(add-hook 'php-mode-hook #'my/enable-flycheck-if-available)
+(add-hook 'html-mode-hook #'my/enable-flycheck-if-available)
+(add-hook 'lisp-mode-hook #'my/enable-flycheck-if-available)
+(add-hook 'emacs-lisp-mode-hook #'my/enable-flycheck-if-available)
 
 ;;; ------------------------------------------------------------
 ;;; provides

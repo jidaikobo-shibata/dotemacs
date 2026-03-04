@@ -131,13 +131,24 @@
 ;;; ------------------------------------------------------------
 ;; .poファイルを保存したらmsgfmt -oする
 
-(add-hook 'after-save-hook
-          (lambda ()
-            (when (string= (file-name-extension (buffer-file-name)) "po")
-              (shell-command (concat
-                              "msgfmt -o "
-                              (substring (buffer-file-name) 0 -2) "mo "
-                              (buffer-file-name))))))
+(defun my/msgfmt-compile-po-file ()
+  "Compile the current local .po file into a .mo file."
+  (when (and buffer-file-name
+             (string= (file-name-extension buffer-file-name) "po")
+             (not (file-remote-p buffer-file-name))
+             (executable-find "msgfmt"))
+    (let ((po-file buffer-file-name)
+          (mo-file (concat (file-name-sans-extension buffer-file-name) ".mo")))
+      (unless (zerop (process-file "msgfmt" nil nil nil "-o" mo-file po-file))
+        (message "msgfmt failed: %s" po-file)))))
+
+(defun my/enable-msgfmt-after-save ()
+  "Enable local .po compilation after save for the current buffer."
+  (when (and buffer-file-name
+             (string= (file-name-extension buffer-file-name) "po"))
+    (add-hook 'after-save-hook #'my/msgfmt-compile-po-file nil t)))
+
+(add-hook 'po-mode-hook #'my/enable-msgfmt-after-save)
 
 ;;; ------------------------------------------------------------
 ;;; provides

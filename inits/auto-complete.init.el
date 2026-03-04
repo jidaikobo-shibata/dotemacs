@@ -30,6 +30,16 @@
 (add-to-list 'ac-modes 'yaml-mode)
 (add-to-list 'ac-modes 'default-generic-mode)
 
+(defun my/ac-commit-dictionary-update (dict-path)
+  "Commit the dictionary update for DICT-PATH in the Emacs config repo."
+  (let* ((expanded-path (expand-file-name dict-path))
+         (relative-path (file-relative-name expanded-path user-emacs-directory))
+         (default-directory user-emacs-directory))
+    (unless (zerop (process-file "git" nil nil nil
+                                 "commit" relative-path
+                                 "-m" "dictionary update."))
+      (message "git commit failed: %s" expanded-path))))
+
 ;;; 辞書に文字列を足して、git commit
 (defun add-strings-to-ac-my-dictionary (dict-path)
   "Add strings to ac my dictionary.  DICT-PATH."
@@ -42,14 +52,14 @@
     (with-temp-buffer
       (insert-file-contents dict-path)
       (goto-char (point-min))
-      (if (re-search-forward (concat "^" strings "$") nil t)
+      (if (re-search-forward (concat "^" (regexp-quote strings) "$") nil t)
           (message (concat "strings was already exists: " strings))
         (goto-char (point-max))
         (insert (concat "\n" strings))
         (sort-lines nil (point-min) (point-max))
         (delete-duplicate-lines (point-min) (point-max))
         (write-file dict-path)
-        (shell-command (concat "git commit " dict-path " -m \"dictionary update.\""))
+        (my/ac-commit-dictionary-update dict-path)
         (ac-clear-dictionary-cache)
         (message (concat "Add \"" strings "\"and git commit."))))))
 
@@ -65,7 +75,7 @@
     (with-temp-buffer
       (insert-file-contents dict-path)
       (goto-char (point-min))
-      (if (re-search-forward (concat "^" strings "$") nil t)
+      (if (re-search-forward (concat "^" (regexp-quote strings) "$") nil t)
           (if (yes-or-no-p (concat "Remove?:" strings))
               (progn
                 (beginning-of-line)
@@ -73,7 +83,7 @@
                 (sort-lines nil (point-min) (point-max))
                 (delete-duplicate-lines (point-min) (point-max))
                 (write-file dict-path)
-                (shell-command (concat "git commit " dict-path " -m \"dictionary update.\""))
+                (my/ac-commit-dictionary-update dict-path)
                 (ac-clear-dictionary-cache)
                 (message (concat "Remove \"" strings "\"and git commit.")))
             (message (concat "Did nothing with: " strings)))

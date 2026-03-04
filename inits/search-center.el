@@ -95,6 +95,8 @@
 ;;; ------------------------------------------------------------
 ;;; dependencies
 
+(require 'subr-x)
+
 ;; Emacs 26でforeign-regexpがエラーを出すので抑止
 ;; (defvaralias 'lazy-highlight-face 'isearch-lazy-highlight)
 
@@ -398,6 +400,13 @@
     (with-current-buffer target
       (setq ret (buffer-substring-no-properties (point-min) (point-max))))
 
+    ;; empty search string should be treated as unset
+    ;; 検索文字列では空文字を未設定扱いにする
+    (when (and (string= mode "search")
+               (stringp ret)
+               (string-empty-p ret))
+      (setq ret nil))
+
     ;; ask global
     (if (and (not ret) (string= mode "search"))
         (setq ret (if (boundp 'sc/previous-searched-str) sc/previous-searched-str nil)))
@@ -551,6 +560,11 @@
 
     ;; check global variable
     ;; グローバルな変数にも尋ねる
+    (when (and (string= type "search")
+               (stringp ret)
+               (string-empty-p ret))
+      (setq ret nil))
+
     (if (and (not ret) (string= type "search"))
         (setq ret (if (boundp 'sc/previous-searched-str) sc/previous-searched-str nil)))
 
