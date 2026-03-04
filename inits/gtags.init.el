@@ -44,8 +44,7 @@
 (with-eval-after-load 'gtags
   (setq gtags-global-command
         (or (executable-find "global")
-            "/usr/bin/global"
-            "/home/jdkb/bin/global"))
+            "/usr/bin/global"))
   (setq gtags-path-style 'absolute)
   (setq gtags-auto-update nil)
   (define-key gtags-mode-map (kbd "M-.") 'gtags-find-tag)
