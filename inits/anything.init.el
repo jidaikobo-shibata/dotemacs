@@ -3,8 +3,11 @@
 ;; provide anything.init.
 ;;; Code:
 
-(require 'anything)
-(require 'anything-config)
+(defvar my/anything-available
+  (require 'anything nil t))
+
+(when my/anything-available
+  (require 'anything-config)
 
 ;; key binds
 (define-key anything-map [escape] 'anything-keyboard-quit)
@@ -234,6 +237,8 @@
    '(anything-c-source-coding-system)
    "*my-anything-c-source-coding-system*"))
 (global-set-key (kbd "C-^") 'my-anything-for-coding-system)
+
+  )
 
 ;;; ------------------------------------------------------------
 ;;; provides

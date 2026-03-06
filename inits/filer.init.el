@@ -6,8 +6,8 @@
 ;;; ------------------------------------------------------------
 ;; find-fileをzshライクに
 ;; thx http://d.hatena.ne.jp/mooz/20101003/p1
-(require 'zlc)
-(zlc-mode 1)
+(when (require 'zlc nil t)
+  (zlc-mode 1))
 (let ((map minibuffer-local-map))
   (define-key map (kbd "<down>") 'next-history-element)
   (define-key map (kbd "<up>")   'previous-history-element))
@@ -48,7 +48,7 @@
 (setq ls-lisp-format-time-list (quote ("%Y-%m-%d %H:%M" "%Y-%m-%d %H:%M")))
 
 ;; emacs-async
-(eval-after-load "dired-aux" '(require 'dired-async))
+(eval-after-load "dired-aux" '(require 'dired-async nil t))
 
 ;; omit .DS_Store
 ;; thx https://www.emacswiki.org/emacs/DiredOmitMode

@@ -97,33 +97,37 @@
 
 ;;; ------------------------------------------------------------
 ;;; 複数箇所選択 - multiple-cursors and smartrep
-(require 'multiple-cursors)
-(require 'smartrep)
+(defvar my/multiple-cursors-available
+  (require 'multiple-cursors nil t))
+(defvar my/smartrep-available
+  (require 'smartrep nil t))
 
 (declare-function smartrep-define-key "smartrep")
 
-(define-key mc/keymap (kbd "<return>")
-  (lambda () (interactive) (insert (char-to-string 10))))
+(when my/multiple-cursors-available
+  (define-key mc/keymap (kbd "<return>")
+    (lambda () (interactive) (insert (char-to-string 10))))
 
-(global-set-key (kbd "C-M-c") 'mc/edit-lines)
-(global-set-key (kbd "C-M-r") 'mc/mark-all-in-region)
+  (global-set-key (kbd "C-M-c") 'mc/edit-lines)
+  (global-set-key (kbd "C-M-r") 'mc/mark-all-in-region))
 
-(global-unset-key "\C-t")
+(when (and my/multiple-cursors-available my/smartrep-available)
+  (global-unset-key "\C-t")
 
-(smartrep-define-key global-map "C-t"
-'(("C-t" . 'mc/mark-next-like-this)
-  ("n"   . 'mc/mark-next-like-this)
-  ("p"   . 'mc/mark-previous-like-this)
-  ("m"   . 'mc/mark-more-like-this-extended)
-  ("u"   . 'mc/unmark-next-like-this)
-  ("U"   . 'mc/unmark-previous-like-this)
-  ("s"   . 'mc/skip-to-next-like-this)
-  ("S"   . 'mc/skip-to-previous-like-this)
-  ("*"   . 'mc/mark-all-like-this)
-  ("d"   . 'mc/mark-all-like-this-dwim)
-  ("i"   . 'my/mc/insert-numbers)
-  ("o"   . 'mc/sort-regions)
-  ("O"   . 'mc/reverse-regions)))
+  (smartrep-define-key global-map "C-t"
+    '(("C-t" . 'mc/mark-next-like-this)
+      ("n"   . 'mc/mark-next-like-this)
+      ("p"   . 'mc/mark-previous-like-this)
+      ("m"   . 'mc/mark-more-like-this-extended)
+      ("u"   . 'mc/unmark-next-like-this)
+      ("U"   . 'mc/unmark-previous-like-this)
+      ("s"   . 'mc/skip-to-next-like-this)
+      ("S"   . 'mc/skip-to-previous-like-this)
+      ("*"   . 'mc/mark-all-like-this)
+      ("d"   . 'mc/mark-all-like-this-dwim)
+      ("i"   . 'my/mc/insert-numbers)
+      ("o"   . 'mc/sort-regions)
+      ("O"   . 'mc/reverse-regions))))
 
 ;;; Insert specific serial number
 ;; thx http://qiita.com/ShingoFukuyama/items/3ad7e24cb2d8f55b4cc5
@@ -203,8 +207,8 @@
 ;; gist-name: defadvice-indent-for-tab-command.el
 ;; gist-private: nil
 
-(defadvice indent-for-tab-command (around advise-indent-for-tab-command activate)
-  "To integrate indent style, delete existing whitespaces before indentation."
+(defun my/indent-for-tab-command--normalize-indent (orig-fun &rest args)
+  "Normalize line head whitespace before ORIG-FUN with ARGS."
   (let (beg
         end
         (end-line nil))
@@ -224,10 +228,12 @@
     (set-mark-command nil)
     (goto-char end)
 
-    ad-do-it
+    (apply orig-fun args)
 
     (when end-line (forward-line -1)) ;; why should i have to do minus?
     (back-to-indentation)))
+
+(advice-add 'indent-for-tab-command :around #'my/indent-for-tab-command--normalize-indent)
 
 (global-set-key (kbd "<backtab>") 'indent-for-tab-command)
 
@@ -408,22 +414,25 @@
 ;;; ------------------------------------------------------------
 ;;; align-regexpが、indent-tabs-modeがtでも、スペースを詰めるように
 
-(defadvice align-regexp (around advise-align-regexp activate)
-  "Let ALIGN-REGEXP indent by spaces."
+(defun my/align-regexp--indent-by-space (orig-fun &rest args)
+  "Run ORIG-FUN with ARGS after forcing space indentation."
   (when indent-tabs-mode (setq indent-tabs-mode nil))
-  ad-do-it
-  (my-set-indent-tabs-mode))
+  (prog1
+      (apply orig-fun args)
+    (my-set-indent-tabs-mode)))
+
+(advice-add 'align-regexp :around #'my/align-regexp--indent-by-space)
 
 ;;; ------------------------------------------------------------
 ;;; web-beautify
 
-(require 'web-beautify)
-(setq-default web-beautify-args
-              '("-f"
-                "-"
-                ;; "--indent_with_tabs"
-                ;; "--indent-size 2"
-                "--end-with-newline"))
+(when (require 'web-beautify nil t)
+  (setq-default web-beautify-args
+                '("-f"
+                  "-"
+                  ;; "--indent_with_tabs"
+                  ;; "--indent-size 2"
+                  "--end-with-newline")))
 
 ;;; ------------------------------------------------------------
 ;;; 釣り合いのとれる括弧のハイライト

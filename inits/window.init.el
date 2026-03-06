@@ -47,10 +47,16 @@
 (global-set-key (kbd "C-0") 'delete-window)
 
 ;; 能動的なsplit-windowは、フォーカスを移動してほしい
-(defadvice split-window (after split-window-and-select activate)
-  "Split window and select."
-  (when (memq last-input-event '(50 51 67108914 67108915 C-kp-2 C-kp-3))
-  (other-window 1)))
+(defun my/split-window-and-select (orig-fun &rest args)
+  "Split window, then select the new window for interactive split commands."
+  (let ((new-window (apply orig-fun args)))
+    (when (and (window-live-p new-window)
+               (memq this-command '(split-window-vertically
+                                    split-window-horizontally)))
+      (select-window new-window))
+    new-window))
+
+(advice-add 'split-window :around #'my/split-window-and-select)
 
 ;;; ------------------------------------------------------------
 ;;; ウィンドウ/スクリーン/フレームを閉じる
@@ -96,12 +102,12 @@
 
 ;; cursor-chg
 ;; カーソルの色と形状を変更（ブロックカーソルが苦手なので）
-(require 'cursor-chg)
-(change-cursor-mode 1)
-(toggle-cursor-type-when-idle 0)
-(setq curchg-default-cursor-color "White")
-(setq curchg-input-method-cursor-color "firebrick")
-(setq curchg-change-cursor-on-input-method-flag t)
+(when (require 'cursor-chg nil t)
+  (change-cursor-mode 1)
+  (toggle-cursor-type-when-idle 0)
+  (setq curchg-default-cursor-color "White")
+  (setq curchg-input-method-cursor-color "firebrick")
+  (setq curchg-change-cursor-on-input-method-flag t))
 
 ;;; ------------------------------------------------------------
 ;;; 行設定
@@ -109,14 +115,7 @@
 ;; 行カーソル
 ;; thx http://rubikitch.com/tag/emacs-post-command-hook-timer/
 (require 'hl-line)
-(defun global-hl-line-timer-function ()
-  "Line cursor."
-  (global-hl-line-unhighlight-all)
-  (let ((global-hl-line-mode t))
-    (global-hl-line-highlight)))
-(setq-default global-hl-line-timer
-              (run-with-idle-timer 0.03 t 'global-hl-line-timer-function))
-;; (cancel-timer global-hl-line-timer)
+(global-hl-line-mode 1)
 
 ;; 行間隔を少し広げる
 (set-default 'line-spacing 3)

@@ -69,7 +69,8 @@ It defaults to a comma."
 
 ;; google-translate
 ;; http://rubikitch.com/2014/12/07/google-translate/
-(require 'google-translate)
+(defvar my/google-translate-available
+  (require 'google-translate nil t))
 ;; (setq google-translate--tkk-url "http://translate.google.cn/")
 (defvar google-translate-english-chars "[:ascii:]"
   "Ascii means English.")
@@ -94,10 +95,12 @@ It defaults to a comma."
                   (format "\\`[%s]+\\'" google-translate-english-chars)
                   string)))
     (run-at-time 0.1 nil 'deactivate-mark)
-    (google-translate-translate
-     (if asciip "en" "ja")
-     (if asciip "ja" "en")
-     string)))
+    (if (not my/google-translate-available)
+        (user-error "google-translate package is not available")
+      (google-translate-translate
+       (if asciip "en" "ja")
+       (if asciip "ja" "en")
+       string))))
 
 (global-set-key (kbd "C-c t") 'google-translate-enja-or-jaen)
 
@@ -111,38 +114,44 @@ It defaults to a comma."
 (defvar my-hist-dir (expand-file-name "~/.emacs.d/histories/"))
 (defvar my-hist-last-files (concat my-hist-dir "last-files"))
 
+(defun my/parse-legacy-last-files (content)
+  "Parse legacy CONTENT lines and return list of (PATH . POINT)."
+  (let ((ret nil))
+    (dolist (line (split-string content "\n" t))
+      (let* ((tmp (split-string line ":"))
+             (path (car tmp))
+             (pt (string-to-number (car (last tmp)))))
+        (when (and path (> (length path) 0))
+          (push (cons path pt) ret))))
+    (nreverse ret)))
+
 (add-hook 'kill-emacs-hook
           (lambda ()
-            (let ((strings "")
-                  buf-path)
-              (with-temp-buffer
-                (dolist (buf (buffer-list))
-                  (save-current-buffer
-                    (setq buf-path (buffer-file-name buf))
+            (let ((entries nil))
+              (dolist (buf (buffer-list))
+                (with-current-buffer buf
+                  (let ((buf-path (buffer-file-name)))
                     (when (and buf-path (file-exists-p buf-path))
-                      (set-buffer buf)
-                      (setq strings
-                            (concat strings "\n" buf-path ":" (number-to-string (point)))))))
-                (insert (string-trim strings))
-                (write-file my-hist-last-files)))))
+                      (push (cons buf-path (point)) entries)))))
+              (unless (file-directory-p my-hist-dir)
+                (make-directory my-hist-dir t))
+              (with-temp-file my-hist-last-files
+                (prin1 (nreverse entries) (current-buffer))))))
 
 (when (file-exists-p my-hist-last-files)
-  (let (tmp
-        path
-        pt
-        (files (split-string
-                (with-temp-buffer
-                  (insert-file-contents my-hist-last-files)
-                  (buffer-string))
-                "\n")))
-    (when files
-      (dolist (file files)
-        (setq tmp (split-string file ":"))
-        (setq path (car tmp))
-        (setq pt (string-to-number(car (reverse tmp))))
+  (let* ((content (with-temp-buffer
+                    (insert-file-contents my-hist-last-files)
+                    (buffer-string)))
+         (entries
+          (condition-case nil
+              (read content)
+            (error (my/parse-legacy-last-files content)))))
+    (dolist (entry entries)
+      (let ((path (car entry))
+            (pt (cdr entry)))
         (when (file-exists-p path)
           (find-file path)
-          (goto-char  pt))))))
+          (goto-char pt))))))
 
 ;;; ------------------------------------------------------------
 ;;; provides

@@ -96,13 +96,13 @@
 ;;; dependencies
 
 (require 'subr-x)
+(require 'cl-lib)
 
 ;; Emacs 26でforeign-regexpがエラーを出すので抑止
 ;; (defvaralias 'lazy-highlight-face 'isearch-lazy-highlight)
 
 ;; foreign-regexp
-(when (package-installed-p 'foreign-regexp)
-  (with-no-warnings (require 'foreign-regexp))
+(when (require 'foreign-regexp nil t)
   (eval-after-load "foreign-regexp"
     (progn
       (custom-set-variables
@@ -715,75 +715,45 @@
       (setq replace-str (if (boundp 'sc/previous-replaced-str) sc/previous-replaced-str nil)))
     (if (and is-replace (not replace-str)) (error "Error: replace word is empty"))
 
-    ;; move cursor and generate region
-    ;; 検索文字列にキャレットを移動しリージョンにする関数
-    (defun sc/move-region ()
-      (let (found)
-        (setq found
-              (cond
-               ((and (not is-re) is-next)
-                (search-forward search-str nil t))
-               ((and (not is-re) is-prev)
-                (search-backward search-str nil t))
-               ((and is-re is-next)
-                (if sc/is-foreign-regexp
-                    (foreign-regexp/search/forward search-str)
-                  (re-search-forward search-str nil t)))
-               ((and is-re is-prev)
-                (if sc/is-foreign-regexp
-                    (foreign-regexp/search/backward search-str)
-                  (re-search-backward search-str nil t)))))
-        (if (not found)
-            (progn
-              (message "Not found: %s" search-str)
-              (deactivate-mark)
-              (keyboard-quit))
-          ;; get length of searched strings
-          ;; ヒットした文字長の取得
-          (if is-re
-              (setq len-search-string (length (match-string-no-properties 0)))
-            (setq len-search-string (length search-str)))
-          ;; generate region
-          ;; リージョン作成
-          (sc/generate-region (if is-next "next" "prev") len-search-string))))
-
-    ;; (defun sc/move-region ()
-    ;;   (cond
-    ;;    ((and (not is-re) is-next)
-    ;;     (search-forward search-str nil t))
-    ;;    ((and (not is-re) is-prev)
-    ;;     (search-backward search-str nil t))
-    ;;    ((and is-re is-next)
-    ;;     (if sc/is-foreign-regexp
-    ;;         (foreign-regexp/search/forward search-str)
-    ;;       (re-search-forward search-str nil t)))
-    ;;    ((and is-re is-prev)
-    ;;     (if sc/is-foreign-regexp
-    ;;         (foreign-regexp/search/backward search-str)
-    ;;       (re-search-backward search-str nil t))))
-    ;;   ;; get length of searched strings
-    ;;   ;; ヒットした文字長の取得
-    ;;   (if is-re
-    ;;       (setq len-search-string (length (match-string-no-properties 0)))
-    ;;     (setq len-search-string (length search-str)))
-    ;;   ;; generate region
-    ;;   ;; リージョン作成
-    ;;   (sc/generate-region (if is-next "next" "prev") len-search-string))
-
     ;; main process
     ;; 処理本体
-    (cond
-     ;; replace and next
-     ;; rep-nextやrep-prevは、いまの選択範囲を置換してから次に行くようにする
-     ((or (and is-replace is-next) (and is-replace is-prev))
-      (progn (when mark-active (sc/replace-region search-str replace-str is-re))
-             (sc/move-region)))
-     ;; replace here
-     ;; その場を置換
-     (is-replace-here (sc/replace-region search-str replace-str is-re))
-     ;; move cursor
-     ;; 通常はただのキャレット移動
-     (t (sc/move-region)))
+    (cl-labels
+        ((move-region ()
+           ;; 検索文字列にキャレットを移動しリージョンにする。
+           (let (found)
+             (setq found
+                   (cond
+                    ((and (not is-re) is-next)
+                     (search-forward search-str nil t))
+                    ((and (not is-re) is-prev)
+                     (search-backward search-str nil t))
+                    ((and is-re is-next)
+                     (if sc/is-foreign-regexp
+                         (foreign-regexp/search/forward search-str)
+                       (re-search-forward search-str nil t)))
+                    ((and is-re is-prev)
+                     (if sc/is-foreign-regexp
+                         (foreign-regexp/search/backward search-str)
+                       (re-search-backward search-str nil t)))))
+             (if (not found)
+                 (progn
+                   (message "Not found: %s" search-str)
+                   (deactivate-mark)
+                   (keyboard-quit))
+               ;; ヒットした文字長を取得してリージョン作成する。
+               (if is-re
+                   (setq len-search-string (length (match-string-no-properties 0)))
+                 (setq len-search-string (length search-str)))
+               (sc/generate-region (if is-next "next" "prev") len-search-string)))))
+      (cond
+       ;; rep-nextやrep-prevは、いまの選択範囲を置換してから次に行くようにする
+       ((or (and is-replace is-next) (and is-replace is-prev))
+        (progn (when mark-active (sc/replace-region search-str replace-str is-re))
+               (move-region)))
+       ;; その場を置換
+       (is-replace-here (sc/replace-region search-str replace-str is-re))
+       ;; 通常はただのキャレット移動
+       (t (move-region))))
 
     ;; keep strings
     ;; 今回検索・置換した文字を次回用に保存

@@ -133,27 +133,36 @@
 ;;; php-mode
 ;; not working at ubuntu
 
-(require 'php-mode)
+(defvar my/php-mode-available
+  (require 'php-mode nil t))
 
-(setq auto-mode-alist
-       (append '(("\\.php$" . php-mode))
-           auto-mode-alist))
+(when my/php-mode-available
+  (setq auto-mode-alist
+        (append '(("\\.php$" . php-mode))
+                auto-mode-alist)))
 
 (defun unindent-closure ()
   "Fix php-mode indent for closures."
   (let ((syntax (mapcar 'car c-syntactic-context)))
-    (if (and (member 'arglist-cont-nonempty syntax)
-             (or
-              (member 'statement-block-intro syntax)
-              (member 'brace-list-intro syntax)
-              (member 'brace-list-close syntax)
-              (member 'block-close syntax)))
-       (save-excursion
-          (beginning-of-line)
-          (delete-char (* (count 'arglist-cont-nonempty syntax)
-                          c-basic-offset))) )))
+    (when (and (member 'arglist-cont-nonempty syntax)
+               (or
+                (member 'statement-block-intro syntax)
+                (member 'brace-list-intro syntax)
+                (member 'brace-list-close syntax)
+                (member 'block-close syntax)))
+      (save-excursion
+        (beginning-of-line)
+        (let* ((beg (point))
+               (indent-end (progn (skip-chars-forward " \t") (point)))
+               (depth 0))
+          (dolist (item syntax)
+            (when (eq item 'arglist-cont-nonempty)
+              (setq depth (1+ depth))))
+          ;; 削除対象を行頭空白に限定し、非空白文字は削らない。
+          (delete-region beg (min indent-end (+ beg (* depth c-basic-offset)))))))))
 
-(setq php-mode-enable-project-coding-style nil)
+(when my/php-mode-available
+  (setq php-mode-enable-project-coding-style nil))
 
 (add-hook 'php-mode-hook
           #'(lambda()
@@ -169,7 +178,7 @@
              (setq c-basic-offset 4)
              (setq indent-tabs-mode nil) ;; タブ文字をスペースに変換
 
-             (add-hook 'c-special-indent-hook 'unindent-closure)
+             (add-hook 'c-special-indent-hook #'unindent-closure nil t)
 
              (c-set-offset 'case-label 4)
              (c-set-offset 'arglist-intro 4)

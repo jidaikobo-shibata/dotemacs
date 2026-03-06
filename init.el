@@ -71,6 +71,14 @@
                 (append mode-line-format
                         '(:eval (when my-dev-mode-on " [DEV]")))))
 
+(defun my/require-optional (feature)
+  "Require FEATURE, but keep startup running when it fails."
+  (condition-case err
+      (require feature)
+    (error
+     (message "Skip optional module %s: %s" feature err)
+     nil)))
+
 ;;; ------------------------------------------------------------
 ;; prepare
 
@@ -145,12 +153,12 @@
     (require 'window.init)
     (require 'filer.init)
     (require 'tramp.init)
-    (require 'anything.init)
-    (require 'ace-jump-mode.init)
-    (require 'auto-complete.init)
+    (my/require-optional 'anything.init)
+    (my/require-optional 'ace-jump-mode.init)
+    (my/require-optional 'auto-complete.init)
     (require 'modes.init)
     (require 'elisp.init)
-    (require 'gtags.init)
+    (my/require-optional 'gtags.init)
     (require 'markdown.init)
     (require 'util.init)
     ))

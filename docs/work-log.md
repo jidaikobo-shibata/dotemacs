@@ -112,3 +112,137 @@
 - なぜそうしたか: 動作確認後の軽い保守として、コメントと実装の不一致や typo を減らし、あとで読み返した時の引っかかりを減らすため。
 - 未完了の事項: 変数名や関数名そのものには古い綴りや命名方針の揺れがまだ残るが、今回は挙動影響を避けてコメント整理のみに留めた。
 - 次にやるとよいこと: 必要なら次は、シンボル名の整理を互換性を崩さない範囲で段階的に進める。
+
+- 何をしたか: `elisp/codex-pane.el` を新規追加し、上下2分割（上: 出力 / 下: 入力）で `C-c C-c` 送信できる最小の Codex 連携 UI を実装した。あわせて `init.el` に `(require 'codex-pane)` を追加して起動時に読み込むようにした。
+- なぜそうしたか: 要望の「下で入力してキーバインド送信し、上に返答を表示する」をすぐ使える形で満たすため。`make-process` を使ってシェル経由を避け、引数注入リスクを下げつつ非同期で応答を表示できる構成にした。
+- 未完了の事項: `codex-pane-cli-command` の実引数は環境ごとに異なる可能性があるため、必要に応じてユーザー環境の Codex CLI 仕様に合わせた調整が必要。
+- 次にやるとよいこと: `M-x codex-pane-open` で起動し、`*codex-input*` で `C-c C-c` を押して実際に応答が `*codex-output*` に出るかを確認する。必要なら送信時にバッファ全体ではなくリージョン送信を追加する。
+
+- 何をしたか: `codex-pane-open` の入力バッファ初期化を修正し、`text-mode` と `codex-pane-input-mode` を `*codex-input*` バッファに対して確実に有効化するようにした。
+- なぜそうしたか: これまで `set-window-buffer` 後に current buffer が切り替わる前提で処理していたため、`C-c C-c` が入力バッファで未定義になることがあったため。
+- 未完了の事項: 送信コマンド自体の CLI 引数最適化は未調整のまま。
+- 次にやるとよいこと: `M-x codex-pane-open` 後、`*codex-input*` で `C-c C-c` を押して送信できることを実機で確認する。
+
+- 何をしたか: `codex-pane--append-output` を更新し、出力追記後に `*codex-output*` を表示している全ウィンドウの `window-point` を末尾へ移動する自動スクロールを追加した。
+- なぜそうしたか: 応答ストリームが伸びるたびに手動スクロールしなくても、上ペインが常に最新出力を追従できるようにするため。
+- 未完了の事項: ユーザーが途中を読んでいるときも追従する挙動なので、「手動スクロール中は追従停止」の配慮は未実装。
+- 次にやるとよいこと: 必要なら「下端付近にいる時だけ自動追従する」条件を追加し、閲覧中の意図しないジャンプを防ぐ。
+
+- 何をしたか: 実験用に追加していた `elisp/codex-pane.el` を削除し、`init.el` から `(require 'codex-pane)` を除去した。
+- なぜそうしたか: 実験終了に伴い、不要な読み込みと関連ファイルを残さないため。
+- 未完了の事項: なし。
+- 次にやるとよいこと: Emacs 再起動後に起動エラーが出ないことだけ確認する。
+
+## 2026-03-05
+
+- 何をしたか: 起動時の `anything-config.el` 警告を調査し、`elpa/anything-20170125.1710/anything-config.elc` が欠けていたため、`byte-compile-file` で `anything-config.elc` を生成した。`require 'anything-config` の再確認で、`letf` / `loop` 由来の警告が再現しないことを確認した。
+- なぜそうしたか: 古い `anything` 実装自体は残っていても、`.el` 直読みを避けて `.elc` を使うことで、起動時のノイズを減らせるため。
+- 未完了の事項: `anything` 本体が古いこと自体は未解決で、将来の Emacs 互換性リスクは残る。
+- 次にやるとよいこと: 長期的には `helm` / `consult` への段階移行を検討する。
+
+- 何をしたか: `emacs-mozc` の警告について、APT 上の版を確認し、Ubuntu noble では `2.28.4715.102+dfsg-2.2build7` が installed/candidate 同一であることを確認した。`inits/mozc.init.el` 側で `warning-minimum-level` や `byte-compile-warnings` の一時変更による抑制も試したが、起動時ログの `mozc.el` 警告には実効が薄いことを確認した。
+- なぜそうしたか: まず設定側で安全に抑制できるかを見極め、システムファイル改変の必要性を判断するため。
+- 未完了の事項: `inits/mozc.init.el` に警告抑制の試行コードが残っており、現状の解決手段（`.elc` 生成）には必須ではない。
+- 次にやるとよいこと: `mozc.init.el` の抑制コードは、不要なら通常の `require` へ戻して簡素化する。
+
+- 何をしたか: ユーザー実施の `sudo emacs --batch ... (byte-compile-file \"/usr/share/emacs/site-lisp/emacs-mozc/mozc.el\")` により、`mozc.el` の起動時 warning が消えることを確認した。
+- なぜそうしたか: システム側 `mozc.el` がソース読込されることで出ていた obsolete 警告を、事前コンパイルで抑えるため。
+- 未完了の事項: パッケージ更新時に `mozc.elc` が消える・再生成が必要になる可能性は残る（更新頻度は低い見込み）。
+- 次にやるとよいこと: 更新後に警告が再発した場合は同じコマンドで再生成し、異常時は `mozc.elc` 削除でロールバックする。
+
+- 何をしたか: `inits/` 全体を静的レビューし、バグ・無効コード・不安定要因を優先度付きで抽出した。重点確認は `modes.init.el`、`search-center.el`、`window.init.el`、`util.init.el`、`anything.init.el`。
+- なぜそうしたか: 自作 elisp 改善を進めるにあたり、まず「起動停止や不安定化に直結する箇所」を先に特定して、修正順序を明確化するため。
+- 主な指摘:
+  - `modes.init.el` の `php-mode-hook` 内で `c-special-indent-hook` へ `add-hook` しており、ローカル指定なしのためバッファを開くたびに重複登録されうる。
+  - `modes.init.el` の `unindent-closure` が `delete-char` で固定量を削除しており、条件次第で意図しない削除が起きる余地がある。
+  - `search-center.el` で `sc/search` 実行中に `sc/move-region` を `defun` しており、都度のグローバル再定義で保守性が下がる。
+  - `modes.init.el` / `window.init.el` / `util.init.el` / `anything.init.el` の `require` が強制で、依存欠落時に起動失敗しやすい（環境差に弱い）。
+  - `window.init.el` の `0.03` 秒 idle timer 更新は常時負荷とチラつき要因になりうる。
+  - `util.init.el` の `path:point` 保存形式は `:` を含むパス（例: TRAMP）で復元時に壊れうる。
+- 未完了の事項: まだコード修正は未着手。レビュー結果のうち、どこまで互換性維持で直すか（特に `search-center` と `window` の挙動変更範囲）は未決定。
+- 次にやるとよいこと: まず `modes.init.el` の hook 増殖と `unindent-closure` の安全化を先行し、次に依存 `require` を `require ... nil t` 系へ段階的に切り替える。
+
+- 何をしたか: `modes.init.el` の最優先2件を修正した。`php-mode-hook` 内の `c-special-indent-hook` 追加をバッファローカル化（`add-hook ... nil t`）し、`unindent-closure` を「行頭空白のみ削除」する実装へ変更した。
+- なぜそうしたか: `php-mode` バッファを開くたびの hook 増殖を防ぎ、`delete-char` による想定外削除（非空白文字や行境界の破壊）リスクを下げるため。
+- 未完了の事項: `unindent-closure` の実挙動を実際の PHP closure 例で手動確認（インデント期待値との一致）は未実施。
+- 次にやるとよいこと: 依存 `require` の段階的ソフト化（`php-mode` / `cursor-chg` / `google-translate` から）を進める。
+
+- 何をしたか: 依存 `require` の段階的ソフト化を3箇所に適用した。`window.init.el` の `cursor-chg`、`util.init.el` の `google-translate`、`modes.init.el` の `php-mode` を `require ... nil t` 化し、未導入時は起動を止めないようにした。あわせて `google-translate` 実行時は未導入なら `user-error` を返すようにした。
+- なぜそうしたか: パッケージ未導入・一時欠落・環境差がある場合でも Emacs の起動自体は継続させ、依存機能のみを限定的に無効化するため。
+- 未完了の事項: `php-mode` 未導入時は `.php` の `auto-mode-alist` 追加を行わないため、代替モード（`php-ts-mode` など）への自動フォールバックは未実装。
+- 次にやるとよいこと: 必要なら `.php` を `php-ts-mode` へフォールバックする条件分岐を追加し、未導入時の編集体験を維持する。
+
+- 何をしたか: `search-center.el` の `sc/search-replace` 内で実行時にグローバル `defun` されていた `sc/move-region` を、`cl-labels` のローカル関数 `move-region` に置換した。あわせて `cl-lib` の `require` を追加した。
+- なぜそうしたか: 検索実行のたびにグローバル関数を再定義する状態をやめ、挙動を保ったまま保守性と予測可能性を上げるため。
+- 未完了の事項: `sc/search-replace` のローカル変数に未使用のものが残っており、byte-compile warning はまだ一部残る。
+- 次にやるとよいこと: 未使用ローカル変数の整理（`beg` / `end` / `target-str` 等）を行って警告ノイズを減らす。
+
+- 何をしたか: `search-center.el` の `foreign-regexp` 判定を `package-installed-p` ベースから `require ... nil t` ベースへ変更し、古い `search-center.elc` を再コンパイルして反映した。
+- なぜそうしたか: パッケージ情報だけ存在して実体が無い環境で `require 'foreign-regexp` が失敗し、起動停止する不安定要因を避けるため。
+- 未完了の事項: バッチ起動では次の停止要因として `editing.init.el` の `multiple-cursors` 強制 `require` が残っている。
+- 次にやるとよいこと: `editing.init.el` の `multiple-cursors` も `require ... nil t` 化し、関連キーバインド定義を導入時だけ有効化する。
+
+- 何をしたか: `editing.init.el` の `multiple-cursors` / `smartrep` をソフト `require` 化し、関連キーバインドは導入済み時のみ設定するように変更した。あわせて `web-beautify` もソフト `require` 化した。
+- なぜそうしたか: 依存パッケージ欠落時に `editing.init.el` 読込で起動停止するのを防ぎ、機能単位で劣化運用できるようにするため。
+- 未完了の事項: `multiple-cursors` 未導入時は該当キーバインド（`C-M-c` / `C-M-r` / `C-t` smartrep 系）は無効のまま。
+- 次にやるとよいこと: 必要なら未導入時だけ一度通知する仕組みを追加する。
+
+- 何をしたか: `filer.init.el` の `zlc` と `dired-async` をソフト `require` 化した。
+- なぜそうしたか: 補助パッケージの未導入で Dired 初期化時に落ちないようにするため。
+- 未完了の事項: `zlc` 未導入時はミニバッファ補完の操作感が変わる。
+- 次にやるとよいこと: 必要なら標準の `fido-mode` / `icomplete` と併用する代替設定を検討する。
+
+- 何をしたか: `anything.init.el` を `anything` 利用可能時のみ設定を実行する構造に変更し、`init.el` 側は任意モジュール読込用の `my/require-optional` を追加して `anything.init` / `ace-jump-mode.init` / `auto-complete.init` / `gtags.init` の読込を安全化した。
+- なぜそうしたか: 任意パッケージ欠落で1モジュールが失敗しても Emacs 全体の起動を継続させるため。
+- 未完了の事項: 任意モジュール内の実装不具合も `my/require-optional` で起動継続できる反面、見逃される可能性がある。
+- 次にやるとよいこと: 開発時は `my-dev-mode-on` で必須モジュールだけ読み込む運用に加え、任意モジュールは個別にロードテストして問題を早期検知する。
+
+- 何をしたか: `window.init.el` の `split-window` 用 `defadvice` を `advice-add` へ置換し、能動的な分割コマンド（`split-window-vertically` / `split-window-horizontally`）時に新規ウィンドウへフォーカスする実装へ更新した。さらに `hl-line` の `0.03` 秒 idle timer を廃止し、標準の `global-hl-line-mode` 有効化へ切り替えた。
+- なぜそうしたか: 旧 advice 機構依存と常時ポーリングを減らし、将来互換性と安定性を上げるため。
+- 未完了の事項: `global-hl-line` の見え方が従来の timer 駆動と微妙に異なる可能性はある。
+- 次にやるとよいこと: 実運用でハイライトの追従感に違和感がないか軽く確認する。
+
+- 何をしたか: `editing.init.el` の `indent-for-tab-command` / `align-regexp` に対する `defadvice` を `advice-add` の around 関数へ置換した。
+- なぜそうしたか: 旧 `defadvice` 依存を減らし、将来の Emacs で壊れにくい実装へ寄せるため。
+- 未完了の事項: 既存ロジックは維持しているため、挙動差は最小だが、端ケース（リージョン端の再配置など）は未実機確認。
+- 次にやるとよいこと: `indent-for-tab-command` と `align-regexp` を普段の操作で1回ずつ実行し、期待どおりかを確認する。
+
+- 何をしたか: `util.init.el` の「終了時バッファ履歴」保存形式を `path:point` テキストから Lisp データ（`((PATH . POINT) ...)`）へ変更し、読込側は新形式優先・旧形式フォールバック（後方互換）にした。保存前に履歴ディレクトリが無ければ作成する処理も追加した。
+- なぜそうしたか: `:` を含むパス（TRAMP 等）で復元が壊れる問題を避けるため。
+- 未完了の事項: 旧形式データを一度新形式で保存し直すまでは、起動時にフォールバック経路を通る。
+- 次にやるとよいこと: 一度 Emacs を通常終了して `~/.emacs.d/histories/last-files` が Lisp 形式で更新されることを確認する。
+
+- 何をしたか: `elisp/` 配下をレビューし、優先修正として `dired-explorer.el` の `shell-command-to-string` を `process-lines` ベースに置換した。`osascript` 呼び出しは引数分離（`on run argv`）へ変更し、パスの直接埋め込みをやめた。
+- なぜそうしたか: パス文字列をシェル文字列連結していたため、クォート崩れやコマンド注入余地があったため。
+- 未完了の事項: macOS 専用分岐のため、Darwin 実機で alias 解決が従来通りかは未確認。
+- 次にやるとよいこと: macOS 環境で alias ファイルに対して `dired-mac-alias-path` が正しく実パスを返すか確認する。
+
+- 何をしたか: `elisp/focus-on-editable-buffers/focus-on-editable-buffers.el` の `delete-window` 用 `defadvice` を `advice-add :after` へ置換した。
+- なぜそうしたか: 旧 advice 機構依存を減らし、将来の Emacs 互換性を上げるため。
+- 未完了の事項: `foeb/is-use-advice-delete-window` が `nil` のときは advice を追加しない既存仕様を維持している。
+- 次にやるとよいこと: `foeb/is-use-advice-delete-window` を `t` にした運用で、ウィンドウ削除後の遷移先が期待通りか確認する。
+
+- 何をしたか: `elisp/mozc-isearch.el` の `defadvice` 4箇所（`mozc-handle-event` / `mozc-send-key-event` / `mozc-mode` / `isearch-process-search-multibyte-characters`）を `advice-add` へ置換した。
+- なぜそうしたか: 旧 advice 機構依存を解消し、同等挙動を保ったまま保守性と将来互換性を上げるため。
+- 未完了の事項: 実機での日本語 isearch（mozc preedit を伴う入力）に対する手動回帰確認は未実施。
+- 次にやるとよいこと: `isearch` 中に mozc で入力し、確定・削除・IME ON/OFF が従来通り動くかを確認する。
+
+- 何をしたか: `mozc-isearch` は実運用で効いていない認識に合わせ、`inits/mozc.init.el` から `require 'mozc-isearch` と `mozc-isearch-setup` 呼び出しを削除した。
+- なぜそうしたか: 効いていない補助レイヤーを外して isearch まわりの挙動を単純化し、切り分けしやすくするため。
+- 未完了の事項: `elisp/mozc-isearch.el` ファイル自体は残っているが、設定上は未使用になった。
+- 次にやるとよいこと: 必要なければ `elisp/mozc-isearch.el` の管理方針（残置/退避/削除）を決める。
+
+- 何をしたか: `dired-explorer` のキーバインド挙動を確認し、現状は「modifier + alphabet」ではなく、`dired-explorer-mode` 有効時に素の `a-z0-9` が `dired-explorer-isearch` に割り当てられていることを確認した。加えて `inits/filer.init.el` で `dired-mode-hook` 時に `dired-explorer-mode` が自動有効化されていることを確認した。
+- なぜそうしたか: 「デフォルトでは無害（通常キーを奪わない）」方針との整合を次回修正で取るため、現状の事実を明確化しておくため。
+- 未完了の事項: キーバインドの方針変更（modifier 必須化、あるいは自動有効化の撤廃）は未着手。
+- 次にやるとよいこと: 次回は `dired-explorer` 側を `M-a..` など modifier 前提へ変更するか、`filer.init.el` 側の自動有効化をやめて `:` で手動有効化するかを決めて実装する。
+
+- 何をしたか: `muhenkan`（ENG）キー不安定の切り分けを行い、グローバル束縛が `my-confirm-and-deactivate-input-method` になっていることを確認した上で、`inits/mozc.init.el` の `<muhenkan>` 束縛を `deactivate-input-method` へ変更した（global / `mozc-mode-map` / `anything-map`）。
+- なぜそうしたか: 独自関数経由での `mozc-handle-event` 呼び出しが状態依存で失敗しうるため、キー動作を単純化して安定させるため。
+- 未完了の事項: `deactivate-input-method` はこの環境で `commandp` が `nil` のため、キーに直接割り当てると `Wrong type argument: commandp` が出ることが判明。
+- 次にやるとよいこと: `interactive` ラッパーを介して `muhenkan` を再設定する。
+
+- 何をしたか: `inits/mozc.init.el` に `my/deactivate-input-method-command`（`interactive` ラッパー）を追加し、`<muhenkan>` の global / `mozc-mode-map` / `anything-map` を同コマンドへ切り替えた。確認として `commandp` が `t`、キー束縛が同コマンドになっていることを確認した。
+- なぜそうしたか: この環境では `deactivate-input-method` が関数としては存在するがコマンドではないため、キー実行時に落ちる問題を回避するため。
+- 未完了の事項: 実GUI環境での体感確認（通常入力時・isearch時の `muhenkan`）は未実施。
+- 次にやるとよいこと: 実運用で `muhenkan` が安定して英数モードへ戻るかを確認し、まだ不安定なら `henkan/muhenkan` のイベント名差分（`eisu-toggle` 等）を追加で拾う。

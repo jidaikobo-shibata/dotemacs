@@ -9,12 +9,6 @@
 (setq default-input-method "japanese-mozc")
 (prefer-coding-system 'utf-8)
 
-(require 'mozc-isearch)
-
-(with-eval-after-load 'mozc
-  (when (require 'mozc-isearch nil t)
-    (mozc-isearch-setup)))
-
 ;;; ------------------------------------------------------------
 ;; henkan/muhenkanキーisearchを抜けないようにする
 
@@ -54,6 +48,24 @@
   ;; 入力メソッドを無効化
   (deactivate-input-method))
 
+(defun my/deactivate-input-method-command ()
+  "Confirm mozc preedit first, then force turn off input method and mozc-mode."
+  (interactive)
+  ;; 未確定文字があれば、まず確定してから OFF にする。
+  (when (and (bound-and-true-p mozc-mode)
+             (mozc-input-pending-p))
+    (ignore-errors (mozc-handle-event 13)))
+  (ignore-errors (deactivate-input-method))
+  (when (bound-and-true-p mozc-mode)
+    (ignore-errors (mozc-mode -1)))
+  ;; Fallback: keep state consistent even if deactivate path failed.
+  (when current-input-method
+    (setq current-input-method nil
+          current-input-method-title nil
+          input-method-function nil
+          describe-current-input-method-function nil)
+    (force-mode-line-update)))
+
 ;; 未変換の入力文字があるかどうか確認
 (defun mozc-input-pending-p ()
   "Check if Mozc has pending input in the preedit session."
@@ -61,12 +73,12 @@
 
 ;; Mozcロード後にキーバインドを設定
 (with-eval-after-load 'mozc
-  (define-key mozc-mode-map (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method))
+  (define-key mozc-mode-map (kbd "<muhenkan>") #'my/deactivate-input-method-command))
 (with-eval-after-load 'anything
-  (define-key anything-map (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method))
+  (define-key anything-map (kbd "<muhenkan>") #'my/deactivate-input-method-command))
 
 ;; グローバルキーバインドも設定
-(global-set-key (kbd "<muhenkan>") 'my-confirm-and-deactivate-input-method)
+(global-set-key (kbd "<muhenkan>") #'my/deactivate-input-method-command)
 
 ;; ミニバッファではmozcをオフに
 ;; (defun my-confirm-and-deactivate-input-method-on-minibuffer ()
