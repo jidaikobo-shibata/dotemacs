@@ -9,7 +9,8 @@
   '("Yabba Dabba Doo!"
     "Hasta la vista, baby."
     "There is an element of fun in every job."
-    "May the Force be with you."
+    "You will never age for me, nor fade, nor die."
+    "Why so serious?"
     "Roads? Where we're going, we don't need roads."
     "The only way to do great work is to love what you do."
     "Fortune favors the bold.")

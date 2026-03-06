@@ -73,7 +73,15 @@
 
 ;; Mozcロード後にキーバインドを設定
 (with-eval-after-load 'mozc
-  (define-key mozc-mode-map (kbd "<muhenkan>") #'my/deactivate-input-method-command))
+  (define-key mozc-mode-map (kbd "<muhenkan>") #'my/deactivate-input-method-command)
+  ;; Keep default mouse selection behavior even when mozc-mode keymap is active.
+  (define-key mozc-mode-map [down-mouse-1] #'mouse-drag-region)
+  (define-key mozc-mode-map [drag-mouse-1] #'mouse-set-region)
+  (define-key mozc-mode-map [mouse-1] #'mouse-set-point)
+  (define-key mozc-mode-map [double-down-mouse-1] #'mouse-drag-region)
+  (define-key mozc-mode-map [double-mouse-1] #'mouse-set-point)
+  (define-key mozc-mode-map [triple-down-mouse-1] #'mouse-drag-region)
+  (define-key mozc-mode-map [triple-mouse-1] #'mouse-set-point))
 (with-eval-after-load 'anything
   (define-key anything-map (kbd "<muhenkan>") #'my/deactivate-input-method-command))
 
