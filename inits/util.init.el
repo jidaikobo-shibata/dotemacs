@@ -113,6 +113,8 @@ It defaults to a comma."
 
 (defvar my-hist-dir (expand-file-name "~/.emacs.d/histories/"))
 (defvar my-hist-last-files (concat my-hist-dir "last-files"))
+(defvar my-hist-restore-remote-files nil
+  "If non-nil, attempt to restore remote TRAMP files from last session.")
 
 (defun my/parse-legacy-last-files (content)
   "Parse legacy CONTENT lines and return list of (PATH . POINT)."
@@ -149,9 +151,18 @@ It defaults to a comma."
     (dolist (entry entries)
       (let ((path (car entry))
             (pt (cdr entry)))
-        (when (file-exists-p path)
-          (find-file path)
-          (goto-char pt))))))
+        (cond
+         ((and (file-remote-p path)
+               (not my-hist-restore-remote-files))
+          (message "Skip restoring remote file: %s" path))
+         (t
+          (condition-case err
+              (when (file-exists-p path)
+                (find-file path)
+                (goto-char pt))
+            (error
+             (message "Skip restoring file %s: %s"
+                      path (error-message-string err))))))))))
 
 ;;; ------------------------------------------------------------
 ;;; provides

@@ -20,6 +20,17 @@
   (let ((mark-active nil))
     (undo)))
 
+(defun my/revert-buffer-safe ()
+  "Revert buffer safely.
+Ask for confirmation only when current buffer has unsaved changes."
+  (interactive)
+  (if (buffer-modified-p)
+      (when (y-or-n-p "Buffer modified. Revert and lose changes? ")
+        (revert-buffer :ignore-auto :noconfirm)
+        (message "Reverted buffer: %s" (buffer-name)))
+    (revert-buffer :ignore-auto :noconfirm)
+    (message "Reverted buffer: %s" (buffer-name))))
+
 ;;; ------------------------------------------------------------
 ;; mac-likeなキーボード設定
 ;; thx http://www.unixuser.org/~euske/doc/emacsref/#file
@@ -42,6 +53,7 @@
 (global-set-key (kbd "<s-0>") (lambda () (interactive) (text-scale-mode 0)))
 (global-set-key (kbd "s-q") 'save-buffers-kill-emacs)
 (global-set-key (kbd "<backspace>") 'delete-backward-char)
+(global-set-key (kbd "<f5>") #'my/revert-buffer-safe)
 (global-set-key (kbd "<s-up>") (lambda () (interactive "^") (goto-char (point-min))))
 (global-set-key (kbd "<s-down>") (lambda () (interactive "^") (goto-char (point-max))))
 ;; (global-set-key (kbd "<s-left>") 'beginning-of-line)

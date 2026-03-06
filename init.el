@@ -87,9 +87,21 @@
 (setq custom-file (make-temp-file "emacs-custom")) ;; カスタムファイル無効
 
 ;;; ------------------------------------------------------------
-;; supress error
-;; 一番最初にセットしないとエラーがたくさん出る
-(setq byte-compile-warnings nil)
+;; byte-compile warnings
+;; サードパーティ由来のノイズが多いため、bytecomp のみ抑制する
+(setq warning-suppress-types
+      (append warning-suppress-types '((bytecomp))))
+
+(defun my/byte-compile-user-elisp ()
+  "Byte-compile only user-maintained elisp under ~/.emacs.d/inits and elisp."
+  (interactive)
+  (let ((targets (list (expand-file-name "inits" user-emacs-directory)
+                       (expand-file-name "elisp" user-emacs-directory))))
+    (dolist (dir targets)
+      (when (file-directory-p dir)
+        (byte-recompile-directory dir 0 t)))
+    (message "Byte-compile finished for user elisp: %s"
+             (mapconcat #'identity targets ", "))))
 
 ;;; ------------------------------------------------------------
 ;;; font
@@ -162,6 +174,8 @@
     (require 'markdown.init)
     (require 'util.init)
     ))
+
+(require 'fun-startup.init)
 
 ;;; ------------------------------------------------------------
 ;; Theme

@@ -246,3 +246,38 @@
 - なぜそうしたか: この環境では `deactivate-input-method` が関数としては存在するがコマンドではないため、キー実行時に落ちる問題を回避するため。
 - 未完了の事項: 実GUI環境での体感確認（通常入力時・isearch時の `muhenkan`）は未実施。
 - 次にやるとよいこと: 実運用で `muhenkan` が安定して英数モードへ戻るかを確認し、まだ不安定なら `henkan/muhenkan` のイベント名差分（`eisu-toggle` 等）を追加で拾う。
+
+- 何をしたか: `elisp/dired-explorer/dired-explorer.el` をリファクタし、`lexical-binding` 有効化、検索トリガーキーの `defcustom` 化（`dired-explorer-isearch-trigger-keys`）、判定ヘルパー追加（`dired-explorer--trigger-char-p`）、`dired-explorer-do-isearch` の変数名整理と安全化（`regx` 未設定時の next/prev 抑止、`unread-command-events` は `cons` で追加）を行った。あわせて `dired-mac-alias-path` のカッコ不整合を修正し、`batch-byte-compile` が通ることを確認した。
+- なぜそうしたか: 挙動を変えずに可読性と保守性を上げ、手修正時に混入した構文崩れを取り除いて、将来の調整（modifier 前提キー化など）を安全に進められる土台にするため。
+- 未完了の事項: トリガーキーを runtime で変更した場合に既存キー定義を再生成する API は未実装。
+- 次にやるとよいこと: 必要なら `dired-explorer-refresh-keymap` のような再適用関数を追加し、`customize` 変更を即時反映できるようにする。
+
+- 何をしたか: `elisp/dired-explorer/dired-explorer.el` を追加リファクタし、(1) `dired-explorer-isearch-trigger-keys` の `defcustom` に `:set` を追加してキー変更時にキーマップを再生成するようにした、(2) 未使用だった `defvar`（`dired-explorer-mode` / `dired-explorer-mode-hook` / `dired-mode-old-local-map` / `dired-explorer-isearch-returnkey` / `dired-explorer-isearch-word`）を整理した、(3) isearch の直前入力状態をグローバル変数ではなくローカル変数 `last-word` で扱うようにした。
+- なぜそうしたか: カスタマイズ反映の即時性を上げ、不要なグローバル状態を減らして副作用リスクを下げるため。
+- 未完了の事項: `defcustom` の `:group` は現状 `dired` のままで、専用 `defgroup dired-explorer` は未作成。
+- 次にやるとよいこと: 設定項目が増える見込みがある場合は `defgroup dired-explorer` を作り、`M-x customize-group` からの発見性を上げる。
+
+- 何をしたか: `elisp/dired-explorer/dired-explorer.el` の文字コードを `EUC-JP` から `UTF-8` に変換し、1行目ヘッダへ `coding: utf-8` を明示した。
+- なぜそうしたか: MELPA 上の description/commentary 表示で日本語が文字化けしていたため。
+- 未完了の事項: MELPA 側の表示反映待ち（定期ビルド更新待ち）。
+- 次にやるとよいこと: この変更を commit/push して、MELPA 更新後に https://melpa.org/#/dired-explorer で表示を再確認する。
+
+- 何をしたか: `elisp/focus-on-editable-buffers` 配下を改善し、`focus-on-editable-buffers.el` と `anything-focus-on-editable-buffers.el` に `lexical-binding` ヘッダと `tested on Emacs 30.2` を追加。`focus-on-editable-buffers.el` は `add-to-list` のローカル変数利用を `push` + `nreverse` に置換し、`delete-window` advice 関数をトップレベル定義に整理。`anything-focus-on-editable-buffers.el` は `require 'anything` をソフト化し、未導入時は `user-error` を返すようにした。
+- なぜそうしたか: `anything` 未導入環境でのロード失敗を防ぎつつ、古いヘッダ情報と byte-compile warning を減らすため。
+- 未完了の事項: `anything` 系はパッケージ自体が古く、将来的には `helm`/`consult` 系への移行判断が必要。
+- 次にやるとよいこと: 必要なら `anything-focus-on-editable-buffers.el` を optional モジュールとして明示し、通常起動経路からは切り離す。
+
+- 何をしたか: `init.el` と `inits/util.init.el` を修正し、起動時の最後のバッファ復元で TRAMP 先が不達でも起動が止まらないようにした。具体的には `my-hist-restore-remote-files`（既定 nil）を追加し、リモート履歴は既定でスキップ、ローカル/リモートとも復元エラーは `condition-case` で握ってメッセージのみ出すようにした。あわせて `init.el` の `byte-compile-warnings` 全抑制（nil）を削除して、重要 warning の可視性を戻した。
+- なぜそうしたか: 実際に init ロード時に TRAMP 接続失敗で起動が停止するケースがあり、復元処理は失敗しても起動継続すべきため。また warning 全抑制は不具合発見を遅らせるため。
+- 未完了の事項: `my-hist-restore-remote-files` を `t` にした場合は接続状況に応じて起動遅延が再発する可能性がある。
+- 次にやるとよいこと: リモート履歴復元を使いたい場合は「起動完了後の idle timer で非同期に復元」へ移行すると、起動体験を維持しやすい。
+
+- 何をしたか: `init.el` に warning 運用を追加し、`byte-compile-warnings nil` の全面抑制ではなく `warning-suppress-types` で `bytecomp` のみ抑制する設定へ変更した。あわせて `my/byte-compile-user-elisp` を追加し、`~/.emacs.d/inits` と `~/.emacs.d/elisp` だけを再コンパイルできるようにした。
+- なぜそうしたか: `anything` / `foreign-regexp` など第三者パッケージ由来の膨大な bytecomp 警告を日常起動から切り離しつつ、自作elispの品質確認は継続するため。
+- 未完了の事項: 第三者パッケージの旧マクロ (`case` / `labels`) 自体は未修正のまま。
+- 次にやるとよいこと: 必要時だけ `M-x my/byte-compile-user-elisp` を実行し、自作elispの warning を定期点検する。
+
+- 何をしたか: `inits/fun-startup.init.el` を新規追加し、起動時 `*Messages*` に `Package cl is deprecated` が含まれる場合のみ、ランダムな英語メッセージを1つ表示する処理を追加した。`init.el` から `require 'fun-startup.init` で読み込むようにした。
+- なぜそうしたか: 旧依存パッケージ由来の `cl` 警告は当面残るため、起動時の認知負荷を下げるため。
+- 未完了の事項: `cl` deprecated warning 自体は抑制しておらず、表示文言を上書きして体感を改善する対応。
+- 次にやるとよいこと: 必要ならメッセージ配列 `my/fun-startup-messages` を好みで追加・差し替えする。
