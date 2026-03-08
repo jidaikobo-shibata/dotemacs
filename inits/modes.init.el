@@ -116,7 +116,7 @@
           #'(lambda ()
 ;;             (flycheck-mode t)
              (setq js-indent-level 2)
-             (setq indent-tabs-mode t)))
+             (setq indent-tabs-mode nil)))
 
 ;; GAS - Google App Script
 (add-to-list 'auto-mode-alist '("\\.gs$" . js-mode))
