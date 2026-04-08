@@ -2,6 +2,11 @@
 
 ## 2026-04-08
 
+- 何をしたか: `inits/mozc.init.el` から、旧来の `isearch` 直結コード（`my/isearch-resync-input-method`、`isearch-use-input-method`、`isearch` 中 `<henkan>/<muhenkan>` 制御）を削除し、`C-s <henkan>` の橋渡しは `search-center.el` 側の責務だと明示した。あわせてミニバッファ各種 map では `<muhenkan>` を `ignore` にして、終了確認などで英数キーのつもりで押したときに `Quit` にならないようにした。
+- なぜそうしたか: 現在は `isearch + Mozc` を直接成立させる設計ではなく、`search-center` へ橋渡しする粗結合構成に変わっており、`mozc.init.el` に旧 `isearch` 救済コードを残す意味が薄くなっていたため。また、ミニバッファ中の `<muhenkan>` が予期せず `Quit` を起こすのはストレスが大きいため。
+- 未完了の事項: `my/deactivate-input-method-command` の直接状態操作（`current-input-method` などの `setq`）は今回そのまま残している。通常バッファ・Anything・ミニバッファでの `<muhenkan>` の最終方針は、しばらく運用してから再評価してよい。
+- 次にやるとよいこと: `s-q` の終了確認ミニバッファで `<muhenkan>` が無害化されたか確認する。あわせて通常バッファでの `<henkan>` / `<muhenkan>` 操作感が従来どおりか軽く見る。
+
 - 何をしたか: `C-s <henkan>` の日本語検索は `isearch` を直接日本語対応させるのではなく、`search-center.el` 側へ寄せる方針に切り替えた。`search-center.el` に `sc/is-use-mozc-search-bridge`、`sc/bridge-isearch-to-mozc-search`、`sc/set-search-string` などを追加し、`C-s <henkan>` で `isearch` を中断して `Mozc search:` に入り、確定文字列を `sc/search-str-buffer` と `sc/previous-searched-str` に格納してから `sc/search-replace "next"` を1回実行する流れにした。`Mozc search:` 中の `<muhenkan>` はキャンセル扱いにして、元の `isearch` へ戻す経路も追加した。あわせて `mozc.init.el` から `my-mozc-isearch` の読込を外し、`search-center` ブリッジ使用時は旧 `<henkan>` 直結設定をスキップするようにした。
 - なぜそうしたか: 既存の `s-g` / `s-G` による next/prev は `search-center.el` が担っており、そこを別実装に分散させるより、Mozc 側は検索語を `search-center` へ渡す入口だけに絞る方が運用に合っていて安全だから。
 - 未完了の事項: GUI 実機で `C-s <henkan>` -> `Mozc search:` -> 日本語確定 -> 初回前方検索 -> `s-g` / `s-G` 巡回、そして `<muhenkan>` による `isearch` 復帰がまだ未確認。

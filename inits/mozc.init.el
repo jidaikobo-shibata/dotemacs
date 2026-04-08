@@ -10,48 +10,20 @@
 (prefer-coding-system 'utf-8)
 
 ;;; ------------------------------------------------------------
-;; isearch開始時に入力メソッド状態を必要最小限で再同期する
-(defun my/isearch-resync-input-method ()
-  "Re-sync the Mozc input method state when isearch sees a stale IME."
-  (when (and isearch-use-input-method
-             (equal current-input-method default-input-method)
-             (null input-method-function))
-    (let ((input-method current-input-method))
-      (setq current-input-method nil
-            current-input-method-title nil
-            describe-current-input-method-function nil)
-      (activate-input-method input-method))))
+;; search-center 側で `C-s <henkan>' の橋渡しを持つため、
+;; ここでは通常の Mozc ON/OFF のみを扱う。
 
 ;;; ------------------------------------------------------------
-;; henkan/muhenkanキーisearchを抜けないようにする
-
-(with-eval-after-load 'isearch
-  (add-hook 'isearch-mode-hook #'my/isearch-resync-input-method)
-
-  ;; IME切替系キーは isearch を抜けず、その場で IME をトグル
-  (dolist (k '("<eisu-toggle>" "<kana>" "<zenkaku-hankaku>"))
-    (define-key isearch-mode-map (kbd k) #'isearch-toggle-input-method))
-
-  (unless (bound-and-true-p sc/is-use-mozc-search-bridge)
-    ;; <henkan> は “必ず ON”。isearch は抜けない
-    (define-key isearch-mode-map (kbd "<henkan>")
-      (lambda () (interactive) (activate-input-method default-input-method) (isearch-update))))
-
-  ;; <muhenkan> は “必ず OFF”。isearch は抜けない
-  (define-key isearch-mode-map (kbd "<muhenkan>")
-    (lambda () (interactive) (deactivate-input-method) (isearch-update)))
-
-	;; （任意）変換/無変換を無視したい場合は ignore に
- 	;; (define-key isearch-mode-map [henkan] #'ignore)
-  ;; (define-key isearch-mode-map [muhenkan] #'ignore)
-
-  ;; 既定では isearch 中も IME を使うが、専用補助使用時はそちらに任せる
-  (unless (bound-and-true-p sc/is-use-mozc-search-bridge)
-    (setq isearch-use-input-method t))
-  ;; 念のため M-s (= ESC s) は isearch 中も prefix のまま
-  (define-key isearch-mode-map (kbd "M-s") search-map)
-  (define-key isearch-mode-map (kbd "ESC") search-map)
-  (define-key isearch-mode-map [escape] #'isearch-abort))
+;; ミニバッファでは <muhenkan> を無害化する
+;; 終了確認などで英数キーのつもりで押して `Quit' になるのを避ける。
+(dolist (map-symbol '(minibuffer-local-map
+                      minibuffer-local-ns-map
+                      minibuffer-local-completion-map
+                      minibuffer-local-must-match-map
+                      minibuffer-local-isearch-map
+                      minibuffer-inactive-mode-map))
+  (when (boundp map-symbol)
+    (define-key (symbol-value map-symbol) (kbd "<muhenkan>") #'ignore)))
 
 ;;; ------------------------------------------------------------
 ;; muhenkanキーでMozcを抜ける際に、現在の入力を確定する
