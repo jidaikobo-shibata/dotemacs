@@ -14,8 +14,17 @@
 ;; ここでは通常の Mozc ON/OFF のみを扱う。
 
 ;;; ------------------------------------------------------------
-;; ミニバッファでは <muhenkan> を無害化する
+;; ミニバッファや isearch では <muhenkan> 系キーを無害化する
 ;; 終了確認などで英数キーのつもりで押して `Quit' になるのを避ける。
+(defconst my/muhenkan-keys
+  '("<muhenkan>" [muhenkan] "<zenkaku-hankaku>" [zenkaku-hankaku] "<eisu-toggle>" [eisu-toggle]))
+
+(defun my/isearch-ignore-muhenkan ()
+  "Ignore muhenkan-like keys during isearch, but keep the prompt visible."
+  (interactive)
+  (when (bound-and-true-p isearch-mode)
+    (isearch-update)))
+
 (dolist (map-symbol '(minibuffer-local-map
                       minibuffer-local-ns-map
                       minibuffer-local-completion-map
@@ -23,7 +32,25 @@
                       minibuffer-local-isearch-map
                       minibuffer-inactive-mode-map))
   (when (boundp map-symbol)
-    (define-key (symbol-value map-symbol) (kbd "<muhenkan>") #'ignore)))
+    (dolist (key my/muhenkan-keys)
+      (define-key (symbol-value map-symbol)
+                  (if (stringp key) (kbd key) key)
+                  #'ignore))))
+
+(with-eval-after-load 'isearch
+  (dolist (key my/muhenkan-keys)
+    (define-key isearch-mode-map
+                (if (stringp key) (kbd key) key)
+                #'my/isearch-ignore-muhenkan)))
+
+;; `save-some-buffers' などの問い合わせは `map-y-or-n-p' / `query-replace-map'
+;; を使ってキーを直接読むため、ミニバッファ map の `ignore' は効かない。
+;; ここでも <muhenkan> 系キーを無害化して、`Type C-h for help.' ノイズを防ぐ。
+(when (boundp 'query-replace-map)
+  (dolist (key my/muhenkan-keys)
+    (define-key query-replace-map
+                (if (stringp key) (kbd key) key)
+                #'ignore)))
 
 ;;; ------------------------------------------------------------
 ;; muhenkanキーでMozcを抜ける際に、現在の入力を確定する
