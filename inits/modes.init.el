@@ -242,10 +242,13 @@
   (define-key flycheck-error-list-mode-map [escape] 'quit-window))
 
 ;; enable
-(add-hook 'php-mode-hook #'my/enable-flycheck-if-available)
-(add-hook 'html-mode-hook #'my/enable-flycheck-if-available)
-(add-hook 'lisp-mode-hook #'my/enable-flycheck-if-available)
-(add-hook 'emacs-lisp-mode-hook #'my/enable-flycheck-if-available)
+;; Experimental: disable automatic Flycheck activation for now.
+;; The current Emacs Lisp workflow emits noisy warnings such as missing
+;; `lexical-binding' directives, so keep Flycheck opt-in via `M-x flycheck-mode'.
+;; (add-hook 'php-mode-hook #'my/enable-flycheck-if-available)
+;; (add-hook 'html-mode-hook #'my/enable-flycheck-if-available)
+;; (add-hook 'lisp-mode-hook #'my/enable-flycheck-if-available)
+;; (add-hook 'emacs-lisp-mode-hook #'my/enable-flycheck-if-available)
 
 ;;; ------------------------------------------------------------
 ;;; provides

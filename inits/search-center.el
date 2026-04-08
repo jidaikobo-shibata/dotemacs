@@ -68,6 +68,11 @@
   :group 'sc/search-center
   :type 'boolean)
 
+(defcustom sc/is-use-mozc-search-bridge t
+  "*Use `C-s <henkan>' to hand off Japanese search text to search-center."
+  :group 'sc/search-center
+  :type 'boolean)
+
 ;;; ------------------------------------------------------------
 ;;; defvar
 
@@ -91,6 +96,12 @@
 (defvar sc/split-direction "horizontal")
 (defvar search-center-mode-map (make-keymap))
 (defvar search-center-re-mode-map (make-keymap))
+(defvar sc/mozc-search-prompt "Mozc search: ")
+(defvar sc/mozc-search-history nil)
+(defvar sc/mozc-search--resume-isearch nil)
+(defvar sc/mozc-search--resume-string nil)
+(defvar sc/mozc-search--resume-forward t)
+(defvar sc/mozc-search--action nil)
 
 ;;; ------------------------------------------------------------
 ;;; dependencies
@@ -252,6 +263,123 @@
     (insert isearch-string))
   (setq sc/previous-searched-str isearch-string))))
 
+(defun sc/set-search-string (strings)
+  "Store STRINGS into the search-center search buffer and history."
+  (unless (get-buffer sc/search-str-buffer)
+    (get-buffer-create sc/search-str-buffer))
+  (with-current-buffer sc/search-str-buffer
+    (delete-region (point-min) (point-max))
+    (insert strings))
+  (setq sc/previous-searched-str strings))
+
+(defun sc/prepare-search-from-string (strings)
+  "Prepare search-center state from STRINGS without moving point."
+  (sc/set-search-string strings)
+  (setq sc/previous-searced-direction nil)
+  (when (window-live-p sc/target-window)
+    (select-window sc/target-window))
+  (when (buffer-live-p sc/target-buffer)
+    (set-buffer sc/target-buffer))
+  (deactivate-mark)
+  (message "search ready: %s" strings))
+
+(defun sc/mozc-search-minibuffer-setup ()
+  "Prepare the temporary minibuffer for Mozc search text."
+  (local-set-key (kbd "<muhenkan>") #'sc/mozc-search-cancel-to-isearch)
+  (local-set-key (kbd "s-g") #'sc/mozc-search-finish-next)
+  (local-set-key (kbd "s-G") #'sc/mozc-search-finish-prev)
+  (local-set-key (kbd "<henkan>")
+                 (lambda ()
+                   (interactive)
+                   (sc/mozc-search-enable-input-method)))
+  (sc/mozc-search-enable-input-method))
+
+(defun sc/mozc-search-enable-input-method ()
+  "Enable Mozc reliably in the temporary search minibuffer."
+  (when default-input-method
+    (activate-input-method default-input-method)
+    ;; `activate-input-method' alone sometimes leaves Mozc half-enabled.
+    (when (and (equal current-input-method default-input-method)
+               (null input-method-function))
+      (setq current-input-method nil
+            current-input-method-title nil
+            describe-current-input-method-function nil)
+      (activate-input-method default-input-method))
+    (when (and (equal current-input-method default-input-method)
+               (boundp 'mozc-mode)
+               (not mozc-mode))
+      (ignore-errors (mozc-mode 1)))))
+
+(defun sc/mozc-search-cancel-to-isearch ()
+  "Abort Japanese search input and resume the previous isearch."
+  (interactive)
+  (setq sc/mozc-search--resume-isearch t)
+  (abort-recursive-edit))
+
+(defun sc/mozc-search-finish-next ()
+  "Finish Mozc search input and search next with search-center."
+  (interactive)
+  (setq sc/mozc-search--action 'next)
+  (exit-minibuffer))
+
+(defun sc/mozc-search-finish-prev ()
+  "Finish Mozc search input and search previous with search-center."
+  (interactive)
+  (setq sc/mozc-search--action 'prev)
+  (exit-minibuffer))
+
+(defun sc/mozc-search-read-string ()
+  "Read Japanese search text through the minibuffer."
+  (setq sc/mozc-search--resume-isearch nil)
+  (setq sc/mozc-search--action nil)
+  (let ((enable-recursive-minibuffers t))
+    (condition-case err
+        (let ((ret
+               (minibuffer-with-setup-hook #'sc/mozc-search-minibuffer-setup
+                 (read-from-minibuffer sc/mozc-search-prompt
+                                       nil
+                                       nil
+                                       nil
+                                       'sc/mozc-search-history))))
+          ret)
+      (quit
+       nil)
+      (error
+       (message "Mozc search canceled: %s" (error-message-string err))
+       nil))))
+
+(defun sc/resume-isearch ()
+  "Resume a plain isearch after leaving the Mozc search bridge."
+  (when sc/mozc-search--resume-isearch
+    (setq sc/mozc-search--resume-isearch nil)
+    (isearch-mode sc/mozc-search--resume-forward nil nil nil)
+    (when (and (stringp sc/mozc-search--resume-string)
+               (> (length sc/mozc-search--resume-string) 0))
+      (isearch-yank-string sc/mozc-search--resume-string))))
+
+(defun sc/bridge-isearch-to-mozc-search ()
+  "Abort isearch, read Japanese text, then hand off to search-center."
+  (interactive)
+  (unless isearch-mode
+    (user-error "This command is only available during isearch"))
+  (setq sc/mozc-search--resume-string isearch-string
+        sc/mozc-search--resume-forward isearch-forward)
+  (sc/keep-target-buffer)
+  (isearch-done)
+  (isearch-clean-overlays)
+  (setq unread-command-events nil
+        overriding-terminal-local-map nil)
+  (let ((last-command-event nil)
+        (last-input-event nil)
+        (strings (sc/mozc-search-read-string)))
+    (if sc/mozc-search--resume-isearch
+        (sc/resume-isearch)
+      (when (and (stringp strings) (> (length strings) 0))
+        (sc/prepare-search-from-string strings)
+        (pcase sc/mozc-search--action
+          ('next (sc/alias-search-next))
+          ('prev (sc/alias-search-prev)))))))
+
 ;;; ------------------------------------------------------------
 ;;; function alias for key-binds
 
@@ -307,6 +435,12 @@
   (global-set-key (kbd "s-M") 'sc/grep) ;; s-m is used by Mac OS X
   (global-set-key (kbd "s-h") 'sc/select-target-window)
   (global-set-key (kbd "C-g") 'sc/quit-str-windows))
+
+(with-eval-after-load 'isearch
+  (when sc/is-use-mozc-search-bridge
+    (setq isearch-use-input-method nil)
+    (define-key isearch-mode-map (kbd "<henkan>")
+      #'sc/bridge-isearch-to-mozc-search)))
 
 ;;; ------------------------------------------------------------
 ;;; Quit

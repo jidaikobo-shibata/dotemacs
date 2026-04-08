@@ -17,3 +17,5 @@ migemo-pattern
 recentf
 tramp
 url/
+*.elc
+session.*

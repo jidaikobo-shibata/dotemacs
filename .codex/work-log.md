@@ -1,5 +1,29 @@
 # Work Log
 
+## 2026-04-08
+
+- 何をしたか: `C-s <henkan>` の日本語検索は `isearch` を直接日本語対応させるのではなく、`search-center.el` 側へ寄せる方針に切り替えた。`search-center.el` に `sc/is-use-mozc-search-bridge`、`sc/bridge-isearch-to-mozc-search`、`sc/set-search-string` などを追加し、`C-s <henkan>` で `isearch` を中断して `Mozc search:` に入り、確定文字列を `sc/search-str-buffer` と `sc/previous-searched-str` に格納してから `sc/search-replace "next"` を1回実行する流れにした。`Mozc search:` 中の `<muhenkan>` はキャンセル扱いにして、元の `isearch` へ戻す経路も追加した。あわせて `mozc.init.el` から `my-mozc-isearch` の読込を外し、`search-center` ブリッジ使用時は旧 `<henkan>` 直結設定をスキップするようにした。
+- なぜそうしたか: 既存の `s-g` / `s-G` による next/prev は `search-center.el` が担っており、そこを別実装に分散させるより、Mozc 側は検索語を `search-center` へ渡す入口だけに絞る方が運用に合っていて安全だから。
+- 未完了の事項: GUI 実機で `C-s <henkan>` -> `Mozc search:` -> 日本語確定 -> 初回前方検索 -> `s-g` / `s-G` 巡回、そして `<muhenkan>` による `isearch` 復帰がまだ未確認。
+- 次にやるとよいこと: Emacs を再起動し、まず `C-s <henkan>` 後に `Mozc search:` が出ること、確定文字列で1回検索が走ること、`s-g` / `s-G` がそのまま効くこと、`<muhenkan>` で `isearch` に戻れることを順に確認する。
+
+- 何をしたか: `C-s` の `isearch` 中に `I-search [[Mozc]]:` と表示されるのに日本語入力できない件を調査し、`current-input-method="japanese-mozc"` / `mozc-mode=t` に対して `input-method-function=nil` になる半壊状態を確認した。対策として `inits/mozc.init.el` に `my/isearch-resync-input-method` を追加し、`isearch-mode-hook` で Mozc 表示だけ残って実体が欠けている場合に入力メソッドを再同期するようにした。あわせて `.gitignore` に `*.elc` と `session.*` を追加した。
+- 何をしたか: `isearch` 中の Mozc 日本語入力は既存の `activate-input-method` 連携だけでは安定しないと判断し、`elisp/my-mozc-isearch.el` を新規追加した。`<henkan>` で `isearch` 本体へ IME を直接載せる代わりに、一時的にミニバッファで Mozc 入力し、確定文字列を `isearch-yank-string` で検索文字列へ戻す方針に切り替えた。`inits/mozc.init.el` からは新ファイルを `require` するだけに留めた。
+- 何をしたか: `my-mozc-isearch` が読まれていても `inits/mozc.init.el` 側の既存 `isearch` 設定が `<henkan>` と `isearch-use-input-method` を上書きしていたため、`featurep 'my-mozc-isearch` のときは従来の `isearch` 直結設定をスキップする分岐を追加した。
+- 何をしたか: `inits/modes.init.el` で `php-mode` / `html-mode` / `lisp-mode` / `emacs-lisp-mode` への `flycheck-mode` 自動有効化をコメントアウトし、実験的に手動有効化運用へ切り替えた旨のコメントを残した。
+- なぜそうしたか: `.el` 編集中に `lexical-binding` 警告などのノイズが多く、今回の `mozc` 調査中の切り分けを阻害していたため。必要なら `M-x flycheck-mode` で個別に再有効化できる状態は維持するため。
+- 未完了の事項: PHP や HTML 編集中に Flycheck が自動では動かなくなるため、必要時は手動有効化が必要。
+- 次にやるとよいこと: しばらくこの運用でノイズが減るかを見る。必要なら後で `emacs-lisp-mode` だけ無効、他は自動有効に戻すなど、モード別に再調整する。
+- なぜそうしたか: 新しい別ファイル方式を試しても `C-s <henkan>` が旧実装のまま動いており、`my-mozc-isearch` の実験経路に入れていなかったため。
+- 未完了の事項: 分岐修正後の GUI 実機確認は未実施。`C-s <henkan>` で本当にミニバッファ prompt が出るか、Mozc 入力できるかは要確認。
+- 次にやるとよいこと: Emacs を再起動して `C-s <henkan>` を試し、`Mozc search:` ミニバッファに入るかをまず確認する。入らないならキーイベント名の違い（`<henkan>` と `[henkan]`）を疑う。
+- なぜそうしたか: 既存の `mozc.init.el` には通常時の Mozc 制御、`muhenkan` の独自回避、`isearch` 連携が混在しており、そこへさらに実験コードを重ねると切り戻しと切り分けが難しくなるため。
+- 未完了の事項: 新しい `my-mozc-isearch.el` の実機確認は未実施。`C-s` -> `<henkan>` -> ミニバッファ入力 -> `isearch` 復帰の体感、`DEL`、`C-s` 続行、`C-g` 中断の自然さは要確認。
+- 次にやるとよいこと: GUI Emacs で新方式を試し、少なくとも `C-s` / `<henkan>` / 日本語確定 / `DEL` / `C-s` / `<muhenkan>` が破綻しないかを見る。必要なら trigger key や prompt 文言を微調整する。
+- なぜそうしたか: `my/deactivate-input-method-command` は過去の試行錯誤の結果で変更影響が読みにくいため、そこには触れず、症状が出る `isearch` 開始時だけ局所的に整合を取り直す方が安全だと判断したため。
+- 未完了の事項: GUI 実運用で `C-s` 開始直後、`<henkan>` 後、`<muhenkan>` 後の各ケースで Mozc 入力が安定するかは未確認。`my/deactivate-input-method-command` 自体が状態不整合の起点かどうかも未確定。
+- 次にやるとよいこと: 実際に `C-s` で `I-search [[Mozc]]:` になったケースを数回試し、以前のような `input-method-function=nil` の再発があるかを確認する。再発するなら `activate-input-method` / `deactivate-input-method` / `my/deactivate-input-method-command` 周辺のログを追加して壊れる経路をさらに絞る。
+
 ## 2026-03-04
 
 - 何をしたか: このプロジェクトの主たる目的を記録した。対象は `init.el`、`inits/`、`themes/`、`elisp/dired-explorer/`、`elisp/focus-on-editable-buffers/` の改善。
