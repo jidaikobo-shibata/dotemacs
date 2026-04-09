@@ -14,6 +14,11 @@
 
 ## 2026-04-09
 
+- 何をしたか: `search-center.el` の ToDo コメントを見直し、`foreign-regexp` / `smartrep` の古いメモを外して、「複数ファイル検索置換」「複数セット検索置換」は当面 `search-center` の守備範囲に広げない、という判断をコメントに反映した。
+- なぜそうしたか: 前者は Emacs 標準の Dired / query-replace 系で十分実現でき、後者も既存の外部スクリプトで概ね実現できているため。`search-center.el` 自体は単一セットの対話検索・置換と履歴に責務を絞る方が保守しやすいため。
+- 未完了の事項: 将来「やはり `search-center` に入れたい」となった場合、別の対話 UI 層を設けるか、既存機能への案内コメントを充実させるかの再検討余地はある。
+- 次にやるとよいこと: 当面は現状維持で運用し、`search-center` は単一セット検索・置換の快適さを磨く方向を優先する。
+
 - 何をしたか: `inits/mozc.init.el` の `<muhenkan>` 無害化まわりをリファクタした。`my/muhenkan-key->kbd` と `my/define-muhenkan-keys` を追加して、ミニバッファ系 map、`isearch-mode-map`、`query-replace-map`、`y-or-n-p-map` への同種の束縛処理を一箇所のヘルパー経由にまとめた。あわせて、通常バッファ・ミニバッファ・isearch で方針がどう違うかをコメントで明記した。
 - なぜそうしたか: `<muhenkan>` 無害化の実装が複数箇所に散っており、キー候補の列挙と `define-key` の重複が増えてきたため。動作を変えずに意図を読みやすくし、今後の調整箇所を減らすため。
 - 未完了の事項: `my/deactivate-input-method-command` 本体の強い fallback は今回触っていない。`<henkan>` 側の通常運用も将来見直す余地はある。
