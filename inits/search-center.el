@@ -73,6 +73,11 @@
   :group 'sc/search-center
   :type 'boolean)
 
+(defcustom sc/history-max 40
+  "*Maximum number of search/replace history entries to keep."
+  :group 'sc/search-center
+  :type 'integer)
+
 ;;; ------------------------------------------------------------
 ;;; defvar
 
@@ -102,6 +107,8 @@
 (defvar sc/mozc-search--resume-string nil)
 (defvar sc/mozc-search--resume-forward t)
 (defvar sc/mozc-search--action nil)
+(defvar sc/history nil)
+(defvar sc/history-index nil)
 
 ;;; ------------------------------------------------------------
 ;;; dependencies
@@ -272,6 +279,75 @@
     (insert strings))
   (setq sc/previous-searched-str strings))
 
+(defun sc/set-replace-string (strings)
+  "Store STRINGS into the search-center replace buffer and history."
+  (unless (get-buffer sc/replace-str-buffer)
+    (get-buffer-create sc/replace-str-buffer))
+  (with-current-buffer sc/replace-str-buffer
+    (delete-region (point-min) (point-max))
+    (insert (or strings "")))
+  (setq sc/previous-replaced-str strings))
+
+(defun sc/set-regexp-mode (enabled)
+  "Apply search-center regexp mode ENABLED to live related buffers."
+  (let ((state (if enabled 1 -1)))
+    (dolist (buffer (list (and (buffer-live-p sc/target-buffer) sc/target-buffer)
+                          (get-buffer sc/search-str-buffer)
+                          (get-buffer sc/replace-str-buffer)))
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (search-center-re-mode state))))))
+
+(defun sc/make-history-entry (search-str replace-str regexp)
+  "Create a history entry from SEARCH-STR, REPLACE-STR and REGEXP."
+  (list :search search-str
+        :replace replace-str
+        :regexp regexp))
+
+(defun sc/history-entry-equal-p (left right)
+  "Return non-nil when history entries LEFT and RIGHT are equivalent."
+  (equal left right))
+
+(defun sc/push-history-entry (search-str replace-str regexp)
+  "Push SEARCH-STR, REPLACE-STR and REGEXP into search-center history."
+  (let ((entry (sc/make-history-entry search-str replace-str regexp)))
+    (unless (sc/history-entry-equal-p entry (car sc/history))
+      (push entry sc/history)
+      (when (> (length sc/history) sc/history-max)
+        (setcdr (nthcdr (1- sc/history-max) sc/history) nil)))
+    (setq sc/history-index 0)))
+
+(defun sc/apply-history-entry (entry)
+  "Apply search-center history ENTRY to the helper buffers."
+  (let ((search-str (plist-get entry :search))
+        (replace-str (plist-get entry :replace))
+        (regexp (plist-get entry :regexp)))
+    (sc/set-search-string search-str)
+    (sc/set-replace-string replace-str)
+    (sc/set-regexp-mode regexp)
+    (message "history: search=%s replace=%s%s"
+             search-str
+             (or replace-str "")
+             (if regexp " [re]" ""))))
+
+(defun sc/history-prev ()
+  "Load the previous search-center history entry."
+  (interactive)
+  (unless sc/history
+    (user-error "Error: history is empty"))
+  (setq sc/history-index
+        (min (1+ (or sc/history-index -1))
+             (1- (length sc/history))))
+  (sc/apply-history-entry (nth sc/history-index sc/history)))
+
+(defun sc/history-next ()
+  "Load the next (newer) search-center history entry."
+  (interactive)
+  (unless sc/history
+    (user-error "Error: history is empty"))
+  (setq sc/history-index (max 0 (1- (or sc/history-index 0))))
+  (sc/apply-history-entry (nth sc/history-index sc/history)))
+
 (defun sc/prepare-search-from-string (strings)
   "Prepare search-center state from STRINGS without moving point."
   (sc/set-search-string strings)
@@ -432,6 +508,8 @@
   (global-set-key (kbd "s-l") 'sc/alias-replace-next)
   (global-set-key (kbd "s-r") 'sc/alias-replace-here)
   (global-set-key (kbd "s-R") 'sc/alias-replace-region)
+  (global-set-key (kbd "s-p") 'sc/history-prev)
+  (global-set-key (kbd "s-P") 'sc/history-next)
   (global-set-key (kbd "s-M") 'sc/grep) ;; s-m is used by Mac OS X
   (global-set-key (kbd "s-h") 'sc/select-target-window)
   (global-set-key (kbd "C-g") 'sc/quit-str-windows))
@@ -849,6 +927,9 @@
       (setq replace-str (if (boundp 'sc/previous-replaced-str) sc/previous-replaced-str nil)))
     (if (and is-replace (not replace-str)) (error "Error: replace word is empty"))
 
+    ;; keep history entry before moving point or replacing text.
+    (sc/push-history-entry search-str replace-str is-re)
+
     ;; main process
     ;; 処理本体
     (cl-labels
@@ -943,6 +1024,9 @@
                             sc/previous-replaced-str
                           nil)))
     (unless replace-str (error "Error: replace word is empty"))
+
+    ;; keep history entry before replacing.
+    (sc/push-history-entry search-str replace-str is-re)
 
     ;; replace region or whole buffer
     ;; 選択範囲があればそこを対象とする、なければ、すべてを対象にして良いか尋ねる

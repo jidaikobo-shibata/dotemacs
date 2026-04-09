@@ -12,6 +12,13 @@
 - 未完了の事項: GUI 実機で `C-s <henkan>` -> `Mozc search:` -> 日本語確定 -> 初回前方検索 -> `s-g` / `s-G` 巡回、そして `<muhenkan>` による `isearch` 復帰がまだ未確認。
 - 次にやるとよいこと: Emacs を再起動し、まず `C-s <henkan>` 後に `Mozc search:` が出ること、確定文字列で1回検索が走ること、`s-g` / `s-G` がそのまま効くこと、`<muhenkan>` で `isearch` に戻れることを順に確認する。
 
+## 2026-04-09
+
+- 何をしたか: `search-center.el` に検索置換履歴の初期実装を追加した。履歴1件は「検索文字列・置換文字列・正規表現モード」の組として保持し、`sc/history` と `sc/history-index` で管理する。`sc/search-replace` と `sc/replace-all` の入口で履歴を保存し、`s-p` / `s-P` で古い履歴・新しい履歴を `*search string*` / `*replace string*` と regexp モードへ反映する関数を追加した。
+- なぜそうしたか: 検索バッファと置換バッファをセットで扱う現在の `search-center` の設計に対し、「前に使った検索置換の組へ戻る」操作を自然に載せるため。まずは安全に、履歴を選んだだけでは検索を実行せず、バッファ反映だけを行う方針にした。
+- 未完了の事項: 実機で `s-g` / `s-l` 実行後に履歴が適切に積まれるか、`s-p` / `s-P` で期待通り前後に辿れるかは未確認。空の置換文字列や正規表現 `^$` のようなケースで表示が直感的かも未確認。
+- 次にやるとよいこと: 実際に異なる検索置換を2〜3組作って `s-p` / `s-P` を試し、重複保存の抑止、regexp モードの復元、helper buffer への反映が期待通りかを見る。
+
 - 何をしたか: `C-s` の `isearch` 中に `I-search [[Mozc]]:` と表示されるのに日本語入力できない件を調査し、`current-input-method="japanese-mozc"` / `mozc-mode=t` に対して `input-method-function=nil` になる半壊状態を確認した。対策として `inits/mozc.init.el` に `my/isearch-resync-input-method` を追加し、`isearch-mode-hook` で Mozc 表示だけ残って実体が欠けている場合に入力メソッドを再同期するようにした。あわせて `.gitignore` に `*.elc` と `session.*` を追加した。
 - 何をしたか: `isearch` 中の Mozc 日本語入力は既存の `activate-input-method` 連携だけでは安定しないと判断し、`elisp/my-mozc-isearch.el` を新規追加した。`<henkan>` で `isearch` 本体へ IME を直接載せる代わりに、一時的にミニバッファで Mozc 入力し、確定文字列を `isearch-yank-string` で検索文字列へ戻す方針に切り替えた。`inits/mozc.init.el` からは新ファイルを `require` するだけに留めた。
 - 何をしたか: `my-mozc-isearch` が読まれていても `inits/mozc.init.el` 側の既存 `isearch` 設定が `<henkan>` と `isearch-use-input-method` を上書きしていたため、`featurep 'my-mozc-isearch` のときは従来の `isearch` 直結設定をスキップする分岐を追加した。
