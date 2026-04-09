@@ -1,5 +1,5 @@
 ;;; search-center.el --- search center. -*- lexical-binding: t; -*-
-;; Copyright (C) 2016 by jidaikobo-shibata
+;; Copyright (C) 2016-2026 by jidaikobo-shibata
 ;; Author: jidaikobo-shibata
 ;; URL: https://github.com/jidaikobo-shibata/dotemacs
 
@@ -9,15 +9,8 @@
 
 ;;; Todo:
 ;; 補助的依存状態のforeign-regexpとsmartrepがなくても動くようにする
-;; http://qiita.com/mkit0031/items/85d66d08cd51c1c9e8a2 を参考に*grep*バッファの名称を変更したほうが便利か？ 現在は*grep*バッファを消すようにしている。
-;; ;;; .emacs.elの末尾に追加
-;; ;; grep実施時に複数のバッファで開けるよう設定
-;; (defadvice grep (after my-grep activate)
-;;   (let ((grep-buffer (get-buffer "*grep*")))
-;;     (set-buffer grep-buffer)
-;;     (rename-buffer (concat "*grep*" "<\"" (ad-get-arg 0) "\">" ) t)))
 
-;; マルチファイル検索置換
+;;; マルチファイル検索置換
 ;; M-x find-dired
 ;; Run find in directory: /path/to/dir/
 ;; Run find (with args): -name "*php"
@@ -39,6 +32,7 @@
 ;; | s-R | replace all                        | バッファ内全てを置換
 ;; | s-M | interactive rgrep by search string | 対話的にrgrep
 ;; | s-h | select target window               | 対象ウィンドウを選択
+;; | s-p/s-P | select search/replace history  | 検索置換履歴を選択
 ;;
 ;; sc/is-use-super nil
 ;; sc/is-use-default-key-binds t
@@ -239,24 +233,6 @@
 
 ;;; ------------------------------------------------------------
 ;;; hook
-
-;; compatible with isearch command
-;; i-search、i-search-backwardコマンドとの同期
-;; (when sc/is-sync-isearch
-;;   (add-hook 'isearch-update-post-hook 'sc/isearch-update-string)
-;;   (defun sc/isearch-update-string ()
-;;     (when (and (not (or isearch-regexp isearch-regexp-function))
-;;                (eq this-command 'isearch-printing-char))
-;;       (unless (get-buffer sc/search-str-buffer) (get-buffer-create sc/search-str-buffer))
-;;       (sc/keep-target-buffer)
-;;       ;; set strings
-;;       ;; 文字列をセット
-;;       (with-current-buffer sc/search-str-buffer
-;;         (delete-region (point-min) (point-max))
-;;         (insert isearch-string))
-;;       ;; keep strings
-;;       ;; 次回用に文字列を保存
-;;       (setq sc/previous-searched-str isearch-string))))
 
 (when sc/is-sync-isearch
   (add-hook 'isearch-update-post-hook 'sc/isearch-update-string)
@@ -1128,10 +1104,6 @@
         (my/rgrep-buffer-name regexp files dir))
        t))))
 (advice-add 'rgrep :after #'my/rename-rgrep-buffer)
-
-;;; ------------------------------------------------------------
-;;; experimental area
-;; (global-set-key (kbd "C--") 'func)
 
 ;;; ------------------------------------------------------------
 ;;; Provide
