@@ -14,10 +14,33 @@
 ;; ここでは通常の Mozc ON/OFF のみを扱う。
 
 ;;; ------------------------------------------------------------
-;; ミニバッファや isearch では <muhenkan> 系キーを無害化する
-;; 終了確認などで英数キーのつもりで押して `Quit' になるのを避ける。
+;; ミニバッファやプロンプトでは <muhenkan> 系キーを無害化する
+;;
+;; この環境では、英数に切り替えたい気持ちで <muhenkan> を押すことが多い。
+;; しかし Emacs の問い合わせ系プロンプトは、そのキーを「未知の入力」や
+;; `Quit' として解釈することがあり、かなりストレスになる。
+;;
+;; ここでは以下の方針に統一する。
+;; - 通常バッファでは従来どおり <muhenkan> で Mozc を抜ける
+;; - ミニバッファや問い合わせプロンプトでは副作用を起こさず無視する
+;; - isearch では完全な `ignore' ではなく `isearch-update' を呼んで
+;;   プロンプト表示を保つ
+;;
+;; 実機ではキーイベント名が環境依存で揺れるため、候補をまとめて扱う。
 (defconst my/muhenkan-keys
   '("<muhenkan>" [muhenkan] "<zenkaku-hankaku>" [zenkaku-hankaku] "<eisu-toggle>" [eisu-toggle]))
+
+(defun my/muhenkan-key->kbd (key)
+  "Return KEY as a value acceptable to `define-key'.
+KEY may be a key description string or a vector event."
+  (if (stringp key) (kbd key) key))
+
+(defun my/define-muhenkan-keys (keymap command)
+  "Bind every muhenkan-like key in KEYMAP to COMMAND.
+This helper keeps all event-name variants in one place so prompt maps,
+minibuffer maps, and isearch can be updated consistently."
+  (dolist (key my/muhenkan-keys)
+    (define-key keymap (my/muhenkan-key->kbd key) command)))
 
 (defun my/isearch-ignore-muhenkan ()
   "Ignore muhenkan-like keys during isearch, but keep the prompt visible."
@@ -25,6 +48,9 @@
   (when (bound-and-true-p isearch-mode)
     (isearch-update)))
 
+;; These minibuffer-local maps cover normal prompts, completion prompts,
+;; and inactive minibuffer states.  We explicitly bind muhenkan-like keys
+;; to `ignore' here so they do not trigger accidental quit/help behavior.
 (dolist (map-symbol '(minibuffer-local-map
                       minibuffer-local-ns-map
                       minibuffer-local-completion-map
@@ -32,25 +58,22 @@
                       minibuffer-local-isearch-map
                       minibuffer-inactive-mode-map))
   (when (boundp map-symbol)
-    (dolist (key my/muhenkan-keys)
-      (define-key (symbol-value map-symbol)
-                  (if (stringp key) (kbd key) key)
-                  #'ignore))))
+    (my/define-muhenkan-keys (symbol-value map-symbol) #'ignore)))
 
+;; isearch is special: a raw `ignore' can make the echo-area prompt disappear
+;; while the search session itself is still alive.  Update the prompt instead.
 (with-eval-after-load 'isearch
-  (dolist (key my/muhenkan-keys)
-    (define-key isearch-mode-map
-                (if (stringp key) (kbd key) key)
-                #'my/isearch-ignore-muhenkan)))
+  (my/define-muhenkan-keys isearch-mode-map #'my/isearch-ignore-muhenkan))
 
 ;; `save-some-buffers' などの問い合わせは `map-y-or-n-p' / `query-replace-map'
 ;; を使ってキーを直接読むため、ミニバッファ map の `ignore' は効かない。
 ;; ここでも <muhenkan> 系キーを無害化して、`Type C-h for help.' ノイズを防ぐ。
 (when (boundp 'query-replace-map)
-  (dolist (key my/muhenkan-keys)
-    (define-key query-replace-map
-                (if (stringp key) (kbd key) key)
-                #'ignore)))
+  (my/define-muhenkan-keys query-replace-map #'ignore))
+
+;; `y-or-n-p' 系の確認でも <muhenkan> を無害化する。
+(when (boundp 'y-or-n-p-map)
+  (my/define-muhenkan-keys y-or-n-p-map #'ignore))
 
 ;;; ------------------------------------------------------------
 ;; muhenkanキーでMozcを抜ける際に、現在の入力を確定する
