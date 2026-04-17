@@ -29,7 +29,11 @@
 (defun get-current-path ()
   "Get current file path."
   (interactive)
-  (let ((path (or (buffer-file-name) (expand-file-name default-directory))))
+  (let* ((raw-path (or (buffer-file-name) (expand-file-name default-directory)))
+         (path (if (file-remote-p raw-path)
+                   (tramp-file-name-localname
+                    (tramp-dissect-file-name raw-path))
+                 raw-path)))
     (kill-new path)
     (message path)))
 (global-set-key (kbd "M-s-k") 'get-current-path)
