@@ -11,6 +11,7 @@ elisp/
 eln-cache/
 elpa.expired/
 elpa/
+.serena/
 histories/
 history
 migemo-pattern

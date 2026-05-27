@@ -178,6 +178,12 @@
 (require 'fun-startup.init)
 
 ;;; ------------------------------------------------------------
+;; emacsclient support
+(require 'server)
+(unless (server-running-p)
+  (server-start))
+
+;;; ------------------------------------------------------------
 ;; Theme
 (unless my-dev-mode-on
   (add-to-list 'custom-theme-load-path
