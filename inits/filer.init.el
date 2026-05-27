@@ -62,6 +62,44 @@
 (setq-default dired-omit-files-p t)
 (setq dired-omit-files "^\\.DS_Store")
 
+;; diredに8進数パーミッションを表示
+(defvar-local my/dired-octal-permission-overlays nil)
+
+(defun my/dired-clear-octal-permission-overlays ()
+  "Clear octal permission overlays in the current Dired buffer."
+  (mapc #'delete-overlay my/dired-octal-permission-overlays)
+  (setq my/dired-octal-permission-overlays nil))
+
+(defun my/dired-rwx-to-octal (rwx)
+  "Convert RWX permission string to an octal permission string."
+  (format "%d%d%d"
+          (+ (if (eq (aref rwx 0) ?r) 4 0)
+             (if (eq (aref rwx 1) ?w) 2 0)
+             (if (eq (aref rwx 2) ?x) 1 0))
+          (+ (if (eq (aref rwx 3) ?r) 4 0)
+             (if (eq (aref rwx 4) ?w) 2 0)
+             (if (eq (aref rwx 5) ?x) 1 0))
+          (+ (if (eq (aref rwx 6) ?r) 4 0)
+             (if (eq (aref rwx 7) ?w) 2 0)
+             (if (eq (aref rwx 8) ?x) 1 0))))
+
+(defun my/dired-show-octal-permissions ()
+  "Show octal permissions next to symbolic permissions in Dired."
+  (my/dired-clear-octal-permission-overlays)
+  (save-excursion
+    (goto-char (point-min))
+    (while (not (eobp))
+      (when (looking-at
+             "^. [bcdlps-]\\([r-][w-][x-][r-][w-][x-][r-][w-][x-]\\)")
+        (let ((ov (make-overlay (match-end 1) (match-end 1))))
+          (overlay-put ov 'after-string
+                       (format " %s"
+                               (my/dired-rwx-to-octal (match-string 1))))
+          (push ov my/dired-octal-permission-overlays)))
+      (forward-line 1))))
+
+(add-hook 'dired-after-readin-hook #'my/dired-show-octal-permissions)
+
 ;; dired-explorer
 (add-hook 'dired-mode-hook
           (lambda ()
