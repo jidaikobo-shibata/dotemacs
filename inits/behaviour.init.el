@@ -6,6 +6,9 @@
 ;; yes/noをy/nへ
 (fset 'yes-or-no-p 'y-or-n-p)
 
+;; y/n確認中はミニバッファではなく単一キー入力で待つ
+(setq y-or-n-p-use-read-key t)
+
 ;; 起動画面を抑止
 (setq inhibit-startup-message t)
 
