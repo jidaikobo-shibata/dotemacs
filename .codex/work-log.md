@@ -352,3 +352,8 @@
 - なぜそうしたか: 既定をスペースにしたい要望があり、加えてモダンな JS の実運用（Prettier 既定など）でもスペースが主流なため。
 - 未完了の事項: 既存バッファには自動反映されないため、必要ならバッファ再オープンまたは mode 再起動が必要。
 - 次にやるとよいこと: プロジェクト単位でタブ運用が必要な場合は `.editorconfig` か `dir-locals.el` で局所上書きする。
+
+- 何をしたか: `inits/mozc.init.el` に `my/activate-mozc-input-method-command` を追加し、`<henkan>` のグローバル束縛を同コマンドへ変更した。`activate-input-method` だけで Mozc が半端に有効化された場合は状態をクリアして再実行し、必要なら `mozc-mode 1` で補正する。あわせて `inits/search-center.el` の `sc/mozc-search-enable-input-method` は同コマンドを呼ぶ薄いラッパーに整理した。
+- なぜそうしたか: カーソル色は Mozc ON 相当の赤のままでも、`current-input-method` / `input-method-function` / `mozc-mode` が OFF になり日本語入力できない状態が発生していたため。既に search-center 側にあった復旧ロジックを Mozc 初期化側へ集約し、通常の `<henkan>` でも同じ補正を使えるようにした。
+- 未完了の事項: 実運用で、問題状態から `<henkan>` 単独で日本語入力へ復帰できるかの体感確認は未完了。
+- 次にやるとよいこと: 再発時に `<henkan>` を押して復帰可否を確認する。まだ復帰しない場合は、`cursor-chg` のカーソル色同期と Mozc/LEIM 状態の観測ログを追加して、どの変数が食い違うかを再確認する。

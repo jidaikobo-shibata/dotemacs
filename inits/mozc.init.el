@@ -105,6 +105,23 @@ minibuffer maps, and isearch can be updated consistently."
           describe-current-input-method-function nil)
     (force-mode-line-update)))
 
+(defun my/activate-mozc-input-method-command ()
+  "Enable Mozc input method reliably."
+  (interactive)
+  (when default-input-method
+    (activate-input-method default-input-method)
+    ;; `activate-input-method' alone sometimes leaves Mozc half-enabled.
+    (when (and (equal current-input-method default-input-method)
+               (null input-method-function))
+      (setq current-input-method nil
+            current-input-method-title nil
+            describe-current-input-method-function nil)
+      (activate-input-method default-input-method))
+    (when (and (equal current-input-method default-input-method)
+               (boundp 'mozc-mode)
+               (not mozc-mode))
+      (ignore-errors (mozc-mode 1)))))
+
 ;; 未変換の入力文字があるかどうか確認
 (defun mozc-input-pending-p ()
   "Check if Mozc has pending input in the preedit session."
@@ -137,8 +154,7 @@ minibuffer maps, and isearch can be updated consistently."
 ;;; ------------------------------------------------------------
 ;; henkanでMozcを起こす
 (global-set-key (kbd "<henkan>")
-                (lambda () (interactive)
-                  (activate-input-method default-input-method)))
+                #'my/activate-mozc-input-method-command)
 
 ;;; ------------------------------------------------------------
 ;; mozc-modeでもdelete-selection-modeを機能させる

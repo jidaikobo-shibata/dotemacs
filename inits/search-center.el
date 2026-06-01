@@ -342,26 +342,12 @@
   (local-set-key (kbd "s-g") #'sc/mozc-search-finish-next)
   (local-set-key (kbd "s-G") #'sc/mozc-search-finish-prev)
   (local-set-key (kbd "<henkan>")
-                 (lambda ()
-                   (interactive)
-                   (sc/mozc-search-enable-input-method)))
+                 #'sc/mozc-search-enable-input-method)
   (sc/mozc-search-enable-input-method))
 
 (defun sc/mozc-search-enable-input-method ()
   "Enable Mozc reliably in the temporary search minibuffer."
-  (when default-input-method
-    (activate-input-method default-input-method)
-    ;; `activate-input-method' alone sometimes leaves Mozc half-enabled.
-    (when (and (equal current-input-method default-input-method)
-               (null input-method-function))
-      (setq current-input-method nil
-            current-input-method-title nil
-            describe-current-input-method-function nil)
-      (activate-input-method default-input-method))
-    (when (and (equal current-input-method default-input-method)
-               (boundp 'mozc-mode)
-               (not mozc-mode))
-      (ignore-errors (mozc-mode 1)))))
+  (my/activate-mozc-input-method-command))
 
 (defun sc/mozc-search-cancel-to-isearch ()
   "Abort Japanese search input and resume the previous isearch."
