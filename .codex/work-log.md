@@ -2,6 +2,11 @@
 
 ## 2026-06-12
 
+- 何をしたか: `inits/search-center.el` に名前付き検索置換プリセット `sc/presets` を追加し、「SC: 最初のtdをthに変更する」「SC: 連続する改行を減らす」を初期プリセットとして定義した。最初の `td` プリセットは Perl 互換正規表現で `<tr>` 直後の空白・タブ・改行を許容して保持する。プリセットは `sc/apply-preset-by-name` / `sc/select-preset` で `*search string*`、`*replace string*`、正規表現モードへ読み込むだけで、置換は実行しない。あわせて `anything-c-source-search-center-presets` を定義し、`inits/anything.init.el` の `my/anything-sources` に接続した。また、Anything 起動直後でも起動元バッファに正規表現モードが入るよう `anything-current-buffer` から `sc/target-buffer` を同期する処理を追加した。
+- なぜそうしたか: よく使う検索置換セットを履歴とは別に名前付きで呼び出せるようにするため。実行前に検索・置換内容を自分で確認できるよう、プリセット選択時には一括置換を走らせない設計にした。
+- 未完了の事項: GUI 実機で `C-;` から `Search Center Presets` が表示され、選択後に search-center の補助バッファと正規表現モードが期待どおりになるかは未確認。
+- 次にやるとよいこと: 実運用で候補名や初期プリセットの表現が探しやすいか確認する。必要なら `sc/presets` に日常的な HTML 整形・置換セットを追加する。
+
 - 何をしたか: `inits/anything.init.el` の `alist-anything-for-files` を `my/anything-sources`、`my-anything-for-files` を `my-anything-launcher` へリネームし、`C-;` / `M-s-<left>` / `M-s-<right>` の入口を総合ランチャーとして整理した。あわせて低頻度で忘れやすい `anything-c-source-coding-system` を総合ランチャーの source に追加した。
 - なぜそうしたか: `C-;` を「したいこと全部」を探す入口に寄せる方針にするため。既存名はファイル用途に限定されており、今後 `search-center` の名前付きプリセットなど編集系 source を足すには実態と名前がずれていたため。
 - 未完了の事項: `search-center` の名前付き検索置換プリセット source はまだ未実装。`C-^` の coding-system 専用入口は移行しやすいよう残している。

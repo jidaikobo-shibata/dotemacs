@@ -34,6 +34,7 @@
 ;; | s-M | interactive rgrep by search string | 対話的にrgrep
 ;; | s-h | select target window               | 対象ウィンドウを選択
 ;; | s-p/s-P | select search/replace history  | 検索置換履歴を選択
+;; | C-; | select search/replace preset       | Anythingからプリセットを選択
 ;;
 ;; sc/is-use-super nil
 ;; sc/is-use-default-key-binds t
@@ -72,6 +73,19 @@
   "*Maximum number of search/replace history entries to keep."
   :group 'sc/search-center
   :type 'integer)
+
+(defcustom sc/presets
+  '((:name "SC: 最初のtdをthに変更する"
+     :search "<tr>([ \t\n\r]*)<td>(.+?)</td>"
+     :replace "<tr>${1}<th>${2}</th>"
+     :regexp t)
+    (:name "SC: 連続する改行を減らす"
+     :search "\n\n+"
+     :replace "\n"
+     :regexp t))
+  "*Named search/replace presets for search-center."
+  :group 'sc/search-center
+  :type 'sexp)
 
 ;;; ------------------------------------------------------------
 ;;; defvar
@@ -125,6 +139,7 @@
   (declare-function foreign-regexp/search/forward "foreign-regexp")
   (declare-function foreign-regexp/search/backward "foreign-regexp")
   (declare-function foreign-regexp/replace/perform-replace "foreign-regexp"))
+(defvar anything-current-buffer)
 
 ;;; ------------------------------------------------------------
 ;;; minor-modes
@@ -274,6 +289,61 @@
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
           (search-center-re-mode state))))))
+
+(defun sc/sync-target-buffer-from-anything ()
+  "Use Anything's original buffer as the search-center target when possible."
+  (when (and (boundp 'anything-current-buffer)
+             (buffer-live-p anything-current-buffer)
+             (not (sc/string-buffer-p anything-current-buffer)))
+    (setq sc/target-buffer anything-current-buffer)
+    (when-let ((target-window (get-buffer-window anything-current-buffer)))
+      (setq sc/target-window target-window))))
+
+(defun sc/preset-names ()
+  "Return search-center preset names."
+  (mapcar (lambda (preset) (plist-get preset :name)) sc/presets))
+
+(defun sc/find-preset (name)
+  "Return a search-center preset named NAME."
+  (cl-find name sc/presets
+           :key (lambda (preset) (plist-get preset :name))
+           :test #'string=))
+
+(defun sc/apply-preset (preset)
+  "Apply search-center PRESET to helper buffers without replacing."
+  (let ((name (plist-get preset :name))
+        (search-str (plist-get preset :search))
+        (replace-str (plist-get preset :replace))
+        (regexp (plist-get preset :regexp)))
+    (unless (and name search-str)
+      (user-error "Error: invalid search-center preset"))
+    (sc/sync-target-buffer-from-anything)
+    (sc/set-search-string search-str)
+    (sc/set-replace-string replace-str)
+    (sc/set-regexp-mode regexp)
+    (message "preset: %s%s" name (if regexp " [re]" ""))))
+
+(defun sc/apply-preset-by-name (name)
+  "Apply the search-center preset named NAME."
+  (interactive (list (completing-read "Search-center preset: "
+                                      (sc/preset-names)
+                                      nil
+                                      t)))
+  (let ((preset (sc/find-preset name)))
+    (unless preset
+      (user-error "Error: preset not found: %s" name))
+    (sc/apply-preset preset)))
+
+(defun sc/select-preset ()
+  "Select and apply a named search-center preset."
+  (interactive)
+  (call-interactively #'sc/apply-preset-by-name))
+
+(defvar anything-c-source-search-center-presets
+  '((name . "Search Center Presets")
+    (candidates . sc/preset-names)
+    (action . (("Set to search-center" . sc/apply-preset-by-name))))
+  "Anything source for search-center presets.")
 
 (defun sc/make-history-entry (search-str replace-str regexp)
   "Create a history entry from SEARCH-STR, REPLACE-STR and REGEXP."

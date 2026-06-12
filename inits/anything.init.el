@@ -183,6 +183,8 @@
 (add-to-list 'my/anything-sources 'anything-c-source-my-hosts t)
 (add-to-list 'my/anything-sources 'anything-c-source-my-ftp-hosts t)
 (add-to-list 'my/anything-sources 'anything-c-source-recentf t)
+(when (boundp 'anything-c-source-search-center-presets)
+  (add-to-list 'my/anything-sources 'anything-c-source-search-center-presets t))
 ;; (add-to-list 'my/anything-sources 'anything-c-source-files-in-current-dir t)
 ;; (add-to-list 'my/anything-sources 'anything-c-source-my-file-of-working-dir t)
 ;; (add-to-list 'my/anything-sources 'anything-c-source-buffers-list t)
