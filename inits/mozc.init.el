@@ -105,6 +105,12 @@ minibuffer maps, and isearch can be updated consistently."
           describe-current-input-method-function nil)
     (force-mode-line-update)))
 
+(defun my/muhenkan-command ()
+  "Handle muhenkan key safely for normal buffers and minibuffer prompts."
+  (interactive)
+  (unless (minibufferp)
+    (my/deactivate-input-method-command)))
+
 (defun my/activate-mozc-input-method-command ()
   "Enable Mozc input method reliably."
   (interactive)
@@ -129,7 +135,7 @@ minibuffer maps, and isearch can be updated consistently."
 
 ;; Mozcロード後にキーバインドを設定
 (with-eval-after-load 'mozc
-  (define-key mozc-mode-map (kbd "<muhenkan>") #'my/deactivate-input-method-command)
+  (define-key mozc-mode-map (kbd "<muhenkan>") #'my/muhenkan-command)
   ;; Keep default mouse selection behavior even when mozc-mode keymap is active.
   (define-key mozc-mode-map [down-mouse-1] #'mouse-drag-region)
   (define-key mozc-mode-map [drag-mouse-1] #'mouse-set-region)
@@ -139,10 +145,10 @@ minibuffer maps, and isearch can be updated consistently."
   (define-key mozc-mode-map [triple-down-mouse-1] #'mouse-drag-region)
   (define-key mozc-mode-map [triple-mouse-1] #'mouse-set-point))
 (with-eval-after-load 'anything
-  (define-key anything-map (kbd "<muhenkan>") #'my/deactivate-input-method-command))
+  (define-key anything-map (kbd "<muhenkan>") #'my/muhenkan-command))
 
 ;; グローバルキーバインドも設定
-(global-set-key (kbd "<muhenkan>") #'my/deactivate-input-method-command)
+(global-set-key (kbd "<muhenkan>") #'my/muhenkan-command)
 
 ;; ミニバッファではmozcをオフに
 ;; (defun my-confirm-and-deactivate-input-method-on-minibuffer ()

@@ -1,5 +1,12 @@
 # Work Log
 
+## 2026-06-12
+
+- 何をしたか: `inits/mozc.init.el` に `my/muhenkan-command` を追加し、`<muhenkan>` の global / `mozc-mode-map` / `anything-map` 束縛を `my/deactivate-input-method-command` から新コマンドへ差し替えた。新コマンドはミニバッファ中なら何もせず、通常バッファでは従来どおり `my/deactivate-input-method-command` を呼ぶ。
+- なぜそうしたか: `remove-html-tags` や `put-php-opener-closer` の `interactive` プロンプト中に `<muhenkan>` が Quit へ流れる問題を、個別関数ではなく Mozc / muhenkan キーの入口で抑えるため。実際の Mozc OFF 処理と、キー入力コンテキストごとの振る舞いを分離するため。
+- 未完了の事項: GUI 実機で `remove-html-tags`、`put-php-opener-closer`、Anything プロンプト中に `<muhenkan>` が Quit せず無視されるかは未確認。
+- 次にやるとよいこと: Emacs を再読み込みまたは再起動して、該当プロンプト中の `<muhenkan>` を確認する。まだ Quit する場合は、実際のキーイベントが `<muhenkan>` ではなく `<escape>` 等として届いていないかを `C-h k` や一時的な `read-event` で確認する。
+
 ## 2026-04-08
 
 - 何をしたか: `inits/mozc.init.el` から、旧来の `isearch` 直結コード（`my/isearch-resync-input-method`、`isearch-use-input-method`、`isearch` 中 `<henkan>/<muhenkan>` 制御）を削除し、`C-s <henkan>` の橋渡しは `search-center.el` 側の責務だと明示した。あわせてミニバッファ各種 map では `<muhenkan>` を `ignore` にして、終了確認などで英数キーのつもりで押したときに `Quit` にならないようにした。
