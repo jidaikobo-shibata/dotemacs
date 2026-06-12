@@ -2,6 +2,11 @@
 
 ## 2026-06-12
 
+- 何をしたか: `inits/anything.init.el` の `alist-anything-for-files` を `my/anything-sources`、`my-anything-for-files` を `my-anything-launcher` へリネームし、`C-;` / `M-s-<left>` / `M-s-<right>` の入口を総合ランチャーとして整理した。あわせて低頻度で忘れやすい `anything-c-source-coding-system` を総合ランチャーの source に追加した。
+- なぜそうしたか: `C-;` を「したいこと全部」を探す入口に寄せる方針にするため。既存名はファイル用途に限定されており、今後 `search-center` の名前付きプリセットなど編集系 source を足すには実態と名前がずれていたため。
+- 未完了の事項: `search-center` の名前付き検索置換プリセット source はまだ未実装。`C-^` の coding-system 専用入口は移行しやすいよう残している。
+- 次にやるとよいこと: `search-center.el` に名前付きプリセット本体を追加し、Anything source として `my/anything-sources` へ接続する。
+
 - 何をしたか: `inits/mozc.init.el` に `my/muhenkan-command` を追加し、`<muhenkan>` の global / `mozc-mode-map` / `anything-map` 束縛を `my/deactivate-input-method-command` から新コマンドへ差し替えた。新コマンドはミニバッファ中なら何もせず、通常バッファでは従来どおり `my/deactivate-input-method-command` を呼ぶ。
 - なぜそうしたか: `remove-html-tags` や `put-php-opener-closer` の `interactive` プロンプト中に `<muhenkan>` が Quit へ流れる問題を、個別関数ではなく Mozc / muhenkan キーの入口で抑えるため。実際の Mozc OFF 処理と、キー入力コンテキストごとの振る舞いを分離するため。
 - 未完了の事項: GUI 実機で `remove-html-tags`、`put-php-opener-closer`、Anything プロンプト中に `<muhenkan>` が Quit せず無視されるかは未確認。

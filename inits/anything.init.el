@@ -87,8 +87,9 @@
 (define-key anything-map (kbd "M-s-<right>") 'anything-next-line)
 
 ;;; ------------------------------------------------------------
-;; alist-anything-for-files
-(defvar alist-anything-for-files '())
+;; my/anything-sources
+(defvar my/anything-sources '()
+  "Anything sources for the main launcher.")
 
 ;;; ------------------------------------------------------------
 ;;; ~/.ssh/configを情報源として、tramp接続
@@ -174,31 +175,31 @@
     (action . (("Switch to Dired Buffer" . switch-to-buffer)))))
 
 ;;; ------------------------------------------------------------
-;;; my-anything-for-files
+;;; my-anything-launcher
 
-(add-to-list 'alist-anything-for-files 'foeb/anything-c-source-buffers t)
-(add-to-list 'alist-anything-for-files 'anything-c-source-my-dired-buffer t)
-(add-to-list 'alist-anything-for-files 'anything-c-source-bookmarks t)
-(add-to-list 'alist-anything-for-files 'anything-c-source-my-hosts t)
-(add-to-list 'alist-anything-for-files 'anything-c-source-my-ftp-hosts t)
-(add-to-list 'alist-anything-for-files 'anything-c-source-recentf t)
-;; (add-to-list 'alist-anything-for-files 'anything-c-source-files-in-current-dir t)
-;; (add-to-list 'alist-anything-for-files 'anything-c-source-my-file-of-working-dir t)
-;; (add-to-list 'alist-anything-for-files 'anything-c-source-buffers-list t)
-;; (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-functions-with-abbrevs t)
-;; (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-commands t)
-;; (add-to-list 'alist-anything-for-files 'anything-c-source-emacs-variables t)
-;; (add-to-list 'alist-anything-for-files 'anything-c-source-imenu t)
+(add-to-list 'my/anything-sources 'foeb/anything-c-source-buffers t)
+(add-to-list 'my/anything-sources 'anything-c-source-my-dired-buffer t)
+(add-to-list 'my/anything-sources 'anything-c-source-bookmarks t)
+(add-to-list 'my/anything-sources 'anything-c-source-my-hosts t)
+(add-to-list 'my/anything-sources 'anything-c-source-my-ftp-hosts t)
+(add-to-list 'my/anything-sources 'anything-c-source-recentf t)
+;; (add-to-list 'my/anything-sources 'anything-c-source-files-in-current-dir t)
+;; (add-to-list 'my/anything-sources 'anything-c-source-my-file-of-working-dir t)
+;; (add-to-list 'my/anything-sources 'anything-c-source-buffers-list t)
+;; (add-to-list 'my/anything-sources 'anything-c-source-emacs-functions-with-abbrevs t)
+;; (add-to-list 'my/anything-sources 'anything-c-source-emacs-commands t)
+;; (add-to-list 'my/anything-sources 'anything-c-source-emacs-variables t)
+;; (add-to-list 'my/anything-sources 'anything-c-source-imenu t)
 
-(defun my-anything-for-files ()
-  "Anything command for files and commands."
+(defun my-anything-launcher ()
+  "Open the main Anything launcher."
   (interactive)
   (anything-other-buffer
-   alist-anything-for-files
-   "*my-anything-for-files*"))
-(global-set-key (kbd "C-;") 'my-anything-for-files)
-(global-set-key (kbd "M-s-<left>") 'my-anything-for-files)
-(global-set-key (kbd "M-s-<right>") 'my-anything-for-files)
+   my/anything-sources
+   "*my-anything-launcher*"))
+(global-set-key (kbd "C-;") 'my-anything-launcher)
+(global-set-key (kbd "M-s-<left>") 'my-anything-launcher)
+(global-set-key (kbd "M-s-<right>") 'my-anything-launcher)
 ;; (global-set-key (kbd "M-s-<left>") 'foeb/anything-for-buffers)
 ;; (global-set-key (kbd "M-s-<right>") 'foeb/anything-for-buffers)
 
@@ -216,6 +217,8 @@
                       "set CR"
                       "set CR+LF")))
     (action ("default" . anything-coding-system))))
+
+(add-to-list 'my/anything-sources 'anything-c-source-coding-system t)
 
 (defun anything-coding-system (act)
   "Change Encode and Lin folding.  ACT is what to do."
