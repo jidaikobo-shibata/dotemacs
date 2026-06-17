@@ -2,6 +2,11 @@
 
 ## 2026-06-12
 
+- 何をしたか: `inits/mozc.init.el` の `my/muhenkan-command` で、`minibufferp` に加えて `active-minibuffer-window` も確認するようにした。ミニバッファがアクティブな間は、キー処理時の current buffer が通常バッファ側に見えても `<muhenkan>` を無視する。
+- なぜそうしたか: `web-authoring-set.el` の `table-intaractive` は `read-string` のミニバッファプロンプトだが、そこで `<muhenkan>` が Quit してしまうケースがあり、現在バッファだけを見る判定ではミニバッファ中と判断できない可能性があるため。
+- 未完了の事項: GUI 実機で `C-c h t` または `s-M-t` の table 対話プロンプト中に `<muhenkan>` が Quit せず無視されるかは未確認。
+- 次にやるとよいこと: Emacs で `inits/mozc.init.el` を再読み込みするか再起動し、table 対話プロンプト中に `<muhenkan>` を押して確認する。まだ Quit する場合は、実際のキーイベントが `<escape>` として届いていないかを確認する。
+
 - 何をしたか: `inits/search-center.el` に名前付き検索置換プリセット `sc/presets` を追加し、「SC: 最初のtdをthに変更する」「SC: 連続する改行を減らす」を初期プリセットとして定義した。最初の `td` プリセットは Perl 互換正規表現で `<tr>` 直後の空白・タブ・改行を許容して保持する。プリセットは `sc/apply-preset-by-name` / `sc/select-preset` で `*search string*`、`*replace string*`、正規表現モードへ読み込むだけで、置換は実行しない。あわせて `anything-c-source-search-center-presets` を定義し、`inits/anything.init.el` の `my/anything-sources` に接続した。また、Anything 起動直後でも起動元バッファに正規表現モードが入るよう `anything-current-buffer` から `sc/target-buffer` を同期する処理を追加した。
 - なぜそうしたか: よく使う検索置換セットを履歴とは別に名前付きで呼び出せるようにするため。実行前に検索・置換内容を自分で確認できるよう、プリセット選択時には一括置換を走らせない設計にした。
 - 未完了の事項: GUI 実機で `C-;` から `Search Center Presets` が表示され、選択後に search-center の補助バッファと正規表現モードが期待どおりになるかは未確認。

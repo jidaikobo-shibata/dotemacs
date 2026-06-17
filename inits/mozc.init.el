@@ -108,7 +108,8 @@ minibuffer maps, and isearch can be updated consistently."
 (defun my/muhenkan-command ()
   "Handle muhenkan key safely for normal buffers and minibuffer prompts."
   (interactive)
-  (unless (minibufferp)
+  (unless (or (minibufferp)
+              (active-minibuffer-window))
     (my/deactivate-input-method-command)))
 
 (defun my/activate-mozc-input-method-command ()
