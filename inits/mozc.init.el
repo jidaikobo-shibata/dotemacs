@@ -4,13 +4,12 @@
 ;;; Code:
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp/emacs-mozc")
-(require 'mozc)
 (set-language-environment "Japanese")
 (setq default-input-method "japanese-mozc")
 (prefer-coding-system 'utf-8)
 
 ;;; ------------------------------------------------------------
-;; search-center 側で `C-s <henkan>' の橋渡しを持つため、
+;; search-center 側で `C-s <henkan>' 系の橋渡しを持つため、
 ;; ここでは通常の Mozc ON/OFF のみを扱う。
 
 ;;; ------------------------------------------------------------
@@ -30,17 +29,45 @@
 (defconst my/muhenkan-keys
   '("<muhenkan>" [muhenkan] "<zenkaku-hankaku>" [zenkaku-hankaku] "<eisu-toggle>" [eisu-toggle]))
 
-(defun my/muhenkan-key->kbd (key)
+(defconst my/henkan-keys
+  '("<henkan>" [henkan]
+    "<hiragana>" [hiragana]
+    "<hiragana-katakana>" [hiragana-katakana]
+    "<kana>" [kana]
+    "<higagana>" [higagana]))
+
+(defun my/key->kbd (key)
   "Return KEY as a value acceptable to `define-key'.
 KEY may be a key description string or a vector event."
   (if (stringp key) (kbd key) key))
+
+(defun my/muhenkan-key->kbd (key)
+  "Return KEY as a value acceptable to `define-key'."
+  (my/key->kbd key))
+
+(defun my/define-keys (keymap keys command)
+  "Bind every key in KEYS in KEYMAP to COMMAND."
+  (dolist (key keys)
+    (define-key keymap (my/key->kbd key) command)))
 
 (defun my/define-muhenkan-keys (keymap command)
   "Bind every muhenkan-like key in KEYMAP to COMMAND.
 This helper keeps all event-name variants in one place so prompt maps,
 minibuffer maps, and isearch can be updated consistently."
-  (dolist (key my/muhenkan-keys)
-    (define-key keymap (my/muhenkan-key->kbd key) command)))
+  (my/define-keys keymap my/muhenkan-keys command))
+
+(defun my/define-henkan-keys (keymap command)
+  "Bind every henkan-like key in KEYMAP to COMMAND."
+  (my/define-keys keymap my/henkan-keys command))
+
+(defun my/ensure-mozc-loaded ()
+  "Load Mozc if it is not already loaded."
+  (or (featurep 'mozc)
+      (condition-case err
+          (require 'mozc nil t)
+        (error
+         (message "Mozc load failed: %s" (error-message-string err))
+         nil))))
 
 (defun my/isearch-ignore-muhenkan ()
   "Ignore muhenkan-like keys during isearch, but keep the prompt visible."
@@ -115,19 +142,21 @@ minibuffer maps, and isearch can be updated consistently."
 (defun my/activate-mozc-input-method-command ()
   "Enable Mozc input method reliably."
   (interactive)
-  (when default-input-method
-    (activate-input-method default-input-method)
-    ;; `activate-input-method' alone sometimes leaves Mozc half-enabled.
-    (when (and (equal current-input-method default-input-method)
-               (null input-method-function))
-      (setq current-input-method nil
-            current-input-method-title nil
-            describe-current-input-method-function nil)
-      (activate-input-method default-input-method))
-    (when (and (equal current-input-method default-input-method)
-               (boundp 'mozc-mode)
-               (not mozc-mode))
-      (ignore-errors (mozc-mode 1)))))
+  (if (not (my/ensure-mozc-loaded))
+      (message "Mozc is not available: cannot load `mozc'")
+    (when default-input-method
+      (activate-input-method default-input-method)
+      ;; `activate-input-method' alone sometimes leaves Mozc half-enabled.
+      (when (and (equal current-input-method default-input-method)
+                 (null input-method-function))
+        (setq current-input-method nil
+              current-input-method-title nil
+              describe-current-input-method-function nil)
+        (activate-input-method default-input-method))
+      (when (and (equal current-input-method default-input-method)
+                 (boundp 'mozc-mode)
+                 (not mozc-mode))
+        (ignore-errors (mozc-mode 1))))))
 
 ;; 未変換の入力文字があるかどうか確認
 (defun mozc-input-pending-p ()
@@ -136,7 +165,7 @@ minibuffer maps, and isearch can be updated consistently."
 
 ;; Mozcロード後にキーバインドを設定
 (with-eval-after-load 'mozc
-  (define-key mozc-mode-map (kbd "<muhenkan>") #'my/muhenkan-command)
+  (my/define-muhenkan-keys mozc-mode-map #'my/muhenkan-command)
   ;; Keep default mouse selection behavior even when mozc-mode keymap is active.
   (define-key mozc-mode-map [down-mouse-1] #'mouse-drag-region)
   (define-key mozc-mode-map [drag-mouse-1] #'mouse-set-region)
@@ -146,10 +175,10 @@ minibuffer maps, and isearch can be updated consistently."
   (define-key mozc-mode-map [triple-down-mouse-1] #'mouse-drag-region)
   (define-key mozc-mode-map [triple-mouse-1] #'mouse-set-point))
 (with-eval-after-load 'anything
-  (define-key anything-map (kbd "<muhenkan>") #'my/muhenkan-command))
+  (my/define-muhenkan-keys anything-map #'my/muhenkan-command))
 
 ;; グローバルキーバインドも設定
-(global-set-key (kbd "<muhenkan>") #'my/muhenkan-command)
+(my/define-muhenkan-keys global-map #'my/muhenkan-command)
 
 ;; ミニバッファではmozcをオフに
 ;; (defun my-confirm-and-deactivate-input-method-on-minibuffer ()
@@ -159,9 +188,8 @@ minibuffer maps, and isearch can be updated consistently."
 ;; (add-hook 'minibuffer-setup-hook 'my-confirm-and-deactivate-input-method-on-minibuffer)
 
 ;;; ------------------------------------------------------------
-;; henkanでMozcを起こす
-(global-set-key (kbd "<henkan>")
-                #'my/activate-mozc-input-method-command)
+;; henkan系キーでMozcを起こす
+(my/define-henkan-keys global-map #'my/activate-mozc-input-method-command)
 
 ;;; ------------------------------------------------------------
 ;; mozc-modeでもdelete-selection-modeを機能させる
@@ -171,7 +199,9 @@ minibuffer maps, and isearch can be updated consistently."
          (event-type (and event (event-basic-type event))))
     (if (and (use-region-p)
              event
-             (not (or (member event-type '(left right up down henkan muhenkan wheel-up wheel-down escape))
+             (not (or (member event-type '(left right up down henkan hiragana hiragana-katakana
+                                                 kana higagana
+                                                 muhenkan wheel-up wheel-down escape))
                       (member 'shift (event-modifiers event))
                       (member 'super (event-modifiers event))
                       (member 'meta (event-modifiers event))
@@ -180,7 +210,8 @@ minibuffer maps, and isearch can be updated consistently."
         (delete-region (region-beginning) (region-end)))
     (apply orig-fun args)))
 
-(advice-add 'mozc-handle-event :around #'my-mozc-handle-event)
+(with-eval-after-load 'mozc
+  (advice-add 'mozc-handle-event :around #'my-mozc-handle-event))
 
 (defun my-delete-selection-before-yank (&rest _args)
   "Deactivate the selection before yank."
@@ -188,6 +219,9 @@ minibuffer maps, and isearch can be updated consistently."
       (delete-region (region-beginning) (region-end))))
 
 (advice-add 'yank :before #'my-delete-selection-before-yank)
+
+;; Startup should not abort before the key bindings above are installed.
+(my/ensure-mozc-loaded)
 
 ;;; ------------------------------------------------------------
 ;;; provides

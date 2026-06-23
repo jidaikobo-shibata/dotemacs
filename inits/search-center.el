@@ -65,9 +65,25 @@
   :type 'boolean)
 
 (defcustom sc/is-use-mozc-search-bridge t
-  "*Use `C-s <henkan>' to hand off Japanese search text to search-center."
+  "*Use `C-s <henkan>'-like keys to hand off Japanese search text to search-center."
   :group 'sc/search-center
   :type 'boolean)
+
+(defconst sc/mozc-activation-keys
+  '("<henkan>" [henkan]
+    "<hiragana>" [hiragana]
+    "<hiragana-katakana>" [hiragana-katakana]
+    "<kana>" [kana]
+    "<higagana>" [higagana]))
+
+(defun sc/key->kbd (key)
+  "Return KEY as a value acceptable to `define-key'."
+  (if (stringp key) (kbd key) key))
+
+(defun sc/define-mozc-activation-keys (keymap command)
+  "Bind every Mozc activation key in KEYMAP to COMMAND."
+  (dolist (key sc/mozc-activation-keys)
+    (define-key keymap (sc/key->kbd key) command)))
 
 (defcustom sc/history-max 40
   "*Maximum number of search/replace history entries to keep."
@@ -411,8 +427,8 @@
   (local-set-key (kbd "<muhenkan>") #'sc/mozc-search-cancel-to-isearch)
   (local-set-key (kbd "s-g") #'sc/mozc-search-finish-next)
   (local-set-key (kbd "s-G") #'sc/mozc-search-finish-prev)
-  (local-set-key (kbd "<henkan>")
-                 #'sc/mozc-search-enable-input-method)
+  (sc/define-mozc-activation-keys (current-local-map)
+                                  #'sc/mozc-search-enable-input-method)
   (sc/mozc-search-enable-input-method))
 
 (defun sc/mozc-search-enable-input-method ()
@@ -550,8 +566,8 @@
 (with-eval-after-load 'isearch
   (when sc/is-use-mozc-search-bridge
     (setq isearch-use-input-method nil)
-    (define-key isearch-mode-map (kbd "<henkan>")
-      #'sc/bridge-isearch-to-mozc-search)))
+    (sc/define-mozc-activation-keys isearch-mode-map
+                                    #'sc/bridge-isearch-to-mozc-search)))
 
 ;;; ------------------------------------------------------------
 ;;; Quit
