@@ -2,6 +2,11 @@
 
 ## 2026-06-12
 
+- 何をしたか: `Buffer modified; kill anyway? (y or n)` のような `y-or-n-p` 系プロンプト中に `<muhenkan>` を押すと `please answer y or n.` が出る件を確認した。これは Quit ではなく、`y-or-n-p-map` に登録済みの `<muhenkan>` 系イベント名とは別のイベントとして届き、無効入力扱いになっている可能性が高いと判断した。
+- なぜそうしたか: 作業が中断される症状ではなく、認知負荷はあるが実害は小さいため。イベント名を追加調査して `my/muhenkan-keys` を増やすと、環境依存の分岐が増えて保守負荷も上がるため。
+- 未完了の事項: 実際に `y-or-n-p` 中の `<muhenkan>` がどのイベント名で届いているかは未調査。
+- 次にやるとよいこと: 頻繁に気になるようになったら `read-key` 等で実イベント名を確認し、必要最小限で `my/muhenkan-keys` に追加する。現時点では修正せず様子見する。
+
 - 何をしたか: `inits/mozc.init.el` の `my/muhenkan-command` で、`minibufferp` に加えて `active-minibuffer-window` も確認するようにした。ミニバッファがアクティブな間は、キー処理時の current buffer が通常バッファ側に見えても `<muhenkan>` を無視する。
 - なぜそうしたか: `web-authoring-set.el` の `table-intaractive` は `read-string` のミニバッファプロンプトだが、そこで `<muhenkan>` が Quit してしまうケースがあり、現在バッファだけを見る判定ではミニバッファ中と判断できない可能性があるため。
 - 未完了の事項: GUI 実機で `C-c h t` または `s-M-t` の table 対話プロンプト中に `<muhenkan>` が Quit せず無視されるかは未確認。
