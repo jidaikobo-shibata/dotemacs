@@ -157,6 +157,55 @@
    (buffer-substring-no-properties (point-min) (point-max))))
 
 ;;; ------------------------------------------------------------
+;;; 選択範囲がない場合に、現在行を通常タグで囲むための判定
+(defun web-authoring--current-line-wrap-target ()
+  "Return information for safely wrapping the current physical line.
+The return value is (BEG END CONTENT OFFSET), `empty', or `ambiguous'.
+BEG and END exclude indentation and trailing whitespace.  OFFSET is the
+cursor position relative to CONTENT."
+  (let* ((line-beg (line-beginning-position))
+         (line-end (line-end-position))
+         (line (buffer-substring-no-properties line-beg line-end))
+         content-beg
+         content)
+    (cond
+     ((string-match-p "\\`[[:space:]]*\\'" line)
+      'empty)
+     ;; Replace one clear outer tag, discarding its attributes.
+     ((string-match
+       "\\`\\([ \t]*\\)<\\([[:alpha:]][[:alnum:]:_-]*\\)\\(?:[ \t]+[^>]*\\)?>\\(.*\\)</\\2>\\([ \t]*\\)\\'"
+       line)
+      (setq content-beg (+ line-beg (match-beginning 3))
+            content (match-string 3 line))
+      (list (+ line-beg (match-end 1))
+            (- line-end (length (match-string 4 line)))
+            content
+            (max 0 (min (length content) (- (point) content-beg)))))
+     ;; Remove a trailing br before wrapping a line that starts with text.
+     ((and (string-match
+            "\\`\\([ \t]*\\)\\(.*?\\)<br[ \t]*/?>\\([ \t]*\\)\\'"
+            line)
+           (not (string-prefix-p "<" (match-string 2 line))))
+      (setq content-beg (+ line-beg (match-beginning 2))
+            content (match-string 2 line))
+      (list (+ line-beg (match-end 1))
+            (- line-end (length (match-string 3 line)))
+            content
+            (max 0 (min (length content) (- (point) content-beg)))))
+     ;; A line with no tag at either edge can be wrapped as-is.
+     ((string-match "\\`\\([ \t]*\\)\\(.*?\\)\\([ \t]*\\)\\'" line)
+      (setq content (match-string 2 line))
+      (if (or (string-prefix-p "<" content)
+              (string-suffix-p ">" content))
+          'ambiguous
+        (setq content-beg (+ line-beg (match-beginning 2)))
+        (list content-beg
+              (+ line-beg (match-end 2))
+              content
+              (max 0 (min (length content) (- (point) content-beg))))))
+     (t 'ambiguous))))
+
+;;; ------------------------------------------------------------
 ;;; 任意のタグ
 ;;; ミニバッファにタグを入れると基本的には選択範囲を囲むタグを生成する
 ;;; タグに応じて、いくらか振る舞いが変わる
@@ -180,7 +229,9 @@
          html
          lines
          line
-         cnt)
+         cnt
+         replace-current-line
+         line-cursor-offset)
 
     ;; use with completing
     ;; (unless tag
@@ -401,13 +452,29 @@
 
      ;; specify tag
      (t (when (string= tag "") (setq tag "div"))
-        (setq cursor+ (if (region-active-p) (+ 1 (length tag)) (+ 2 (length tag))))
+        (unless (region-active-p)
+          (let ((target (web-authoring--current-line-wrap-target)))
+            (cond
+             ((eq target 'ambiguous)
+              (user-error "Current line has an ambiguous outer tag"))
+             ((listp target)
+              (setq beg (nth 0 target)
+                    end (nth 1 target)
+                    word (nth 2 target)
+                    line-cursor-offset (nth 3 target)
+                    replace-current-line t)))))
+        (setq cursor+ (cond
+                       (replace-current-line
+                        (+ 2 (length tag) line-cursor-offset))
+                       ((region-active-p) (+ 1 (length tag)))
+                       (t (+ 2 (length tag)))))
         (when (string-equal eob "\n")
             (setq word (replace-regexp-in-string "\n+$" "" word)))
         (setq tag (concat "<" tag ">" word "</" tag ">" eob))))
 
     ;; put tags
-    (when (region-active-p) (delete-region beg end))
+    (when (or (region-active-p) replace-current-line)
+      (delete-region beg end))
     (insert tag)
 
     ;; goto-char
