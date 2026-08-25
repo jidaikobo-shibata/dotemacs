@@ -10,8 +10,19 @@
   "Find file other window.  FRAME is optional."
   (interactive)
   (select-frame (if frame frame (selected-frame)))
-  (find-file
-   (format-time-string "~/.emacs.d/.tmp/%Y%m%d-%H%M%S.txt" (current-time))))
+  (let ((junk-directory
+         (if (boundp 'my/junk-directory)
+             my/junk-directory
+           (expand-file-name ".tmp/junk/" user-emacs-directory))))
+    (if (fboundp 'my/ensure-private-directory)
+        (my/ensure-private-directory junk-directory)
+      (unless (file-directory-p junk-directory)
+        (make-directory junk-directory t))
+      (set-file-modes junk-directory #o700))
+    (find-file
+     (expand-file-name
+      (format-time-string "%Y%m%d-%H%M%S.txt" (current-time))
+      junk-directory))))
 (global-set-key (kbd "s-n") 'my-find-file-other-window)
 
 ;;; ------------------------------------------------------------

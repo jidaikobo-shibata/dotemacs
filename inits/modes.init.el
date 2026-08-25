@@ -17,7 +17,8 @@
 ;;; sh-script-mode
 
 (setq auto-mode-alist
-      (append '(("^\\." . sh-script-mode))
+      (append '(("/\\.\\(?:bash_aliases\\|bash_profile\\|bash_login\\|bashrc\\|profile\\|zlogin\\|zprofile\\|zshenv\\|zshrc\\)\\'"
+                 . sh-script-mode))
               auto-mode-alist))
 
 (add-hook 'sh-script-mode-hook
@@ -189,7 +190,7 @@
              (setq php-template-compatibility t)
              (setq php-mode-warn-if-mumamo-off nil)
              ;; (setq php-mode-coding-style 'default)
-             (setq php-manual-url "http://jp2.php.net/manual/ja/")
+             (setq php-manual-url 'ja)
 
              (define-key php-mode-map (kbd "C-.") 'goto-last-change-reverse) ; override `php-show-arglist'
              (define-key php-mode-map ")" 'self-insert-command)

@@ -35,7 +35,7 @@
                     (tramp-dissect-file-name raw-path))
                  raw-path)))
     (kill-new path)
-    (message path)))
+    (message "%s" path)))
 (global-set-key (kbd "M-s-k") 'get-current-path)
 
 ;;; ------------------------------------------------------------

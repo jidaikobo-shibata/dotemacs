@@ -103,10 +103,12 @@
 (global-set-key (kbd "C-c r") 'remove-strings-from-ac-my-dictionary-f)
 
 ;; 候補と入力文字が完全に一致している時にRETでac-completeするとnewlineしてしまうので抑止
-(defadvice ac-complete (after advice-ac-complete-to-avoid-newline activate)
+(defun my/ac-complete-delete-spurious-newline (&rest _args)
   "Inhibit newline when full string was matched with candidate."
   (when (memq this-command '(newline))
     (delete-char -1)))
+
+(advice-add 'ac-complete :after #'my/ac-complete-delete-spurious-newline)
 
 ;;; ------------------------------------------------------------
 ;;; provides

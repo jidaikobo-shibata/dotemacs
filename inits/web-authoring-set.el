@@ -44,6 +44,7 @@
 ;;; Code:
 
 (require 'subr-x)
+(require 'cl-lib)
 
 ;;; ------------------------------------------------------------
 ;;; 選択範囲内の文字列置換
@@ -64,7 +65,6 @@
 ;;; ------------------------------------------------------------
 ;;; dump-values
 ;;; phpでvar_dump()するためのキーバインド
-(declare-function find "find" (arg1 arg2 arg3 arg4))
 (defun dump-values (type ip)
   "Insert html intaractive.  TYPE is language.  IP is Global ip."
   (interactive)
@@ -232,6 +232,18 @@ cursor position relative to CONTENT."
          "" item))
   (string-trim-left item "[ \t　]+"))
 
+(defun web-authoring--table-heading-row (table-line)
+  "Convert tab-delimited TABLE-LINE to a table heading row."
+  (concat "<thead>\n<tr>\n\t<th>"
+          (replace-regexp-in-string "\t" "</th>\n\t<th>" table-line)
+          "</th>\n</tr>\n</thead>\n"))
+
+(defun web-authoring--table-data-row (table-line)
+  "Convert tab-delimited TABLE-LINE to a table data row."
+  (concat "<tr>\n\t<td>"
+          (replace-regexp-in-string "\t" "</td>\n\t<td>" table-line)
+          "</td>\n</tr>\n"))
+
 ;;; ------------------------------------------------------------
 ;;; 任意のタグ
 ;;; ミニバッファにタグを入れると基本的には選択範囲を囲むタグを生成する
@@ -333,7 +345,7 @@ cursor position relative to CONTENT."
                           close-tag)))))
 
      ;; singular tag - hr, br
-     ((find tag '("hr" "br") :test #'string=)
+     ((cl-find tag '("hr" "br") :test #'string=)
       (setq tag (concat "<" tag close-tag)))
 
      ;; singular tag - img
@@ -343,7 +355,7 @@ cursor position relative to CONTENT."
             cursor- (if (is-xhtml) -4 -2)))
 
      ;; ul-li, ol-li
-     ((find tag '("ul-li" "ol-li") :test #'string=)
+     ((cl-find tag '("ul-li" "ol-li") :test #'string=)
       (setq html ""
             lines (split-string word "\n")
             cursor+ 3)
@@ -411,19 +423,16 @@ cursor position relative to CONTENT."
       (while lines
         (if (string= (car lines) "") nil
           (progn
-            (defun convert-to-th (each-line) (concat "<thead>\n<tr>\n\t<th>" (replace-regexp-in-string "\t" "</th>\n\t<th>" each-line) "</th>\n</tr>\n</thead>\n"))
-            (defun convert-to-td (each-line) (concat "<tr>\n\t<td>" (replace-regexp-in-string "\t" "</td>\n\t<td>" each-line) "</td>\n</tr>\n"))
-            ;; (defun add-tr-thead (whole each) )
             (if (eq cnt 1)
-                (if (find type '("2" "3") :test #'string=)
-                    (setq line (convert-to-th (car lines)))
-                  (setq line (convert-to-td (car lines))))
-              (setq line (convert-to-td (car lines))))
+                (if (cl-find type '("2" "3") :test #'string=)
+                    (setq line (web-authoring--table-heading-row (car lines)))
+                  (setq line (web-authoring--table-data-row (car lines))))
+              (setq line (web-authoring--table-data-row (car lines))))
             (setq html (concat html line))))
         (setq cnt 2)
         (setq lines (cdr lines)))
       (setq tag (concat "<table>\n" html "</table>" eob))
-      (if (find type '("1" "3") :test #'string=)
+      (if (cl-find type '("1" "3") :test #'string=)
           (setq tag (replace-regexp-in-string "<tr>\n\t<td>\\(.+?\\)</td>" "<tr>\n\t<th>\\1</th>" tag))))
 
      ;; dl
@@ -839,13 +848,13 @@ cursor position relative to CONTENT."
    ;; "<ruby>(?:<rb>)*(.*?)(?:</rb>)*(?:<rp>.*?</rp>)*<rt>.+?</rt>(?:<rp>.*?</rp>)*</ruby>"
    ((string= tag "5") (progn
                              (replace-strings-in-region-by-list
-                              '(("<ruby>\\(.+?\\)<rt>.+?<rt></ruby>" . "\\1")))
+                              '(("<ruby>\\(?:<rb>\\)?\\(.*?\\)\\(?:</rb>\\)?\\(?:<rp>.*?</rp>\\)*<rt>.*?</rt>\\(?:<rp>.*?</rp>\\)*</ruby>" . "\\1")))
                              (message "remove ruby tag and ruby text")))
    ;; unhtmlize
    ((string= tag "6") (progn
                              (replace-strings-in-region-by-list
                               '(("<" . "&lt;")(">" . "&gt;")))
-                             (message "remove ruby tag and ruby text")))
+                             (message "unhtmlize selected text")))
    ;; specify tag
    (t (progn
         ;; (replace-strings-in-region-by-list
