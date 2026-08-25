@@ -205,6 +205,23 @@ cursor position relative to CONTENT."
               (max 0 (min (length content) (- (point) content-beg))))))
      (t 'ambiguous))))
 
+(defun web-authoring--normalize-list-item (item)
+  "Remove a list marker and a trailing br element from ITEM."
+  (setq item
+        (replace-regexp-in-string
+         "[ \t　]*<br[ \t]*/?>[ \t　]*\\'" "" item t t))
+  (setq item (string-trim item "[ \t　]+" "[ \t　]+"))
+  (setq item
+        (replace-regexp-in-string
+         (concat "\\`\\(?:"
+                 "・[ \t　]*"
+                 "\\|-[ \t　]*"
+                 "\\|[0-9０-９]+[.．][ \t　]*"
+                 "\\|[0-9０-９]+[ \t　]+"
+                 "\\)")
+         "" item))
+  (string-trim-left item "[ \t　]+"))
+
 ;;; ------------------------------------------------------------
 ;;; 任意のタグ
 ;;; ミニバッファにタグを入れると基本的には選択範囲を囲むタグを生成する
@@ -321,8 +338,9 @@ cursor position relative to CONTENT."
             lines (split-string word "\n")
             cursor+ 3)
       (while lines
-        (if (string= (car lines) "") nil
-          (progn (setq html (concat html "\t<li>" (car lines) "</li>\n"))))
+        (setq line (web-authoring--normalize-list-item (car lines)))
+        (unless (string= line "")
+          (setq html (concat html "\t<li>" line "</li>\n")))
         (setq lines (cdr lines)))
       (if (string= tag "ul-li")
           (setq tag (concat "<ul>\n" html "</ul>" eob))
