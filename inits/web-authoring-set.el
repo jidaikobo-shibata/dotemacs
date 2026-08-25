@@ -171,9 +171,19 @@ cursor position relative to CONTENT."
     (cond
      ((string-match-p "\\`[[:space:]]*\\'" line)
       'empty)
+     ;; Replace presentational pseudo-headings followed by a br element.
+     ((string-match
+       "\\`\\([ \t　]*\\)<\\([bu]\\)\\(?:[ \t　]+[^>]*\\)?>\\(.*\\)</\\2>[ \t　]*<br[ \t]*/?>\\([ \t　]*\\)\\'"
+       line)
+      (setq content-beg (+ line-beg (match-beginning 3))
+            content (match-string 3 line))
+      (list (+ line-beg (match-end 1))
+            (- line-end (length (match-string 4 line)))
+            content
+            (max 0 (min (length content) (- (point) content-beg)))))
      ;; Replace one clear outer tag, discarding its attributes.
      ((string-match
-       "\\`\\([ \t]*\\)<\\([[:alpha:]][[:alnum:]:_-]*\\)\\(?:[ \t]+[^>]*\\)?>\\(.*\\)</\\2>\\([ \t]*\\)\\'"
+       "\\`\\([ \t　]*\\)<\\([[:alpha:]][[:alnum:]:_-]*\\)\\(?:[ \t　]+[^>]*\\)?>\\(.*\\)</\\2>\\([ \t　]*\\)\\'"
        line)
       (setq content-beg (+ line-beg (match-beginning 3))
             content (match-string 3 line))
@@ -183,7 +193,7 @@ cursor position relative to CONTENT."
             (max 0 (min (length content) (- (point) content-beg)))))
      ;; Remove a trailing br before wrapping a line that starts with text.
      ((and (string-match
-            "\\`\\([ \t]*\\)\\(.*?\\)<br[ \t]*/?>\\([ \t]*\\)\\'"
+            "\\`\\([ \t　]*\\)\\(.*?\\)<br[ \t]*/?>\\([ \t　]*\\)\\'"
             line)
            (not (string-prefix-p "<" (match-string 2 line))))
       (setq content-beg (+ line-beg (match-beginning 2))
@@ -193,7 +203,7 @@ cursor position relative to CONTENT."
             content
             (max 0 (min (length content) (- (point) content-beg)))))
      ;; A line with no tag at either edge can be wrapped as-is.
-     ((string-match "\\`\\([ \t]*\\)\\(.*?\\)\\([ \t]*\\)\\'" line)
+     ((string-match "\\`\\([ \t　]*\\)\\(.*?\\)\\([ \t　]*\\)\\'" line)
       (setq content (match-string 2 line))
       (if (or (string-prefix-p "<" content)
               (string-suffix-p ">" content))
@@ -493,6 +503,8 @@ cursor position relative to CONTENT."
     ;; put tags
     (when (or (region-active-p) replace-current-line)
       (delete-region beg end))
+    (when replace-current-line
+      (goto-char beg))
     (insert tag)
 
     ;; goto-char
