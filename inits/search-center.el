@@ -424,6 +424,8 @@
 
 (defun sc/mozc-search-minibuffer-setup ()
   "Prepare the temporary minibuffer for Mozc search text."
+  ;; Keep search-specific bindings from leaking into ordinary minibuffers.
+  (use-local-map (copy-keymap (current-local-map)))
   (local-set-key (kbd "<muhenkan>") #'sc/mozc-search-cancel-to-isearch)
   (local-set-key (kbd "s-g") #'sc/mozc-search-finish-next)
   (local-set-key (kbd "s-G") #'sc/mozc-search-finish-prev)
