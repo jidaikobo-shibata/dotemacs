@@ -13,6 +13,154 @@
   (define-key map (kbd "<up>")   'previous-history-element))
 
 ;;; ------------------------------------------------------------
+;; C-x C-f へ貼り付けたHTTP(S) URLをローカルファイルとして開く
+
+(require 'cl-lib)
+(require 'subr-x)
+(require 'url-parse)
+(require 'url-util)
+
+(defvar my/find-file-url-roots nil
+  "Session-local mappings from HTTP(S) URL prefixes to local directories.")
+
+(defun my/find-file--http-url-p (value)
+  "Return non-nil when VALUE is an HTTP(S) URL."
+  (and (stringp value)
+       (let ((case-fold-search t))
+         (string-match-p "\\`https?://" value))))
+
+(defun my/find-file--url-origin (url)
+  "Return the scheme and authority portion of URL with a trailing slash."
+  (let* ((parsed (url-generic-parse-url url))
+         (scheme (downcase (or (url-type parsed) "")))
+         (host (url-host parsed))
+         (port (url-port parsed)))
+    (unless (and (member scheme '("http" "https")) host)
+      (user-error "Invalid HTTP(S) URL: %s" url))
+    (format "%s://%s%s/"
+            scheme
+            (if (string-match-p ":" host)
+                (format "[%s]" (downcase host))
+              (downcase host))
+            (if (or (and (string= scheme "http") (= port 80))
+                    (and (string= scheme "https") (= port 443)))
+                ""
+              (format ":%s" port)))))
+
+(defun my/find-file--canonical-url (url)
+  "Return URL without its query or fragment and with a canonical origin."
+  (let* ((parsed (url-generic-parse-url url))
+         (origin (my/find-file--url-origin url))
+         (path (car (split-string (or (url-filename parsed) "") "[?#]"))))
+    (concat origin (replace-regexp-in-string "\\`/+" "" path))))
+
+(defun my/find-file--suggest-url-root (url)
+  "Return URL itself when directory-like, otherwise its parent directory."
+  (let ((canonical-url (my/find-file--canonical-url url)))
+    (if (string-suffix-p "/" canonical-url)
+        canonical-url
+      (file-name-directory canonical-url))))
+
+(defun my/find-file--normalize-url-root (url-root url)
+  "Normalize URL-ROOT and ensure that it is a directory prefix of URL."
+  (let* ((root-origin (my/find-file--url-origin url-root))
+         (url-origin (my/find-file--url-origin url))
+         (canonical-root
+          (file-name-as-directory (my/find-file--canonical-url url-root)))
+         (canonical-url (my/find-file--canonical-url url)))
+    (unless (string= root-origin url-origin)
+      (user-error "URL root must use the same origin: %s" url-origin))
+    (unless (string-prefix-p canonical-root canonical-url)
+      (user-error "URL root is not a directory prefix of URL: %s"
+                  canonical-root))
+    canonical-root))
+
+(defun my/find-file--matching-url-root (url)
+  "Return the longest registered URL-prefix mapping matching URL."
+  (let ((canonical-url (my/find-file--canonical-url url))
+        best)
+    (dolist (mapping my/find-file-url-roots best)
+      (when (and (string-prefix-p (car mapping) canonical-url)
+                 (or (null best)
+                     (> (length (car mapping)) (length (car best)))))
+        (setq best mapping)))))
+
+(defun my/find-file--select-url-root (url)
+  "Ask for and remember a URL prefix and its local directory for URL."
+  (let* ((suggested-root (my/find-file--suggest-url-root url))
+         (url-root
+          (my/find-file--normalize-url-root
+           (read-string "URL root: " suggested-root)
+           url))
+         (local-root
+          (file-name-as-directory
+           (expand-file-name
+            (read-directory-name
+             (format "Local root for %s: " url-root)
+             default-directory nil t)))))
+    (setq my/find-file-url-roots
+          (cons (cons url-root local-root)
+                (cl-remove url-root my/find-file-url-roots
+                           :key #'car :test #'string=)))
+    (cons url-root local-root)))
+
+(defun my/find-file--url-root (url force-prompt)
+  "Return the URL-prefix mapping for URL, prompting when needed.
+When FORCE-PROMPT is non-nil, replace any mapping already remembered."
+  (let ((known (my/find-file--matching-url-root url)))
+    (if (and known (not force-prompt))
+        known
+      (my/find-file--select-url-root url))))
+
+(defun my/find-file--url-relative-path (url url-root)
+  "Return URL's safe, decoded path relative to URL-ROOT."
+  (let* ((canonical-url (my/find-file--canonical-url url))
+         (encoded (substring canonical-url (length url-root)))
+         (relative (url-unhex-string encoded))
+         (segments (split-string relative "/" t)))
+    (when (or (string-match-p "\0" relative)
+              (member ".." segments))
+      (user-error "Unsafe path in URL: %s" url))
+    relative))
+
+(defun my/find-file--resolve-url (url force-root-prompt)
+  "Resolve URL to a local path.
+When FORCE-ROOT-PROMPT is non-nil, ask for the local root again."
+  (let* ((mapping (my/find-file--url-root url force-root-prompt))
+         (url-root (car mapping))
+         (local-root (cdr mapping))
+         (relative (my/find-file--url-relative-path url url-root))
+         (path (expand-file-name relative local-root)))
+    (unless (or (equal (directory-file-name path)
+                       (directory-file-name local-root))
+                (file-in-directory-p path local-root))
+      (user-error "URL resolves outside the local root: %s" url))
+    (if (or (string-empty-p relative)
+            (string-suffix-p "/" relative))
+        (cond
+         ((file-exists-p (expand-file-name "index.html" path))
+          (expand-file-name "index.html" path))
+         ((file-exists-p (expand-file-name "index.htm" path))
+          (expand-file-name "index.htm" path))
+         (t path))
+      path)))
+
+(defun my/find-file-dwim (&optional force-root-prompt)
+  "Open a regular file or map an HTTP(S) URL to a local file.
+With FORCE-ROOT-PROMPT, select the URL prefix and local root again."
+  (interactive "P")
+  (let ((target (ffap-prompter)))
+    (if (my/find-file--http-url-p target)
+        (let ((local-path
+               (my/find-file--resolve-url target force-root-prompt)))
+          (when (or (file-exists-p local-path)
+                    (y-or-n-p
+                     (format "Local file does not exist; open anyway? %s "
+                             local-path)))
+            (find-file local-path)))
+      (find-file-at-point target))))
+
+;;; ------------------------------------------------------------
 ;; root権限でファイルを開き直す
 (defun reopen-with-sudo ()
   "Open current file with sudo in a separate buffer."
@@ -98,6 +246,7 @@
 
 ;; C-x C-f で現在位置を開く
 (ffap-bindings)
+(global-set-key (kbd "C-x C-f") #'my/find-file-dwim)
 
 ;; ディレクトリ操作は再帰的に
 (setq dired-recursive-copies 'always)
