@@ -410,8 +410,62 @@
     (insert strings)
     (goto-char beg)))
 
-(global-set-key (kbd "<s-kp-divide>") 'join-multi-lines-to-one)
-(global-set-key (kbd "s-/") 'join-multi-lines-to-one)
+(defun my/normalize-region-line-breaks--string (string)
+  "Normalize line breaks in STRING while preserving its text structure."
+  (let ((lines (split-string
+                (replace-regexp-in-string
+                 "^>+ *\\|^[\t　 ]+" "" string)
+                "\n"))
+        (result "")
+        (first-line t)
+        pending-blank-line)
+    (dolist (line lines)
+      (if (string= line "")
+          (setq pending-blank-line t)
+        (setq result
+              (concat result
+                      (cond
+                       (first-line "")
+                       (pending-blank-line "\n\n")
+                       ((string-prefix-p "- " line) "\n")
+                       (t ""))
+                      line))
+        (setq first-line nil)
+        (setq pending-blank-line nil)))
+    (replace-regexp-in-string "  +" " " result)))
+
+(defun my/normalize-region-line-breaks ()
+  "Normalize line breaks in the region, preserving lists and paragraphs.
+
+When the region has neither a blank line nor a line beginning with `- ',
+delegate to `join-multi-lines-to-one'.  Otherwise, collapse consecutive
+blank lines to one, keep line breaks before list items, and join other
+lines."
+  (interactive)
+  (let ((region-text (buffer-substring-no-properties
+                      (region-beginning) (region-end))))
+    (if (not (string-match-p
+              "\\(?:^\\|\n\\)[\t　 ]*\\(?:- \\|[\t　 ]*\n\\)"
+              region-text))
+        (join-multi-lines-to-one)
+      (let ((beg (region-beginning))
+            (end (region-end))
+            strings)
+        (goto-char beg)
+        (back-to-indentation)
+        (setq beg (point))
+        (goto-char end)
+        (goto-char (- (point) 1))
+        (end-of-line)
+        (setq end (point))
+        (setq strings (buffer-substring-no-properties beg end))
+        (setq strings (my/normalize-region-line-breaks--string strings))
+        (delete-region beg end)
+        (insert strings)
+        (goto-char beg)))))
+
+(global-set-key (kbd "<s-kp-divide>") #'my/normalize-region-line-breaks)
+(global-set-key (kbd "s-/") #'my/normalize-region-line-breaks)
 
 ;;; ------------------------------------------------------------
 ;;; align-regexpが、indent-tabs-modeがtでも、スペースを詰めるように
