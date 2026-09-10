@@ -85,6 +85,8 @@
       "バッファは変更されています。変更を破棄して閉じますか？ "
       foeb/buffer-not-killed-message
       "バッファを閉じませんでした。"
+      foeb/buffer-killed-message
+      "バッファを閉じました。"
       foeb/anything-not-available-message
       "Anythingを利用できません。")
 
