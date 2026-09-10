@@ -81,6 +81,13 @@
 (require 'focus-on-editable-buffers)
 (require 'anything-focus-on-editable-buffers)
 
+(setq foeb/modified-buffer-kill-prompt
+      "バッファは変更されています。変更を破棄して閉じますか？ "
+      foeb/buffer-not-killed-message
+      "バッファを閉じませんでした。"
+      foeb/anything-not-available-message
+      "Anythingを利用できません。")
+
 (define-key anything-map (kbd "C-d") 'foeb/anything-execute-persistent-kill)
 (define-key anything-map (kbd "s-w") 'foeb/anything-execute-persistent-kill)
 (define-key anything-map (kbd "M-s-<left>") 'anything-previous-line)
