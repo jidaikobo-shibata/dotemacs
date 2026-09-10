@@ -102,6 +102,41 @@ minibuffer maps, and isearch can be updated consistently."
 (when (boundp 'y-or-n-p-map)
   (my/define-muhenkan-keys y-or-n-p-map #'ignore))
 
+;; `y-or-n-p-use-read-key' が non-nil の場合、`y-or-n-p' は
+;; `query-replace-map' から得た `ignore' を実行せず、不正回答として扱う。
+;; `y-or-n-p' が `read-key' を呼んでいる間だけ <muhenkan> 系イベントを
+;; 手前で読み捨て、元の質問をそのまま表示して次の入力を待つ。
+(defvar my/y-or-n-p-reading-via-read-key nil
+  "Non-nil while `y-or-n-p' is reading its answer with `read-key'.")
+
+(defun my/muhenkan-event-p (event)
+  "Return non-nil when EVENT is one of `my/muhenkan-keys'."
+  (let ((event-type (event-basic-type event))
+        matched)
+    (dolist (key my/muhenkan-keys matched)
+      (let ((key-vector (my/key->kbd key)))
+        (when (eq event-type (event-basic-type (aref key-vector 0)))
+          (setq matched t))))))
+
+(defun my/y-or-n-p-mark-read-key (original-function &rest args)
+  "Call ORIGINAL-FUNCTION with ARGS while marking its `read-key' input."
+  (let ((my/y-or-n-p-reading-via-read-key y-or-n-p-use-read-key))
+    (apply original-function args)))
+
+(defun my/read-key-ignore-muhenkan-for-y-or-n-p
+    (original-function &rest args)
+  "Call ORIGINAL-FUNCTION with ARGS, silently skipping muhenkan events.
+The filtering is active only while `y-or-n-p' uses `read-key'."
+  (let (event)
+    (while (progn
+             (setq event (apply original-function args))
+             (and my/y-or-n-p-reading-via-read-key
+                  (my/muhenkan-event-p event))))
+    event))
+
+(advice-add 'y-or-n-p :around #'my/y-or-n-p-mark-read-key)
+(advice-add 'read-key :around #'my/read-key-ignore-muhenkan-for-y-or-n-p)
+
 ;;; ------------------------------------------------------------
 ;; muhenkanキーでMozcを抜ける際に、現在の入力を確定する
 (defun my-confirm-and-deactivate-input-method ()

@@ -2,6 +2,11 @@
 
 ## 2026-09-10
 
+- 何をしたか: `y-or-n-p-use-read-key` が有効な確認中だけ `read-key` の入力をフィルターし、`<muhenkan>` 系イベントを黙って読み捨てる処理を `inits/mozc.init.el` に追加した。既存の `query-replace-map` への `ignore` 割当だけでは `y-or-n-p` が不正回答として扱うことを Emacs 30.2 の実装で確認し、前回の「別イベント名で届いている可能性が高い」という推測を訂正した。
+- なぜそうしたか: `Buffer modified; kill anyway?` で `<muhenkan>` を押した際に質問が `Please answer y or n.` へ変わる認知負荷をなくしつつ、確認のモーダル性、y/n、C-g、通常バッファでの Mozc 操作を維持するため。
+- 未完了の事項: なし。GUI Emacs 上で、変更済みバッファを閉じる確認中に実機の `<muhenkan>` が期待どおり無視されることを確認済み。
+- 次にやるとよいこと: 他の `y-or-n-p` 系確認でも同じ挙動になるため、通常運用で問題がないか継続して見る。
+
 - 何をしたか: `inits/minibuffer-focus.init.el` に、対象とするミニバッファ入力中に別ウィンドウが選択されたら `abort-recursive-edit` で入力をキャンセルする、opt-in の共通機構を追加した。M-s-j は専用の `my/goto-line-cancel-on-focus-out` を通すようにし、`web-authoring-set.el` の `read-string` / `read-number` による対話入力にも適用した。
 - なぜそうしたか: ミニバッファから別の作業へ移った際に待受を残さず、Anything で使っている「離れたらキャンセル」に操作感を合わせるため。ただし補完候補のクリック等を壊さないよう、すべてのミニバッファには適用していない。
 - 未完了の事項: GUI Emacs 上で、M-s-j、M-s-t、任意タグ、URL、input type、ruby、ブラケットの各プロンプト中にマウスまたはキー操作で別ウィンドウへ移った場合の実機確認は未実施。
