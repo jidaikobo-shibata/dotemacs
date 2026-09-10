@@ -135,6 +135,10 @@
  '(sc/split-direction "vertical" t))
 
 ;;; ------------------------------------------------------------
+;; Cancel selected minibuffer prompts when focus moves elsewhere.
+(require 'minibuffer-focus.init)
+
+;;; ------------------------------------------------------------
 ;; HTMLのマークアップのキーバインド集
 (require 'web-authoring-set)
 (require 'web-select-html-ele)

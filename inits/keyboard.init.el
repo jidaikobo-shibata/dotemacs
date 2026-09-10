@@ -3,6 +3,8 @@
 ;; provide keyboard.init.
 ;;; Code:
 
+(require 'minibuffer-focus.init)
+
 ;;; ------------------------------------------------------------
 ;; UbuntuでSuperキーとCtrlキーを入れ替える
 (defun my-set-ctrl-key ()
@@ -66,7 +68,14 @@ Ask for confirmation only when current buffer has unsaved changes."
 ;;; ------------------------------------------------------------
 ;; M-g or cmd+opt+j で指定行へジャンプ
 (global-set-key (kbd "M-g") 'goto-line)
-(global-set-key (kbd "M-s-j") 'goto-line)
+
+(defun my/goto-line-cancel-on-focus-out ()
+  "Run `goto-line', cancelling its prompt when another window is selected."
+  (interactive)
+  (my/with-minibuffer-cancel-on-focus-out
+    (call-interactively #'goto-line)))
+
+(global-set-key (kbd "M-s-j") #'my/goto-line-cancel-on-focus-out)
 
 ;;; ------------------------------------------------------------
 ;; escでC-g

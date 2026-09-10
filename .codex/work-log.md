@@ -1,5 +1,12 @@
 # Work Log
 
+## 2026-09-10
+
+- 何をしたか: `inits/minibuffer-focus.init.el` に、対象とするミニバッファ入力中に別ウィンドウが選択されたら `abort-recursive-edit` で入力をキャンセルする、opt-in の共通機構を追加した。M-s-j は専用の `my/goto-line-cancel-on-focus-out` を通すようにし、`web-authoring-set.el` の `read-string` / `read-number` による対話入力にも適用した。
+- なぜそうしたか: ミニバッファから別の作業へ移った際に待受を残さず、Anything で使っている「離れたらキャンセル」に操作感を合わせるため。ただし補完候補のクリック等を壊さないよう、すべてのミニバッファには適用していない。
+- 未完了の事項: GUI Emacs 上で、M-s-j、M-s-t、任意タグ、URL、input type、ruby、ブラケットの各プロンプト中にマウスまたはキー操作で別ウィンドウへ移った場合の実機確認は未実施。
+- 次にやるとよいこと: Emacs を再起動または設定を再読み込みし、各プロンプトが別ウィンドウ選択で消え、元バッファに途中の編集が残らないことを確認する。
+
 ## 2026-06-12
 
 - 何をしたか: `Buffer modified; kill anyway? (y or n)` のような `y-or-n-p` 系プロンプト中に `<muhenkan>` を押すと `please answer y or n.` が出る件を確認した。これは Quit ではなく、`y-or-n-p-map` に登録済みの `<muhenkan>` 系イベント名とは別のイベントとして届き、無効入力扱いになっている可能性が高いと判断した。

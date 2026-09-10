@@ -43,6 +43,8 @@
 
 ;;; Code:
 
+(require 'minibuffer-focus.init)
+
 (require 'subr-x)
 (require 'cl-lib)
 
@@ -292,12 +294,12 @@ cursor position relative to CONTENT."
     ;;                  ("ruby", "ruby")
     ;;                  ("textarea", "textarea"))))))
 
-    (unless tag (setq tag (read-string "tag: ")))
+    (unless tag (setq tag (my/read-string-cancel-on-focus-out "tag: ")))
 
     (cond
      ;; anchor
      ((string= tag "a")
-      (setq url (read-string "url: " nil)
+      (setq url (my/read-string-cancel-on-focus-out "url: " nil)
             tag (concat "<a href=\"" url "\">" word "</a>")
             cursor- -4))
 
@@ -316,7 +318,10 @@ cursor position relative to CONTENT."
 
      ;; input
      ((string= tag "input")
-      (setq type (read-number "type (1:text, 2:hidden, 3:radio, 4:checkbox, 5:submit, 6:password, 7:image, 8:file): " nil)
+      (setq type
+            (my/read-number-cancel-on-focus-out
+             "type (1:text, 2:hidden, 3:radio, 4:checkbox, 5:submit, 6:password, 7:image, 8:file): "
+             nil)
             cursor- -4)
       (cond
        ((eq type 1)
@@ -415,7 +420,10 @@ cursor position relative to CONTENT."
 
      ;; table
      ((string= tag "table-intaractive")
-      (setq type (read-string "type (1:th, 2:thead, 3:th and thead, 4:no headers): " nil))
+      (setq type
+            (my/read-string-cancel-on-focus-out
+             "type (1:th, 2:thead, 3:th and thead, 4:no headers): "
+             nil))
       (setq html ""
             cnt 1
             lines (split-string word "\n")
@@ -458,7 +466,7 @@ cursor position relative to CONTENT."
 
      ;; ruby
      ((string= tag "ruby-intaractive")
-      (setq ruby (read-string "ruby: " nil)
+      (setq ruby (my/read-string-cancel-on-focus-out "ruby: " nil)
             tag (concat "<ruby><rb>" word "</rb><rt>" ruby "</rt></ruby>")
             cursor+ 10))
 
@@ -533,7 +541,7 @@ cursor position relative to CONTENT."
   (let* ((beg (if (region-active-p) (region-beginning) (point)))
          (end (when (region-active-p) (region-end)))
          (word (if (region-active-p) (buffer-substring-no-properties beg end) "")))
-    (unless tag (setq tag (read-string "tag: ")))
+    (unless tag (setq tag (my/read-string-cancel-on-focus-out "tag: ")))
     (setq tag (concat "[" tag "]" word "[/" tag "]"))
     (when (region-active-p) (delete-region beg end))
     (insert tag)))
