@@ -342,8 +342,6 @@
 
 (require 'ucs-normalize)
 ;;(prefer-coding-system 'utf-8)
-(setq file-name-coding-system 'utf-8-hfs)
-(setq locale-coding-system 'utf-8-hfs)
 (defun normalize-chars ()
   "Normarize chars."
   (interactive)
