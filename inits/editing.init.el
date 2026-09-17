@@ -432,32 +432,71 @@
         (setq pending-blank-line nil)))
     (replace-regexp-in-string "  +" " " result)))
 
+(defun my/normalize-region-line-breaks--quoted-string (string)
+  "Normalize STRING as a block quote, or return nil if it is not one.
+All lines must begin with the same number of `>' quote markers."
+  (catch 'not-quoted
+    (let ((lines (split-string
+                  (if (string-suffix-p "\n" string)
+                      (substring string 0 -1)
+                    string)
+                  "\n"))
+          quote-prefix
+          contents)
+      (dolist (line lines)
+        (unless (string-match "\\`[\t　 ]*\\(>+\\)[\t ]*\\(.*\\)\\'" line)
+          (throw 'not-quoted nil))
+        (let ((prefix (match-string 1 line)))
+          (if quote-prefix
+              (unless (string= prefix quote-prefix)
+                (throw 'not-quoted nil))
+            (setq quote-prefix prefix)))
+        (push (match-string 2 line) contents))
+      (mapconcat
+       (lambda (line)
+         (if (string= line "")
+             quote-prefix
+           (concat quote-prefix " " line)))
+       (split-string
+        (my/normalize-region-line-breaks--string
+         (mapconcat #'identity (nreverse contents) "\n"))
+        "\n")
+       "\n"))))
+
 (defun my/normalize-region-line-breaks ()
   "Normalize line breaks in the region, preserving lists and paragraphs.
 
-When the region has neither a blank line nor a line beginning with `- ',
-delegate to `join-multi-lines-to-one'.  Otherwise, collapse consecutive
+Keep quote markers when every selected line has the same quote depth.
+Otherwise, when the region has neither a blank line nor a line beginning
+with `- ', delegate to `join-multi-lines-to-one'.  Collapse consecutive
 blank lines to one, keep line breaks before list items, and join other
 lines."
   (interactive)
-  (let ((region-text (buffer-substring-no-properties
-                      (region-beginning) (region-end))))
-    (if (not (string-match-p
-              "\\(?:^\\|\n\\)[\t　 ]*\\(?:- \\|[\t　 ]*\n\\)"
-              region-text))
+  (let* ((region-text (buffer-substring-no-properties
+                       (region-beginning) (region-end)))
+         (quoted-text
+          (my/normalize-region-line-breaks--quoted-string region-text)))
+    (if (and (not quoted-text)
+             (not (string-match-p
+                   "\\(?:^\\|\n\\)[\t　 ]*\\(?:- \\|[\t　 ]*\n\\)"
+                   region-text)))
         (join-multi-lines-to-one)
       (let ((beg (region-beginning))
             (end (region-end))
             strings)
         (goto-char beg)
-        (back-to-indentation)
+        (unless quoted-text
+          (back-to-indentation))
         (setq beg (point))
         (goto-char end)
         (goto-char (- (point) 1))
         (end-of-line)
         (setq end (point))
         (setq strings (buffer-substring-no-properties beg end))
-        (setq strings (my/normalize-region-line-breaks--string strings))
+        (setq strings
+              (if quoted-text
+                  (my/normalize-region-line-breaks--quoted-string strings)
+                (my/normalize-region-line-breaks--string strings)))
         (delete-region beg end)
         (insert strings)
         (goto-char beg)))))
