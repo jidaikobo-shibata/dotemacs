@@ -156,23 +156,32 @@
 (setq-default mode-line-modified "")
 
 ;;; 前に行番号、総行数、桁番号を表示
-;;; 総行数の計する%記法がないので遅延で計算させる
+;;; 総行数はバッファの変更後、モードラインの再表示時に計算する
 ;; thx rubikitch
 (defvar-local mode-line-last-line-number 0)
-(defvar-local clnaw-last-tick 0)
+(defvar-local clnaw-last-tick nil)
 (defun calculate-total-line-numbers ()
-  "Calculate total line numbers."
-  (unless (eq clnaw-last-tick (buffer-modified-tick))
+  "Return the total line count, recalculating after buffer changes."
+  (unless (eql clnaw-last-tick (buffer-modified-tick))
     (setq mode-line-last-line-number (line-number-at-pos (point-max)))
-    (setq clnaw-last-tick (buffer-modified-tick))
-    (force-mode-line-update)))
-(run-with-idle-timer 1 t 'calculate-total-line-numbers)
+    (setq clnaw-last-tick (buffer-modified-tick)))
+  mode-line-last-line-number)
+
+;; カーソルや選択範囲の移動だけではモードラインが再計算されないことがある。
+(defvar-local my/mode-line-position-last-state nil)
+(defun my/refresh-mode-line-position ()
+  "Refresh the mode line when point or the active region changes."
+  (let ((state (cons (point) (and mark-active (mark t)))))
+    (unless (equal state my/mode-line-position-last-state)
+      (setq my/mode-line-position-last-state state)
+      (force-mode-line-update))))
+(add-hook 'post-command-hook #'my/refresh-mode-line-position)
 
 ;; 現在行、総行、文字位置、選択範囲の文字数など
 (setq mode-line-position
       '(:eval (format "%d/%d %d/%d %s"
                       (line-number-at-pos)
-                      mode-line-last-line-number
+                      (calculate-total-line-numbers)
                       (point)
                       (point-max)
                       (if mark-active
