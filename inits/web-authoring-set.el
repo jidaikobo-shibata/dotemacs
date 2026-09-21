@@ -217,6 +217,16 @@ cursor position relative to CONTENT."
               (max 0 (min (length content) (- (point) content-beg))))))
      (t 'ambiguous))))
 
+(defconst web-authoring--non-wrapping-tags
+  '("a-url" "figure" "input" "hr" "br" "img"
+    "select" "table-intaractive" "dl-dt-dd" "comment-out"
+    "ruby-intaractive" "script" "style" "form" "textarea")
+  "Special commands that transform content or generate HTML templates.")
+
+(defun web-authoring--wrapping-tag-p (tag)
+  "Return non-nil when TAG is fundamentally a content wrapper."
+  (not (member tag web-authoring--non-wrapping-tags)))
+
 (defun web-authoring--normalize-list-item (item)
   "Remove a list marker and a trailing br element from ITEM."
   (setq item
@@ -296,12 +306,30 @@ cursor position relative to CONTENT."
 
     (unless tag (setq tag (my/read-string-cancel-on-focus-out "tag: ")))
 
+    ;; With no region, content wrappers operate on the current physical line.
+    ;; Transformer and template commands retain their specialized behavior.
+    (when (and (not (region-active-p))
+               (web-authoring--wrapping-tag-p tag))
+      (let ((target (web-authoring--current-line-wrap-target)))
+        (cond
+         ((eq target 'ambiguous)
+          (user-error "Current line has an ambiguous outer tag"))
+         ((listp target)
+          (setq beg (nth 0 target)
+                end (nth 1 target)
+                word (nth 2 target)
+                line-cursor-offset (nth 3 target)
+                replace-current-line t)))))
+
     (cond
      ;; anchor
      ((string= tag "a")
       (setq url (my/read-string-cancel-on-focus-out "url: " nil)
             tag (concat "<a href=\"" url "\">" word "</a>")
-            cursor- -4))
+            cursor- -4)
+      (when replace-current-line
+        (setq cursor+ (+ (length (concat "<a href=\"" url "\">"))
+                         line-cursor-offset))))
 
      ;; anchor-url, mailto, markdown
      ((string= tag "a-url")
@@ -363,7 +391,9 @@ cursor position relative to CONTENT."
      ((cl-find tag '("ul-li" "ol-li") :test #'string=)
       (setq html ""
             lines (split-string word "\n")
-            cursor+ 3)
+            cursor+ (if replace-current-line
+                        (+ 10 line-cursor-offset)
+                      3))
       (while lines
         (setq line (web-authoring--normalize-list-item (car lines)))
         (unless (string= line "")
@@ -386,37 +416,52 @@ cursor position relative to CONTENT."
 
      ;; p-each
      ((string= tag "p-each")
-      ;; 選択範囲がなければ空のpを用意する
-      (if (not mark-active)
-          (setq tag "<p></p>"
-                cursor+ 2)
-        ;; 選択範囲があって、かつ<br>が含まれていたらeachしない
-        (if (string-match "<br */*?>" (buffer-substring-no-properties beg end))
-            (progn
-              (when (string-equal eob "\n")
-                (setq word (replace-regexp-in-string "\n+$" "" word)))
-              (setq tag (concat "<p>" word "</p>" eob)
-                    cursor+ 2))
-          ;; <br>が含まれていないのでeach
-          (setq lines (split-string word "\n"))
-          (while lines
-            (if (string= (car lines) "")
-                (setq html (concat html "\n"))
-              (setq html (concat html "<p>" (car lines) "</p>\n")))
-            (setq lines (cdr lines)))
-          (setq html (replace-regexp-in-string "\n+$" "" html))
-          (setq tag (concat html eob)))))
+      (cond
+       ;; 空行では、内容位置にキャレットを置いた空のpを用意する。
+       ((and (not (region-active-p))
+             (not replace-current-line))
+        (setq tag "<p></p>"
+              cursor+ 3))
+       ;; 選択範囲がなければ、整形した現在行を一つのpにする。
+       (replace-current-line
+        (setq tag (concat "<p>" word "</p>")
+              cursor+ (+ 3 line-cursor-offset)))
+       ;; 選択範囲にbrが含まれていたら、一つのpで囲む。
+       ((string-match "<br */*?>"
+                      (buffer-substring-no-properties beg end))
+        (when (string-equal eob "\n")
+          (setq word (replace-regexp-in-string "\n+$" "" word)))
+        (setq tag (concat "<p>" word "</p>" eob)
+              cursor+ 2))
+       ;; brがなければ、選択した各行をpにする。
+       (t
+        (setq lines (split-string word "\n"))
+        (while lines
+          (if (string= (car lines) "")
+              (setq html (concat html "\n"))
+            (setq html (concat html "<p>" (car lines) "</p>\n")))
+          (setq lines (cdr lines)))
+        (setq html (replace-regexp-in-string "\n+$" "" html))
+        (setq tag (concat html eob)))))
 
      ;; li-each
      ((string= tag "li-each")
-      (setq html ""
-            lines (split-string word "\n"))
-      (while lines
-        (if (string= (car lines) "") nil
-          (progn (setq html (concat html "\t<li>" (car lines) "</li>\n"))))
-        (setq lines (cdr lines)))
-      (setq html (replace-regexp-in-string "\n+$" "" html))
-      (setq tag (concat html eob)))
+      (cond
+       (replace-current-line
+        (setq tag (concat "<li>" word "</li>")
+              cursor+ (+ 4 line-cursor-offset)))
+       ((not (region-active-p))
+        (setq tag "<li></li>"
+              cursor+ 4))
+       (t
+        (setq html ""
+              lines (split-string word "\n"))
+        (while lines
+          (unless (string= (car lines) "")
+            (setq html (concat html "\t<li>" (car lines) "</li>\n")))
+          (setq lines (cdr lines)))
+        (setq html (replace-regexp-in-string "\n+$" "" html))
+        (setq tag (concat html eob)))))
 
      ;; table
      ((string= tag "table-intaractive")
@@ -493,21 +538,13 @@ cursor position relative to CONTENT."
      ;; label
      ((string= tag "label")
       (setq tag (concat "<label for=\"str\">" word "</label>")
-            cursor+ 12))
+            cursor+ (if replace-current-line
+                        (+ (length "<label for=\"str\">")
+                           line-cursor-offset)
+                      12)))
 
      ;; specify tag
      (t (when (string= tag "") (setq tag "div"))
-        (unless (region-active-p)
-          (let ((target (web-authoring--current-line-wrap-target)))
-            (cond
-             ((eq target 'ambiguous)
-              (user-error "Current line has an ambiguous outer tag"))
-             ((listp target)
-              (setq beg (nth 0 target)
-                    end (nth 1 target)
-                    word (nth 2 target)
-                    line-cursor-offset (nth 3 target)
-                    replace-current-line t)))))
         (setq cursor+ (cond
                        (replace-current-line
                         (+ 2 (length tag) line-cursor-offset))
