@@ -20,6 +20,15 @@
   "<!--\\|<\\(/?\\)\\([[:alpha:]][[:alnum:]_.:-]*\\)\\b"
   "Regexp matching the start of an HTML comment or tag.")
 
+(defvar-local web-select-html-ele--last-element nil
+  "Element bounds used by the most recent selection command.")
+
+(defvar-local web-select-html-ele--last-kind nil
+  "Selection kind produced most recently: `whole' or `content'.")
+
+(defvar-local web-select-html-ele--last-region nil
+  "Region bounds produced by the most recent selection command.")
+
 (defun web-select-html-ele--tag-end ()
   "Move past the current tag's closing `>' and return point.
 Point must initially be after the tag name.  Quoted attribute values are
@@ -102,16 +111,36 @@ on the current major mode."
        (= (region-beginning) (car bounds))
        (= (region-end) (cdr bounds))))
 
-(defun web-select-html-ele--selected-element (elements)
-  "Return the member of ELEMENTS matching the active region."
+(defun web-select-html-ele--selected-state (elements)
+  "Return the element and kind matching the active region.
+An exact whole-element match takes precedence over a content match."
   (when (use-region-p)
-    (catch 'selected
-      (dolist (element elements)
-        (when (or (web-select-html-ele--region-equal-p
+    (or (catch 'selected
+          (dolist (element elements)
+            (when (web-select-html-ele--region-equal-p
                    (plist-get element :whole))
-                  (web-select-html-ele--region-equal-p
-                   (plist-get element :content)))
-          (throw 'selected element))))))
+              (throw 'selected (cons element 'whole)))))
+        (catch 'selected
+          (dolist (element elements)
+            (when (web-select-html-ele--region-equal-p
+                   (plist-get element :content))
+              (throw 'selected (cons element 'content))))))))
+
+(defun web-select-html-ele--continued-state (elements)
+  "Return the saved element and kind when this is a valid continuation.
+ELEMENTS contains the freshly parsed element boundaries for the buffer."
+  (when (and (eq last-command 'select-html-element-at-caret)
+             (use-region-p)
+             web-select-html-ele--last-element
+             web-select-html-ele--last-kind
+             (equal web-select-html-ele--last-region
+                    (cons (region-beginning) (region-end))))
+    (let ((whole (plist-get web-select-html-ele--last-element :whole)))
+      (catch 'found
+        (dolist (element elements)
+          (when (equal (plist-get element :whole) whole)
+            (throw 'found
+                   (cons element web-select-html-ele--last-kind))))))))
 
 (defun web-select-html-ele--element-at (position elements)
   "Return the innermost member of ELEMENTS containing POSITION."
@@ -132,6 +161,12 @@ on the current major mode."
   (set-mark (cdr bounds))
   (activate-mark))
 
+(defun web-select-html-ele--remember (element kind bounds)
+  "Remember that ELEMENT was selected as KIND using BOUNDS."
+  (setq web-select-html-ele--last-element element
+        web-select-html-ele--last-kind kind
+        web-select-html-ele--last-region (cons (car bounds) (cdr bounds))))
+
 (defun select-html-element-at-caret ()
   "Select the innermost HTML element at point or toggle its content.
 
@@ -140,20 +175,29 @@ the content is selected, select the whole element.  Otherwise, select the
 innermost element containing point."
   (interactive)
   (let* ((elements (web-select-html-ele--elements))
-         (selected (web-select-html-ele--selected-element elements))
-         (element (or selected
+         (state (or (web-select-html-ele--continued-state elements)
+                    (web-select-html-ele--selected-state elements)))
+         (element (or (car-safe state)
                       (web-select-html-ele--element-at (point) elements)))
+         (kind (cdr-safe state))
          (whole (plist-get element :whole))
-         (content (plist-get element :content)))
+         (content (plist-get element :content))
+         target
+         target-kind)
     (cond
      ((null element)
       (user-error "No enclosing HTML element found"))
-     ((web-select-html-ele--region-equal-p whole)
-      (web-select-html-ele--select (or content whole)))
-     ((web-select-html-ele--region-equal-p content)
-      (web-select-html-ele--select whole))
+     ((eq kind 'whole)
+      (setq target (or content whole)
+            target-kind (if content 'content 'whole)))
+     ((eq kind 'content)
+      (setq target whole
+            target-kind 'whole))
      (t
-      (web-select-html-ele--select whole)))))
+      (setq target whole
+            target-kind 'whole)))
+    (web-select-html-ele--select target)
+    (web-select-html-ele--remember element target-kind target)))
 
 (global-set-key (kbd "s-A") #'select-html-element-at-caret)
 
