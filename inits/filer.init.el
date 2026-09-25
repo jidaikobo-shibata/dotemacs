@@ -7,7 +7,27 @@
 ;; find-fileをzshライクに
 ;; thx http://d.hatena.ne.jp/mooz/20101003/p1
 (when (require 'zlc nil t)
-  (zlc-mode 1))
+  (zlc-mode 1)
+  ;; File candidates can have `completion--unquoted' before `face'.
+  ;; zlc 0.0.5 assumes `face' is the first property and inserts the
+  ;; common prefix again (e.g. ~/.co + .codex/).
+  (defun zlc-select-nth (n)
+    "Select the Nth zlc candidate using its common-part face."
+    (interactive)
+    (setq zlc--index (zlc--normalize-index
+                      n (length zlc--global-cache)))
+    (delete-region zlc--field-begin (field-end))
+    (if (>= zlc--index 0)
+        (let* ((candidate (zlc--current-candidate))
+               (string (if (consp candidate) (car candidate) candidate))
+               (from (if (eq (get-text-property 0 'face string)
+                             'completions-common-part)
+                         (or (next-single-property-change 0 'face string)
+                             (length string))
+                       0)))
+          (insert (substring string from))
+          (zlc--highlight-nth-completion zlc--index))
+      (zlc--clear-overlay))))
 (let ((map minibuffer-local-map))
   (define-key map (kbd "<down>") 'next-history-element)
   (define-key map (kbd "<up>")   'previous-history-element))
