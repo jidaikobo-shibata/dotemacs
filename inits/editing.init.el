@@ -90,11 +90,33 @@
 
 ;;; ------------------------------------------------------------
 ;; インデント整形
+(defun my/remove-leading-whitespace-or-quote (beg end)
+  "Remove leading spaces/tabs, or one leading >, on lines from BEG to END.
+With an active region, process its lines; otherwise process the current line.
+Spaces following > are left for the next invocation."
+  (interactive
+   (if (use-region-p)
+       (list (region-beginning) (region-end))
+     (list (line-beginning-position) (line-end-position))))
+  (save-excursion
+    (goto-char beg)
+    (beginning-of-line)
+    (let ((lines (max 1 (count-lines (point) end))))
+      (atomic-change-group
+        (dotimes (_ lines)
+          (cond
+           ((looking-at "[ \t]+")
+            (delete-region (match-beginning 0) (match-end 0)))
+           ((looking-at ">")
+            (delete-char 1)))
+          (forward-line 1)))))
+  (setq deactivate-mark nil))
+
 (global-set-key (kbd "s-}") 'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "s-]") 'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "C-}") 'indent-rigidly-right-to-tab-stop)
-(global-set-key (kbd "s-{") 'indent-rigidly-left-to-tab-stop)
-(global-set-key (kbd "s-[") 'indent-rigidly-left-to-tab-stop)
+(global-set-key (kbd "s-{") 'my/remove-leading-whitespace-or-quote)
+(global-set-key (kbd "s-[") 'my/remove-leading-whitespace-or-quote)
 (global-set-key (kbd "C-{") 'indent-rigidly-left-to-tab-stop)
 
 ;;; ------------------------------------------------------------
