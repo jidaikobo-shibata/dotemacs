@@ -30,7 +30,7 @@
 ;; 接続方法
 ;; (setq tramp-default-method "scp")
 ;; (setq tramp-methods (assq-delete-all "scp" tramp-methods))
-(setq tramp-default-method "ssh")
+(setq tramp-default-method "scp")
 
 ;;; ------------------------------------------------------------
 ;;; provides
