@@ -113,10 +113,11 @@
 
 ;;; ------------------------------------------------------------
 ;; インデント整形
-(defun my/remove-leading-whitespace-or-quote (beg end)
-  "Remove leading spaces/tabs, or one leading >, on lines from BEG to END.
-With an active region, process its lines; otherwise process the current line.
-Spaces following > are left for the next invocation."
+(defun my/indent-left-or-unquote (beg end)
+  "Indent lines from BEG to END left, or remove a mail quote prefix.
+When every nonblank line begins with optional whitespace and `>',
+remove leading whitespace first, then one `>' on the next call.
+Otherwise indent left by one tab stop, as before."
   (interactive
    (if (use-region-p)
        (list (region-beginning) (region-end))
@@ -124,22 +125,40 @@ Spaces following > are left for the next invocation."
   (save-excursion
     (goto-char beg)
     (beginning-of-line)
-    (let ((lines (max 1 (count-lines (point) end))))
-      (atomic-change-group
-        (dotimes (_ lines)
-          (cond
-           ((looking-at "[ \t]+")
-            (delete-region (match-beginning 0) (match-end 0)))
-           ((looking-at ">")
-            (delete-char 1)))
-          (forward-line 1)))))
+    (let ((lines (max 1 (count-lines (point) end)))
+          (quoted nil)
+          (all-quoted t)
+          (has-leading-whitespace nil))
+      (dotimes (_ lines)
+        (cond
+         ((looking-at "[ \t]*$") nil)
+         ((looking-at "\\([ \t]*\\)>")
+          (setq quoted t)
+          (unless (= (match-beginning 1) (match-end 1))
+            (setq has-leading-whitespace t)))
+         (t (setq all-quoted nil)))
+        (forward-line 1))
+      (if (and quoted all-quoted)
+          (progn
+            (goto-char beg)
+            (beginning-of-line)
+            (atomic-change-group
+              (dotimes (_ lines)
+                (cond
+                 (has-leading-whitespace
+                  (when (looking-at "[ \t]+>")
+                    (delete-region (match-beginning 0) (1- (match-end 0)))))
+                 ((looking-at ">")
+                  (delete-char 1)))
+                (forward-line 1))))
+        (indent-rigidly-left-to-tab-stop beg end))))
   (setq deactivate-mark nil))
 
 (global-set-key (kbd "s-}") 'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "s-]") 'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "C-}") 'indent-rigidly-right-to-tab-stop)
-(global-set-key (kbd "s-{") 'my/remove-leading-whitespace-or-quote)
-(global-set-key (kbd "s-[") 'my/remove-leading-whitespace-or-quote)
+(global-set-key (kbd "s-{") 'my/indent-left-or-unquote)
+(global-set-key (kbd "s-[") 'my/indent-left-or-unquote)
 (global-set-key (kbd "C-{") 'indent-rigidly-left-to-tab-stop)
 
 ;;; ------------------------------------------------------------
