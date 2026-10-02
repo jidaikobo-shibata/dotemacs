@@ -28,6 +28,29 @@
 (setq select-enable-clipboard t)
 
 ;;; ------------------------------------------------------------
+;; コピー完了を約1秒表示する
+(defvar my/copy-notification-timer nil
+  "Timer used to clear the copy notification.")
+
+(defun my/clear-copy-notification ()
+  "Clear the copy notification without removing another message."
+  (setq my/copy-notification-timer nil)
+  (when (equal (current-message) "Copied")
+    (message nil)))
+
+(defun my/show-copy-notification (&rest _)
+  "Show a brief notification after copying text."
+  (when (timerp my/copy-notification-timer)
+    (cancel-timer my/copy-notification-timer))
+  (let ((message-log-max nil))
+    (message "Copied"))
+  (setq my/copy-notification-timer
+        (run-at-time 1 nil #'my/clear-copy-notification)))
+
+(advice-add 'kill-ring-save :after #'my/show-copy-notification)
+(advice-add 'cua-copy-region :after #'my/show-copy-notification)
+
+;;; ------------------------------------------------------------
 ;; オートインデント無効
 (when (functionp 'electric-indent-mode) (electric-indent-mode -1))
 
