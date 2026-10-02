@@ -5,7 +5,8 @@
 
 ;;; ------------------------------------------------------------
 ;; 設定ファイル用のメジャーモード
-;; (require 'generic-x)
+(require 'generic-x)
+(add-to-list 'auto-mode-alist '("/\\.htaccess\\'" . apache-conf-generic-mode))
 
 ;;; ------------------------------------------------------------
 ;;; which-key-mode
