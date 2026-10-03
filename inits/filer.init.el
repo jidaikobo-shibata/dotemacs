@@ -209,11 +209,12 @@ With FORCE-ROOT-PROMPT, select the URL prefix and local root again."
 ;;; ------------------------------------------------------------
 ;;; dired
 
-(add-to-list 'load-path "~/.emacs.d/elisp/dired-explorer")
+(add-to-list 'load-path (expand-file-name "elisp/dired-explorer" user-emacs-directory))
 
 (require 'dired)
 (require 'dired-aux)
-(require 'dired-explorer)
+(unless (require 'dired-explorer nil t)
+  (display-warning 'my/settings "dired-explorer unavailable; using standard Dired"))
 (require 'wdired)
 
 (setq ls-lisp-use-localized-time-format t)
@@ -231,21 +232,24 @@ With FORCE-ROOT-PROMPT, select the URL prefix and local root again."
 (setq dired-omit-files "^\\.DS_Store")
 
 ;; dired-explorer
-(add-hook 'dired-mode-hook
-          (lambda ()
-            (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
-            (dired-explorer-mode t)))
+(when (featurep 'dired-explorer)
+  (add-hook 'dired-mode-hook
+            (lambda ()
+              (define-key dired-mode-map ":" (lambda () (interactive) (dired-explorer-mode t)))
+              (dired-explorer-mode t))))
 
 ;; diredでファイル名編集（M-rで編集モード。:でdired-explorerを切って作業。C-c C-cで確定）
 (define-key dired-mode-map "E" 'wdired-change-to-wdired-mode)
 (define-key dired-mode-map (kbd "<M-return>") 'dired-maybe-insert-subdir)
-(define-key dired-explorer-mode-map "\M-r" 'wdired-change-to-wdired-mode)
+(when (boundp 'dired-explorer-mode-map)
+  (define-key dired-explorer-mode-map "\M-r" 'wdired-change-to-wdired-mode))
 (define-key wdired-mode-map (kbd "C-g") 'wdired-abort-changes)
 (define-key wdired-mode-map [escape] 'wdired-abort-changes)
 
 ;; spaceでtoggle marks
 (define-key dired-mode-map " " 'dired-toggle-mark)
-(define-key dired-explorer-mode-map " " 'dired-toggle-mark)
+(when (boundp 'dired-explorer-mode-map)
+  (define-key dired-explorer-mode-map " " 'dired-toggle-mark))
 (defun dired-toggle-mark (arg)
   "Toggle the current (or next ARG) file."
   (interactive "P")
@@ -279,7 +283,8 @@ With FORCE-ROOT-PROMPT, select the URL prefix and local root again."
 
 ;; key-binds
  (define-key dired-mode-map (kbd "M-o") 'other-window)
- (define-key dired-explorer-mode-map (kbd "M-o") 'other-window)
+(when (boundp 'dired-explorer-mode-map)
+  (define-key dired-explorer-mode-map (kbd "M-o") 'other-window))
 ;; (define-key dired-mode-map (kbd "RET") 'dired-explorer-dired-open)
 ;; (define-key dired-mode-map (kbd "<s-return>") 'dired-explorer-dired-open)
 (define-key dired-mode-map (kbd "a") 'dired-find-file)
@@ -299,7 +304,8 @@ With FORCE-ROOT-PROMPT, select the URL prefix and local root again."
    (dired-get-filename) "~/Desktop" t dired-copy-preserve-time t 'always)
   (message "Download to desktop."))
 (define-key dired-mode-map (kbd "C-d") 'dired-download-to-desktop)
-(define-key dired-explorer-mode-map (kbd "C-d") 'dired-download-to-desktop)
+(when (boundp 'dired-explorer-mode-map)
+  (define-key dired-explorer-mode-map (kbd "C-d") 'dired-download-to-desktop))
 
 ;;; ------------------------------------------------------------
 ;; .poファイルを保存したらmsgfmt -oする

@@ -2,6 +2,7 @@
 ;;; Commentary:
 ;; provide keyboard.init.
 ;;; Code:
+(require 'settings.init)
 
 (require 'minibuffer-focus.init)
 
@@ -12,7 +13,8 @@
   (interactive)
   (setq x-super-keysym 'ctrl)
   (setq x-ctrl-keysym 'super))
-(my-set-ctrl-key)
+(when (and my/swap-control-super (eq window-system 'x))
+  (my-set-ctrl-key))
 
 ;;; ------------------------------------------------------------
 ;; 選択範囲内のundoをしない

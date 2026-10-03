@@ -2,6 +2,7 @@
 ;;; Commentary:
 ;; provide util.init.
 ;;; Code:
+(require 'cl-lib)
 
 ;;; ------------------------------------------------------------
 ;; 新規バッファを開く
@@ -122,7 +123,7 @@ It defaults to a comma."
 ;; gist-name: preserve-last-buffers-and-point.el
 ;; gist-private: nil
 
-(defvar my-hist-dir (expand-file-name "~/.emacs.d/histories/"))
+(defvar my-hist-dir (expand-file-name "histories/" user-emacs-directory))
 (defvar my-hist-last-files (concat my-hist-dir "last-files"))
 (defvar my-hist-restore-remote-files nil
   "If non-nil, attempt to restore remote TRAMP files from last session.")
@@ -134,7 +135,7 @@ It defaults to a comma."
       (let* ((tmp (split-string line ":"))
              (path (car tmp))
              (pt (string-to-number (car (last tmp)))))
-        (when (and path (> (length path) 0))
+        (when (and path (> (length path) 0) (> pt 0))
           (push (cons path pt) ret))))
     (nreverse ret)))
 
@@ -157,9 +158,19 @@ It defaults to a comma."
                     (buffer-string)))
          (entries
           (condition-case nil
-              (read content)
+              (let ((value (read content)))
+                (unless (and (proper-list-p value)
+                             (cl-every (lambda (entry)
+                                         (and (consp entry)
+                                              (stringp (car entry))
+                                              (integerp (cdr entry))
+                                              (> (cdr entry) 0)))
+                                       value))
+                  (error "Invalid session history"))
+                value)
             (error (my/parse-legacy-last-files content)))))
     (dolist (entry entries)
+      (when (and (consp entry) (stringp (car entry)) (integerp (cdr entry)))
       (let ((path (car entry))
             (pt (cdr entry)))
         (cond
@@ -173,7 +184,7 @@ It defaults to a comma."
                 (goto-char pt))
             (error
              (message "Skip restoring file %s: %s"
-                      path (error-message-string err))))))))))
+                      path (error-message-string err)))))))))))
 
 ;;; ------------------------------------------------------------
 ;;; provides

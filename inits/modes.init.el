@@ -214,12 +214,13 @@
         rainbow-hexadecimal-colors-font-lock-keywords)
   (push '("^\\(#\\(?:[0-9a-fA-F]\\{3\\}\\)+\\{2,4\\}\\)" (0 (rainbow-colorize-itself)))
         rainbow-hexadecimal-colors-font-lock-keywords))
+(when (locate-library "rainbow-mode")
 (add-hook 'fundamental-mode-hook 'rainbow-mode)
 (add-hook 'text-mode-hook 'rainbow-mode)
 (add-hook 'html-mode-hook 'rainbow-mode)
 (add-hook 'lisp-mode-hook 'rainbow-mode)
 (add-hook 'emacs-lisp-mode-hook 'rainbow-mode)
-(add-hook 'css-mode-hook 'rainbow-mode)
+(add-hook 'css-mode-hook 'rainbow-mode))
 
 ;;; ------------------------------------------------------------
 ;;; flycheck

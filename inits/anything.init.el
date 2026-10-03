@@ -57,8 +57,8 @@
 ;; gtags-find-tag（M-.）すると、Anythingが開くように
 ;; gtags.init.elも参照
 
-(require 'gtags)
-(require 'anything-gtags)
+(when (require 'gtags nil t)
+  (require 'anything-gtags nil t))
 
 ;; isearchをanything-occurで上書き（isearchは必要だった上書きしない）
 ;; (global-set-key (kbd "C-S") 'anything-occur)
@@ -67,7 +67,7 @@
 ;;; Anything - buffers
 
 ;; 自分好みのバッファ選択。anythingの情報源にも - focus-on-editable-buffers
-(add-to-list 'load-path "~/.emacs.d/elisp/focus-on-editable-buffers")
+(add-to-list 'load-path (expand-file-name "elisp/focus-on-editable-buffers" user-emacs-directory))
 
 (setq-default foeb/is-use-advice-delete-window t)
 (setq-default foeb/is-use-anything-execute-persistent-action t)
@@ -78,8 +78,11 @@
                 "*grep*"
                 (seq "*grep:" (* any) "*")
                 "*eww*")))
-(require 'focus-on-editable-buffers)
-(require 'anything-focus-on-editable-buffers)
+(defvar my/foeb-available
+  (and (require 'focus-on-editable-buffers nil t)
+       (require 'anything-focus-on-editable-buffers nil t)))
+(unless my/foeb-available
+  (display-warning 'my/settings "focus-on-editable-buffers unavailable; using standard buffer source"))
 
 (setq foeb/modified-buffer-kill-prompt
       "バッファは変更されています。変更を破棄して閉じますか？ "
@@ -90,8 +93,9 @@
       foeb/anything-not-available-message
       "Anythingを利用できません。")
 
+(when my/foeb-available
 (define-key anything-map (kbd "C-d") 'foeb/anything-execute-persistent-kill)
-(define-key anything-map (kbd "s-w") 'foeb/anything-execute-persistent-kill)
+(define-key anything-map (kbd "s-w") 'foeb/anything-execute-persistent-kill))
 (define-key anything-map (kbd "M-s-<left>") 'anything-previous-line)
 (define-key anything-map (kbd "M-s-<right>") 'anything-next-line)
 
@@ -186,7 +190,9 @@
 ;;; ------------------------------------------------------------
 ;;; my-anything-launcher
 
-(add-to-list 'my/anything-sources 'foeb/anything-c-source-buffers t)
+(add-to-list 'my/anything-sources
+             (if my/foeb-available 'foeb/anything-c-source-buffers
+               'anything-c-source-buffers-list) t)
 (add-to-list 'my/anything-sources 'anything-c-source-my-dired-buffer t)
 (add-to-list 'my/anything-sources 'anything-c-source-bookmarks t)
 (add-to-list 'my/anything-sources 'anything-c-source-my-hosts t)

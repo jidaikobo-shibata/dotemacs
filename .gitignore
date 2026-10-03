@@ -20,3 +20,6 @@ tramp
 url/
 *.elc
 session.*
+
+# Personal settings (never overwritten by pull)
+/local/

@@ -2,6 +2,7 @@
 ;;; Commentary:
 ;; provide behaviour.
 ;;; Code:
+(require 'settings.init)
 
 ;; yes/noをy/nへ
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -37,8 +38,7 @@
 (defvar my/tmp-managed-directories
   (list my/backup-directory
         my/auto-save-directory
-        my/auto-save-list-directory
-        my/junk-directory)
+        my/auto-save-list-directory)
   "Temporary directories managed by `my/tmp-garbage-collect'.")
 (defvar my/tmp-garbage-collection-timer nil
   "Idle timer used to clean managed temporary directories.")
@@ -48,6 +48,13 @@
   (unless (file-directory-p directory)
     (make-directory directory t))
   (set-file-modes directory #o700))
+
+;; Only notes beneath the managed temporary root may be automatically deleted.
+(when (and my/junk-auto-delete
+           (string-prefix-p
+            (file-name-as-directory (file-truename my/tmp-directory))
+            (file-name-as-directory (file-truename my/junk-directory))))
+  (add-to-list 'my/tmp-managed-directories my/junk-directory t))
 
 (my/ensure-private-directory my/tmp-directory)
 (dolist (directory my/tmp-managed-directories)

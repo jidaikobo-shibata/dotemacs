@@ -33,6 +33,15 @@
 
 ;;; Code:
 
+;; Prefer pulled source over stale local byte-compiled files.
+(setq load-prefer-newer t)
+
+;; Shared configuration is located relative to this init file.
+(add-to-list 'load-path (expand-file-name "inits" user-emacs-directory))
+(require 'settings.init)
+(my/load-local-file "settings.el")
+(require 'platform.init)
+
 ;;; --- Dev mode switch -------------------------------------------------
 ;; どれかが真なら開発モード
 (defvar my-dev-mode-on nil
@@ -105,13 +114,13 @@
 
 ;;; ------------------------------------------------------------
 ;;; font
-(set-face-attribute 'default nil :family "MyricaM M" :height 160)
-(set-fontset-font t 'japanese-jisx0208 "MyricaM M")
+(my/apply-frame-fonts)
+(add-hook 'after-make-frame-functions #'my/apply-frame-fonts)
 
 ;;; ------------------------------------------------------------
 ;; load-path
-(add-to-list 'load-path "~/.emacs.d/elisp")
-(add-to-list 'load-path "~/.emacs.d/inits")
+(add-to-list 'load-path (expand-file-name "elisp" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "inits" user-emacs-directory))
 
 ;;; ------------------------------------------------------------
 ;; custom-set-variables
@@ -145,6 +154,7 @@
 
 ;;; ------------------------------------------------------------
 ;; 検索センター - search-center
+(setq sc/is-use-mozc-search-bridge my/use-mozc)
 (require 'search-center)
 (search-center-mode t)
 
@@ -165,7 +175,7 @@
     (require 'behaviour.init)
     (require 'editing.init)
     (require 'keyboard.init)
-    (require 'mozc.init)
+    (when my/use-mozc (require 'mozc.init))
     (require 'window.init)
     (require 'filer.init)
     (require 'tramp.init)
@@ -191,7 +201,7 @@
 ;; Theme
 (unless my-dev-mode-on
   (add-to-list 'custom-theme-load-path
-               (file-name-as-directory "~/.emacs.d/themes/"))
+               (expand-file-name "themes/" user-emacs-directory))
   (load-theme 'jidaikobo-dark t))
 
 (custom-set-faces
@@ -200,5 +210,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(my/load-local-file "overrides.el")
 
 ;;; init.el ends here
