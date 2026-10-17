@@ -528,3 +528,11 @@
 - 検証: PGTK版30.2のバッチで既存設定テスト5件が成功。git diff --checkも成功。実際の物理キー入力は未確認。
 - 未完了の事項: なし（入力の使用感は利用者による確認が必要）。
 - 次にやるとよいこと: 普段のショートカットで交換の挙動を確認し、必要に応じてWayland固有の設定を調整する。
+
+## 2026-10-17: PGTKの修飾キー名を修正
+
+- 何をしたか: mainのmy-set-ctrl-keyで、PGTKのx-super-keysymにcontrolを設定し、X11では従来のctrlを維持。起動時に適用され、再起動で有効になる。
+- なぜそうしたか: xremapの全体交換をEmacs側で戻す際、PGTKはmodifier-valueプロパティを参照する。実機でctrlのプロパティはnil、controlは67108864と確認した。従来指定ctrlがPGTKでは無効で、交換の片側だけが適用されていた。物理Ctrl+Xがs-xとしてkill-regionになる原因をこれまでの説明では捉えられていなかった。別途xremapのEmacs判定は小文字emacsへ変更済み。
+- 検証: PGTK版の既存設定テスト5件とgit diff --checkが成功。稼働中Emacsへcontrol/superを指定し、双方のmodifier-valueが有効なことを確認。利用者は一時反映より再起動での検証を希望。
+- 未完了の事項: 再起動後の物理Ctrl+X→Ctrl+F、Ctrl+A、Super+Aの操作確認。
+- 次にやるとよいこと: Emacsを通常どおり再起動し、ファイルを開く・行頭移動・全選択が期待どおりか確認する。

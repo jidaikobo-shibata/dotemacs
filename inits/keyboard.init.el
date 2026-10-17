@@ -11,7 +11,8 @@
 (defun my-set-ctrl-key ()
   "Set left Super key to act as Ctrl key in Emacs."
   (interactive)
-  (setq x-super-keysym 'ctrl)
+  ;; PGTK resolves modifier-value properties; its symbol is `control'.
+  (setq x-super-keysym (if (eq window-system 'pgtk) 'control 'ctrl))
   (setq x-ctrl-keysym 'super))
 (when (and my/swap-control-super (memq window-system '(x pgtk)))
   (my-set-ctrl-key))
