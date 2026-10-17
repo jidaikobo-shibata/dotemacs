@@ -13,7 +13,7 @@
   (interactive)
   (setq x-super-keysym 'ctrl)
   (setq x-ctrl-keysym 'super))
-(when (and my/swap-control-super (eq window-system 'x))
+(when (and my/swap-control-super (memq window-system '(x pgtk)))
   (my-set-ctrl-key))
 
 ;;; ------------------------------------------------------------

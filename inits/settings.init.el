@@ -11,7 +11,7 @@
 (defcustom my/use-mozc (eq system-type 'gnu/linux)
   "Whether to enable Mozc integration." :type 'boolean)
 (defcustom my/swap-control-super (eq system-type 'gnu/linux)
-  "Whether to swap Control and Super on X." :type 'boolean)
+  "Whether to swap Control and Super on X or PGTK." :type 'boolean)
 (defcustom my/mac-command-modifier 'super "Command modifier on macOS." :type 'symbol)
 (defcustom my/mac-option-modifier 'meta "Option modifier on macOS." :type 'symbol)
 (defcustom my/junk-directory (expand-file-name ".tmp/junk/" user-emacs-directory)
