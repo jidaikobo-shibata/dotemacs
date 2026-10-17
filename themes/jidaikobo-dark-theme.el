@@ -41,6 +41,16 @@
   (custom-theme-set-faces
    'jidaikobo-dark
 
+   ;; Editable buffer tabs: distinguish selection without relying on color alone.
+   `(tab-line ((t (:background ,jidaikobo-bg :foreground ,jidaikobo-fg
+                              :height 1.0))))
+   `(tab-line-tab ((t (:background ,jidaikobo-gray :foreground ,jidaikobo-fg
+                                  :box (:line-width 1 :style flat-button)))))
+   `(tab-line-tab-current ((t (:inherit tab-line-tab :weight bold
+                                      :underline ,jidaikobo-lightblue))))
+   `(tab-line-tab-inactive ((t (:inherit tab-line-tab :background ,jidaikobo-bg))))
+   `(tab-line-highlight ((t (:inherit tab-line-tab :background ,jidaikobo-gray))))
+
 ;;; ------------------------------------------------------------
 ;;; base
    `(default   ((t (:foreground ,jidaikobo-fg :background ,jidaikobo-bg))))
