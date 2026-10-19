@@ -10,6 +10,10 @@ pull して Emacs を再起動する。起動中の一括再読み込みは、�
 
 読み込み順:
 
+Ubuntuでは、これより前に `early-init.el` がDebianのパッケージ起動処理を補助する。
+Mozcの起動スクリプトが参照する `flavor` を、その処理の間だけ動的に束縛する。
+システムファイルは変更しない。対象スクリプトがない環境では補助を適用しない。
+
 1. `inits/settings.init.el`: 設定項目と既定値。
 2. `local/settings.el`: 初期化前の個人設定値（存在する場合）。
 3. `inits/platform.init.el` と既存モジュール: OS対応と共通機能。

@@ -3,6 +3,13 @@
 ;; provide anything.init.
 ;;; Code:
 
+;; Keep the locally maintained cl-lib port ahead of ELPA's legacy copy.
+;; Resolve against this module so an isolated configuration can use it too.
+(add-to-list 'load-path
+             (expand-file-name "../vendor/anything"
+                               (file-name-directory
+                                (or load-file-name buffer-file-name))))
+
 (defvar my/anything-available
   (require 'anything nil t))
 

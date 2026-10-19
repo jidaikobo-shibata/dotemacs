@@ -36,6 +36,12 @@
 ;; Prefer pulled source over stale local byte-compiled files.
 (setq load-prefer-newer t)
 
+;; Include MELPA when refreshing package metadata and checking for updates.
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/")
+             t)
+
 ;; Shared configuration is located relative to this init file.
 (add-to-list 'load-path (expand-file-name "inits" user-emacs-directory))
 (require 'settings.init)

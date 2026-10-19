@@ -545,3 +545,29 @@
 - 検証: タブERT6件、既存設定5件、TRAMP4件の計15件が成功。タブテストはload-prefer-newerを有効にし、既存FOEBの古いelcではなく新しいソースで再確認。git diff --checkが成功。独立したD-Busとheadless Westonで、設定コピーとFOEBを読み込むPGTK Emacs 30.2を起動し、起動時のモード有効化、修飾キー値、C-t/C-M-矢印、編集・Diredペインのタブ領域を確認。PNG書き出しを目視してタブ描画も確認（任意パッケージは省略した隔離環境）。
 - 未完了の事項: 普段のデスクトップでの物理キー・マウス操作と、多数タブ・分割時の使い心地の確認。
 - 次にやるとよいこと: Emacsを再起動して試す。必要時はM-x my/editor-tabs-modeで解除。利用者の希望に合わせ、普段のEmacsへ一時反映する操作は行っていない。
+
+## 2026-10-17: Anything の旧 cl 依存を cl-lib へ移行
+
+- 何をしたか: 使用中の Anything 本体・config・match-plugin・gtags の4ファイルを `vendor/anything/` に複製して移植した。ELPA 配下は変更せず、`inits/anything.init.el` で修正版を優先する。原本のハッシュ、差分、GPLのライセンス本文、保守・検証方法を同梱した。独自の focus-on-editable-buffers に旧 cl の使用はなく変更不要だった。
+- なぜそうしたか: 操作感を維持して非推奨依存を除去し、ELPA の再インストール後も修正を保持するため。旧 cl の dolist/dotimes advice、動的 flet、special 宣言、lexical-let の遅延キャプチャも明示的に移行した。子 Emacs 用のプログラム文字列も対象にした。lexical-binding は nil を維持し、新規外部依存は追加していない。
+- 検証: 原本で Package cl is deprecated と anything-gtags の loop 警告を再現。旧 cl/cl-compat の require を禁止したソース環境で11件、コンパイル済み環境で同じ11件成功。元のELPA版でも11件成功して振る舞いを比較。子Emacsでコピー・上書きを実行。package-initialize後の読み込み・キー・候補構成・独自候補の3件も成功。4ファイルのバイトコンパイル成功、旧 cl は未ロードで旧 cl の非推奨警告なし。通常設定全体も設定ディレクトリとサーバー起動を分離したバッチで読み込み、修正版の選択と候補構成を確認した。既存の共有設定5件・タブ6件も成功。
+- 残る事項: foreign-regexp と ace-jump-mode がそれぞれ旧 cl を要求するため、通常起動では Package cl is deprecated が残る。読み込み元をトレースで特定し、修正範囲外として両者は変更していない。Anything 自体にも旧 cl と無関係な既存のコンパイル警告は残る。
+- 次にやるとよいこと: 通常Emacsを再起動して、C-; の候補・絞り込み、Tab のアクション、C-d/s-w の削除、日本語入力、M-.、C-^ を確認する。GUIの描画・フォーカス・物理キー入力、SSH/FTPの実接続は未検証。手動確認項目は `vendor/anything/README.md` に記載。
+
+## 2026-10-17: foreign-regexp の旧 cl 依存を解消
+
+- 何をしたか: 元の ELPA パッケージは変更せず、`vendor/foreign-regexp/` に cl-lib 移植版と小さなクロージャ用補助ファイルを配置した。`inits/search-center.el` で修正版を優先する。原本SHA-256、差分、GPL-3.0-or-laterのライセンス本文、検証・保守方法を同梱した。旧clを除外するための一時スタブをAnything起動テストから外し、実際のforeign-regexpと組み合わせて検証するようにした。Anythingの説明も現在の依存状況へ更新した。
+- なぜそうしたか: 既存のPerl検索・置換・プリセットとキーを維持し、再インストールで修正を失わずにPackage cl is deprecatedを解消するため。名前の変更だけでなく、lexical-letの捕捉を限定的な補助関数・タイマー引数へ移し、検索関数の一時差し替えと置換ループのfletをcl-letfへ移行した。本体は動的束縛を維持した。ソース読込時に表面化する2つの常時有効な非増分検索adviceはadvice-addへ移行し、regexp-typeの初期値を生成コードのコンパイル前に宣言した。警告抑制設定は追加せず、原本末尾のコンパイル警告抑制指定も引き継がなかった。新しい外部依存は追加していない。
+- 検証: 旧cl/cl-compatのrequireを禁止したソース環境で16件成功。コンパイル済みの2ファイルでも同じ16件成功、コンパイル中も旧clは未ロード。元ELPA版で共通の11件成功（移植固有5件は明示的にスキップ）。実際のPerlで前後検索、キャプチャ、日本語、範囲・件数・オプション、確認付き置換、ゼロ幅置換、quote-meta、search-centerの領域置換を検証。フックの自己解除・再帰防止、遅延用の文字列保持、RE-Builder/isearchの受け渡し、関数の復元、繰り返し検索も確認した。既存Anything11件、起動設定3件、共有設定5件、タブ6件も成功。差分から修正版を正確に復元できることとgit diff --checkを確認。
+- 起動確認: 通常設定全体を、設定ディレクトリ・履歴保存先・サーバー起動を分離したバッチで読込。Anythingとforeign-regexpの修正版が選ばれ、旧clは未ロードで、起動時の警告は出なかった。常用セッションは変更していない。
+- 未完了の事項: 自動検証・実装の残作業なし。GUIでの検索窓・日本語入力・isearch/RE-Builder間の操作は未確認。Perl以外のバックエンドは検証していない。残した旧adviceなどの既存コンパイル警告はあるが、起動時の警告は解消している。
+- 次にやるとよいこと: 次の利用時にEmacsを再起動し、普段の検索・置換・プリセット・日本語入力を確認する。原本を更新する場合は同梱ハッシュと差分を確認する。
+
+## 2026-10-19: DebianのMozc起動スクリプトのflavorエラーを修正
+
+- 何をしたか: `early-init.el` を追加し、Debianの起動スクリプトにあるMozc設定が存在するGNU/Linux環境だけで `debian-startup` をaround adviceで包む。cl-progvで引数のEmacs flavorを、その呼び出しの間だけ動的に束縛する。システムファイルや権限は変更せず、全体のsite-start処理も無効化しない。READMEに読み込み時期と適用条件を追記した。
+- なぜそうしたか: Debianのdebian-startup.elがlexical-binding: tでflavor引数を束縛する一方、50emacs-mozc.elは動的変数flavorを参照するため。通常のinit.elより前に発生するエラーであり、既にコンパイルされたDebian関数にも対応できる局所的な束縛が必要だった。旧clは使用せず、Emacs標準のcl-libを使う。flavorにグローバル値やspecial宣言を残さない。
+- 検証: 実際のDebian起動スクリプトで修正前のvoid-variable flavorを再現。修正後は00debian・dictionaries-common・Mozc・globalをすべてエラーなく読み込み、mozc.elcの検出とflavorの未束縛状態への復元を確認。ERT3件でコンパイル済みの字句束縛関数への適用、別flavorの維持、正常時・エラー時の外側の束縛の復元、実システム起動スクリプトを確認。early-init.elをコンパイルした場合も同じ3件が成功し、コンパイル警告なし。共有設定5件・foreign-regexp16件も成功。site-start相当と通常設定を連続して隔離バッチで読み込み、起動エラー・旧clの読み込みがないことを確認。git diff --check成功。
+- 調査事項: foreign-regexpのPerl設定通知3回は、検索窓のcustom-set-variables、テーマ適用時のCustom設定の再計算、ライブラリの起動後アイドルタイマーに由来する。前2経路を呼び出しスタック、最後をタイマー定義で確認した。検索を3重に実行しているわけではない。今回は理由の説明のみの依頼として、この通知やforeign-regexpの設定処理は変更していない。
+- 未完了の事項: 実装・自動検証の残作業なし。普段のGUIでの再起動とMozc入力は未確認。
+- 次にやるとよいこと: Emacsを通常どおり再起動して50emacs-mozcのエラーが消えることと日本語入力を確認する。Debian側の修正時にはこの回避策が引き続き必要か見直す。

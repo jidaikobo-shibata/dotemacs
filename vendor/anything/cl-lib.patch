@@ -1,0 +1,3496 @@
+--- a/anything-config.el
++++ b/anything-config.el
+@@ -1,4 +1,4 @@
+-;;; anything-config.el --- Applications libary for `anything.el'
++;;; anything-config.el --- Applications libary for `anything.el' -*- lexical-binding: nil; -*-
+ 
+ ;; Filename: anything-config.el
+ 
+@@ -686,7 +686,7 @@
+ (require 'anything)
+ (require 'thingatpt)
+ (require 'ffap)
+-(require 'cl)
++(require 'cl-lib)
+ (eval-when-compile (require 'dired))
+ (require 'dired-aux)
+ (require 'dired-x)
+@@ -782,15 +782,7 @@
+       ,@(if (keymapp maps) (list maps) maps)
+       ,@parent)))
+ 
+-(unless (fboundp 'apply-partially)
+-  (defun apply-partially (fun &rest args)
+-    "Return a function that is a partial application of FUN to ARGS.
+-ARGS is a list of the first N arguments to pass to FUN.
+-The result is a new function which does the same as FUN, except that
+-the first N arguments are fixed at the values with which this function
+-was called."
+-    (lexical-let ((fun fun) (args1 args))
+-      (lambda (&rest args2) (apply fun (append args1 args2))))))
++;; `apply-partially' is built into supported Emacs versions (30.2+).
+ 
+ 
+ ;;; Customize
+@@ -1291,7 +1283,7 @@
+ Sources are generated for all entries of `anything-c-default-info-index-list'.
+ If COMMANDS arg is non--nil build also commands named `anything-info<NAME>'.
+ Where NAME is one of `anything-c-default-info-index-list'."
+-  (loop with symbols = (loop for str in var-value
++  (cl-loop with symbols = (cl-loop for str in var-value
+                              collect
+                              (intern (concat "anything-c-source-info-" str)))
+         for sym in symbols
+@@ -1543,7 +1535,7 @@
+ (defvar minibuffer-local-filename-must-match-map (make-sparse-keymap)) ;; Emacs 23.1.+
+ (defvar minibuffer-local-must-match-filename-map (make-sparse-keymap)) ;; Older Emacsen
+ (defvar minibuffer-inactive-mode-map (make-sparse-keymap))
+-(dolist (map (list minibuffer-local-filename-completion-map
++(cl-dolist (map (list minibuffer-local-filename-completion-map
+                    minibuffer-local-completion-map
+                    minibuffer-local-must-match-filename-map
+                    minibuffer-local-filename-must-match-map
+@@ -1826,7 +1818,7 @@
+ ;;
+ (defun anything-c-list-preconfigured-anything ()
+   "Collect preconfigured anything functions in this file."
+-  (loop with doc
++  (cl-loop with doc
+         with sym
+         for entry in (cdr (assoc
+                            (file-truename (locate-library "anything-config"))
+@@ -2331,7 +2323,7 @@
+     (let ((printer-list (with-temp-buffer
+                           (call-process "lpstat" nil t nil "-a")
+                           (split-string (buffer-string) "\n"))))
+-      (loop for p in printer-list
++      (cl-loop for p in printer-list
+             for printer = (car (split-string p))
+             when printer
+             collect printer))))
+@@ -2342,7 +2334,7 @@
+   (with-no-warnings
+     (switch-to-buffer buffer-or-name)))
+ 
+-(defun* anything-c-position (item seq &key (test 'eq) all)
++(cl-defun anything-c-position (item seq &key (test 'eq) all)
+   "A simple and faster replacement of CL `position'.
+ Return position of first occurence of ITEM found in SEQ.
+ Argument SEQ can be a string, in this case ITEM have to be a char.
+@@ -2350,7 +2342,7 @@
+ all ITEM found in SEQ."
+   (let ((key (if (stringp seq) 'across 'in)))
+     (eval
+-     `(loop for c ,key seq
++     `(cl-loop for c ,key seq
+             for index from 0
+             when (funcall test c item)
+             if all collect index into ls
+@@ -2359,13 +2351,13 @@
+ 
+ (defun anything-c-get-pid-from-process-name (process-name)
+   "Get pid from running process PROCESS-NAME."
+-  (loop with process-list = (list-system-processes)
++  (cl-loop with process-list = (list-system-processes)
+         for pid in process-list
+         for process = (assoc-default 'comm (process-attributes pid))
+         when (and process (string-match process-name process))
+         return pid))
+ 
+-(defun* anything-current-buffer-narrowed-p (&optional
++(cl-defun anything-current-buffer-narrowed-p (&optional
+                                             (buffer anything-current-buffer))
+   "Check if BUFFER is narrowed.
+ Default is `anything-current-buffer'."
+@@ -2420,7 +2412,7 @@
+   "Display sources name."
+   (with-current-buffer anything-buffer
+     (goto-char (point-min))
+-    (loop with pos
++    (cl-loop with pos
+           while (setq pos (next-single-property-change (point) 'anything-header))
+           do (goto-char pos)
+           collect (buffer-substring-no-properties (point-at-bol)(point-at-eol))
+@@ -2484,7 +2476,7 @@
+ 
+ (defun anything-c-skip-entries (list regexp)
+   "Remove entries which matches REGEXP from LIST."
+-  (remove-if (lambda (x) (and (stringp x) (string-match regexp x)))
++  (cl-remove-if (lambda (x) (and (stringp x) (string-match regexp x)))
+              list))
+ 
+ (defun anything-c-shadow-entries (list regexp)
+@@ -2533,18 +2525,18 @@
+ See `kill-new' for argument REPLACE."
+   (kill-new (anything-c-stringify candidate) replace))
+ 
+-(defun* anything-fast-remove-dups (seq &key (test 'eq))
++(cl-defun anything-fast-remove-dups (seq &key (test 'eq))
+   "Remove duplicates elements in list SEQ.
+ This is same as `remove-duplicates' but with memoisation.
+ It is much faster, especially in large lists.
+ A test function can be provided with TEST argument key.
+ Default is `eq'."
+-  (loop with cont = (make-hash-table :test test)
++  (cl-loop with cont = (make-hash-table :test test)
+         for elm in seq
+         unless (gethash elm cont)
+         do (puthash elm elm cont)
+         finally return
+-        (loop for i being the hash-values in cont collect i)))
++        (cl-loop for i being the hash-values in cont collect i)))
+ 
+ (defadvice eval-defun (after anything-source-hack activate)
+   "Allow immediate execution of anything source when evaling it.
+@@ -2591,20 +2583,20 @@
+              (t default-directory))))))
+ 
+ 
+-(defmacro* anything-c-walk-directory (directory &key path (directories t) match)
++(cl-defmacro anything-c-walk-directory (directory &key path (directories t) match)
+   "Walk through DIRECTORY tree.
+ PATH can be one of basename, relative, or full.
+ DIRECTORIES when non--nil (default) return also directories names, otherwise
+ skip directories names.
+ MATCH match only filenames matching regexp MATCH."
+   `(let (result
+-         (fn (case ,path
++         (fn (cl-case ,path
+                (basename 'file-name-nondirectory)
+                (relative 'file-relative-name)
+                (full     'identity)
+                (t        'file-name-nondirectory))))
+-     (labels ((ls-R (dir)
+-                (loop with ls = (directory-files dir t directory-files-no-dot-files-regexp)
++     (cl-labels ((ls-R (dir)
++                (cl-loop with ls = (directory-files dir t directory-files-no-dot-files-regexp)
+                       for f in ls
+                       if (file-directory-p f)
+                       do (progn (when ,directories
+@@ -2679,7 +2671,7 @@
+           ;; Line contents
+           (format "%5d: %s" (line-number-at-pos (1- s)) (buffer-substring s e))
+           ;; subexps
+-          (loop for i from 0 to (1- (/ (length (match-data)) 2))
++          (cl-loop for i from 0 to (1- (/ (length (match-data)) 2))
+                 collect (format "\n         %s'%s'"
+                                 (if (zerop i) "Group 0: " (format "Group %d: " i))
+                                 (match-string i))))
+@@ -2805,7 +2797,7 @@
+ (defun anything-c-highlight-buffers (buffers)
+   "Transformer function to highlight BUFFERS list.
+ Should be called after others transformers i.e (boring buffers)."
+-  (loop with buflist = (if anything-allow-skipping-current-buffer
++  (cl-loop with buflist = (if anything-allow-skipping-current-buffer
+                            buffers
+                            (cons (pop (cdr buffers)) buffers))
+         for i in buflist
+@@ -2899,7 +2891,7 @@
+   (let ((fn     (if regexp-flag 'query-replace-regexp 'query-replace))
+         (prompt (if regexp-flag "Query replace regexp" "Query replace"))
+         (bufs   (anything-marked-candidates)))
+-    (loop
++    (cl-loop
+           with replace = (query-replace-read-from prompt regexp-flag)
+           with tostring = (unless (consp replace)
+                             (query-replace-read-to
+@@ -2936,7 +2928,7 @@
+ 
+ (defun anything-buffer-revert-and-update (candidate)
+   (let ((marked (anything-marked-candidates)))
+-    (loop for buf in marked do (anything-revert-buffer buf))
++    (cl-loop for buf in marked do (anything-revert-buffer buf))
+     (anything-force-update candidate)))
+ 
+ ;;;###autoload
+@@ -2949,7 +2941,7 @@
+ (defun anything-buffer-save-and-update (candidate)
+   (let ((marked (anything-marked-candidates))
+         (enable-recursive-minibuffers t))
+-    (loop for buf in marked do
++    (cl-loop for buf in marked do
+           (with-current-buffer (get-buffer buf)
+             (save-buffer)))
+     (anything-force-update candidate)))
+@@ -3059,7 +3051,7 @@
+     (type . file)))
+ 
+ (defun anything-c-highlight-files (files)
+-  (loop for i in files
++  (cl-loop for i in files
+         if (file-directory-p i)
+         collect (propertize (file-name-nondirectory i)
+                             'face 'anything-ff-directory
+@@ -3220,13 +3212,13 @@
+   "Byte compile elisp files from `anything-find-files'."
+   (let ((files    (anything-marked-candidates))
+         (parg     anything-current-prefix-arg))
+-    (loop for fname in files
++    (cl-loop for fname in files
+           do (byte-compile-file fname parg))))
+ 
+ (defun anything-find-files-load-files (candidate)
+   "Load elisp files from `anything-find-files'."
+   (let ((files    (anything-marked-candidates)))
+-    (loop for fname in files
++    (cl-loop for fname in files
+           do (load fname))))
+ 
+ (defun anything-find-files-ediff-files-1 (candidate &optional merge)
+@@ -3270,7 +3262,7 @@
+ 
+ (defun anything-ff-pdfgrep (candidate)
+   "Default action to pdfgrep files from `anything-find-files'."
+-  (let ((cands (loop for file in (anything-marked-candidates)
++  (let ((cands (cl-loop for file in (anything-marked-candidates)
+                      if (or (string= (file-name-extension file) "pdf")
+                             (string= (file-name-extension file) "PDF"))
+                      collect file))
+@@ -3300,7 +3292,7 @@
+   (start-file-process "emacs-batch" nil anything-c-copy-async-prefered-emacs
+                       "-Q" "--batch" "--eval"
+                       (format "(progn
+-  (require 'dired) (require 'cl)
++  (require 'dired) (require 'cl-lib)
+   (let ((dired-recursive-copies 'always)
+         failures success
+         (ovw-count 0)
+@@ -3315,9 +3307,9 @@
+                 (dired-copy-file f \"%s\" t)
+                 (if file-exists
+                     (progn (push (cons \"Overwriting\" f) success)
+-                           (incf ovw-count))
++                           (cl-incf ovw-count))
+                     (push (cons \"Copying\" f) success)
+-                    (incf cpf-count)))
++                    (cl-incf cpf-count)))
+           (file-error
+            (push (dired-make-relative
+                    (expand-file-name
+@@ -3330,7 +3322,7 @@
+          (dolist (fail (reverse failures))
+            (insert (concat \"Failed to copy \" fail \"\n\"))))
+        (when success
+-         (loop for (a . s) in (reverse success) do
++         (cl-loop for (a . s) in (reverse success) do
+            (insert (concat a \" \" s  \" to %s done\n\"))))
+        (and (/= cpf-count 0) (insert (concat (int-to-string cpf-count) \" File(s) Copied\n\")))
+        (and (/= ovw-count 0) (insert (concat (int-to-string ovw-count) \" File(s) Overwrited\n\")))
+@@ -3342,7 +3334,7 @@
+   "Copy file list FLIST to DEST showing log.
+ Log is send to `anything-c-copy-files-async-log-file'.
+ Copying is done asynchronously with `anything-c-copy-files-async-1'."
+-  (declare (special auto-revert-interval))
++  (cl-declare (special auto-revert-interval))
+   (pop-to-buffer (find-file-noselect anything-c-copy-files-async-log-file))
+   (set (make-local-variable 'auto-revert-interval) 1)
+   (erase-buffer)
+@@ -3405,7 +3397,7 @@
+                                   default-directory))
+            (command (anything-comp-read
+                      "Command: "
+-                     (loop for (a . c) in eshell-command-aliases-list
++                     (cl-loop for (a . c) in eshell-command-aliases-list
+                            when (string-match "\\(\\$1\\|\\$\\*\\)$" (car c))
+                            collect (propertize a 'help-echo (car c)) into ls
+                            finally return (sort ls 'string<))
+@@ -3442,7 +3434,7 @@
+                 (eshell-command (format "%s %s" command mapfiles))))
+ 
+           ;; Run eshell-command on EACH marked files.
+-          (loop for i in cand-list
++          (cl-loop for i in cand-list
+                 for bn = (anything-c-basename i)
+                 for files = (format "'%s'" i)
+                 for com = (if (string-match "'%s'\\|\"%s\"\\|%s" command)
+@@ -3460,17 +3452,17 @@
+ 
+ (defun anything-ff-switch-to-eshell (candidate)
+   "Switch to eshell and cd to `anything-ff-default-directory'."
+-  (flet ((cd-eshell ()
+-           (goto-char (point-max))
+-           (insert
+-            (format "cd '%s'" anything-ff-default-directory))
+-           (eshell-send-input)))
++  (cl-letf (((symbol-function 'cd-eshell)
++             (lambda nil (goto-char (point-max))
++               (insert (format "cd '%s'" anything-ff-default-directory))
++               (eshell-send-input))))
++
+     (if (get-buffer "*eshell*")
+         (progn
+           (anything-c-switch-to-buffer "*eshell*")
+           (cd-eshell))
+-        (call-interactively 'eshell)
+-        (cd-eshell))))
++      (call-interactively 'eshell)
++      (cd-eshell))))
+ 
+ (defun anything-ff-serial-rename-action (method)
+   "Rename all marked files to `anything-ff-default-directory' with METHOD.
+@@ -3493,7 +3485,7 @@
+                       (expand-file-name anything-ff-default-directory)
+                       :test 'file-directory-p
+                       :must-match t)))
+-         (res       (loop for f in cands
++         (res       (cl-loop for f in cands
+                           for bn = (anything-c-basename f)
+                           for count from start
+                           concat (format "%s <-> %s%s.%s\n"
+@@ -3513,7 +3505,7 @@
+         (cur-dir  (expand-file-name (file-name-as-directory directory))))
+     (string= dir-file cur-dir)))
+ 
+-(defun* anything-ff-serial-rename-1
++(cl-defun anything-ff-serial-rename-1
+     (directory collection new-name start-at-num extension &key (method 'rename))
+   "rename files in COLLECTION to DIRECTORY with the prefix name NEW-NAME.
+ Rename start at number START-AT-NUM - ex: prefixname-01.jpg.
+@@ -3524,45 +3516,46 @@
+ will be treated with METHOD.
+ Default METHOD is rename."
+   ;; Maybe remove directories selected by error in collection.
+-  (setq collection (remove-if 'file-directory-p collection))
+-  (flet ((symlink-file (file dest)
+-           (let ((flist (list file)))
+-             (anything-dired-action
+-              dest :action 'symlink :files flist))))
++  (setq collection (cl-remove-if 'file-directory-p collection))
++  (cl-letf (((symbol-function 'symlink-file)
++             (lambda (file dest)
++               (let ((flist (list file)))
++                 (anything-dired-action dest :action 'symlink :files flist)))))
++
+ 
+     (let* ((tmp-dir  (file-name-as-directory
+                       (concat (file-name-as-directory directory)
+                               (symbol-name (gensym "tmp")))))
+-           (fn       (case method
++           (fn       (cl-case method
+                        (copy    'copy-file)
+                        (symlink 'symlink-file)
+                        (rename  'rename-file)
+                        (t (error "Error: Unknow method %s" method)))))
+       (make-directory tmp-dir)
+       (unwind-protect
+-           (progn
+-             ;; Rename all files to tmp-dir with new-name.
+-             ;; If files are not from start directory, use method
+-             ;; to move files to tmp-dir.
+-             (loop for i in collection
+-                   for count from start-at-num
+-                   for fnum = (if (< count 10) "0%s" "%s")
+-                   for nname = (concat tmp-dir new-name (format fnum count)
+-                                       (if (not (string= extension ""))
+-                                           (format ".%s" (replace-regexp-in-string
+-                                                          "[.]" "" extension))
++          (progn
++            ;; Rename all files to tmp-dir with new-name.
++            ;; If files are not from start directory, use method
++            ;; to move files to tmp-dir.
++            (cl-loop for i in collection
++                     for count from start-at-num
++                     for fnum = (if (< count 10) "0%s" "%s")
++                     for nname = (concat tmp-dir new-name (format fnum count)
++                                         (if (not (string= extension ""))
++                                             (format ".%s" (replace-regexp-in-string
++                                                            "[.]" "" extension))
+                                            (file-name-extension i 'dot)))
+-                   do (if (anything-ff-member-directory-p i directory)
+-                          (rename-file i nname)
++                     do (if (anything-ff-member-directory-p i directory)
++                            (rename-file i nname)
+                           (funcall fn i nname)))
+-             ;; Now move all from tmp-dir to destination.
+-             (loop with dirlist = (directory-files
+-                                   tmp-dir t directory-files-no-dot-files-regexp)
+-                   for f in dirlist do
+-                   (if (file-symlink-p f)
+-                       (symlink-file (file-truename f)
+-                                     (concat (file-name-as-directory directory)
+-                                             (anything-c-basename f)))
++            ;; Now move all from tmp-dir to destination.
++            (cl-loop with dirlist = (directory-files
++                                     tmp-dir t directory-files-no-dot-files-regexp)
++                     for f in dirlist do
++                     (if (file-symlink-p f)
++                         (symlink-file (file-truename f)
++                                       (concat (file-name-as-directory directory)
++                                               (anything-c-basename f)))
+                        (rename-file f directory))))
+         (delete-directory tmp-dir t)))))
+ 
+@@ -3858,7 +3851,7 @@
+     (anything-attrset 'toggle-basename 'anything-ff-toggle-basename)
+     (anything-execute-persistent-action 'toggle-basename)))
+ 
+-(defun* anything-reduce-file-name (fname level &key unix-close expand)
++(cl-defun anything-reduce-file-name (fname level &key unix-close expand)
+   "Reduce FNAME by LEVEL from end or beginning depending LEVEL value.
+ If LEVEL is positive reduce from end else from beginning.
+ If UNIX-CLOSE is non--nil close filename with /.
+@@ -3868,8 +3861,8 @@
+                                        exp-fname fname) "/" t))
+          (len        (length fname-list))
+          (pop-list   (if (< level 0)
+-                         (subseq fname-list (* level -1))
+-                         (subseq fname-list 0 (- len level))))
++                         (cl-subseq fname-list (* level -1))
++                         (cl-subseq fname-list 0 (- len level))))
+          (result     (mapconcat 'identity pop-list "/"))
+          (empty      (string= result "")))
+     (when unix-close (setq result (concat result "/")))
+@@ -3901,7 +3894,7 @@
+ one of `anything-file-completion-sources'.
+ Return nil if anything is not running."
+   (let ((cur-source (cdr (assoc 'name (anything-get-current-source)))))
+-    (loop for i in anything-file-completion-sources
++    (cl-loop for i in anything-file-completion-sources
+           thereis (string= cur-source i))))
+ 
+ (defun anything-find-files-down-one-level (arg)
+@@ -4039,10 +4032,10 @@
+ (defun anything-create-tramp-name (fname)
+   "Build filename for `anything-pattern' like /su:: or /sudo::."
+   (apply #'tramp-make-tramp-file-name
+-         (loop with v = (tramp-dissect-file-name fname)
++         (cl-loop with v = (tramp-dissect-file-name fname)
+                for i across v collect i)))
+ 
+-(defun* anything-ff-tramp-hostnames (&optional (pattern anything-pattern))
++(cl-defun anything-ff-tramp-hostnames (&optional (pattern anything-pattern))
+   "Get a list of hosts for tramp method found in `anything-pattern'.
+ Argument PATTERN default to `anything-pattern', it is here only for debugging
+ purpose."
+@@ -4051,8 +4044,8 @@
+           (tn          (match-string 0 pattern))
+           (all-methods (mapcar 'car tramp-methods)))
+       (anything-fast-remove-dups
+-       (loop for (f . h) in (tramp-get-completion-function method)
+-             append (loop for e in (funcall f (car h))
++       (cl-loop for (f . h) in (tramp-get-completion-function method)
++             append (cl-loop for e in (funcall f (car h))
+                           for host = (and (consp e) (cadr e))
+                           when (and host (not (member host all-methods)))
+                           collect (concat tn host)))
+@@ -4067,7 +4060,7 @@
+       (error "Error: Unknow file or directory `%s'" cand))))
+ (add-hook 'anything-before-action-hook 'anything-ff-before-action-hook-fn)
+ 
+-(defun* anything-ff-invalid-tramp-name-p (&optional (pattern anything-pattern))
++(cl-defun anything-ff-invalid-tramp-name-p (&optional (pattern anything-pattern))
+   "Return non--nil when PATTERN is an invalid tramp filename."
+   (string= (anything-ff-set-pattern pattern)
+            "Invalid tramp file name"))
+@@ -4313,20 +4306,20 @@
+         (G (cons "G" (/ size (expt anything-ff-default-kbsize 3))))
+         (K (cons "K" (/ size anything-ff-default-kbsize)))
+         (B (cons "B" size)))
+-    (loop with result = B
++    (cl-loop with result = B
+           for (a . b) in
+-          (loop for (x . y) in (list M G K B)
++          (cl-loop for (x . y) in (list M G K B)
+                 unless (< y 1) collect (cons x y))
+           when (< b (cdr result)) do (setq result (cons a b))
+           finally return (if (string= (car result) "B")
+                              (format "%s" size)
+                              (format "%.1f%s" (cdr result) (car result))))))
+ 
+-(defun* anything-ff-attributes
++(cl-defun anything-ff-attributes
+     (file &key type links uid gid access-time modif-time
+           status size mode gid-change inode device-num dired human-size)
+   "Easy interface for `file-attributes'."
+-  (let ((all (destructuring-bind
++  (let ((all (cl-destructuring-bind
+                    (type links uid gid access-time modif-time
+                          status size mode gid-change inode device-num)
+                  (file-attributes file 'string)
+@@ -4343,35 +4336,35 @@
+                      :inode       inode
+                      :device-num  device-num))))
+     (cond (type
+-           (let ((result (getf all :type)))
++           (let ((result (cl-getf all :type)))
+              (cond ((stringp result)
+                     "symlink")
+                    (result "directory")
+                    (t "file"))))
+-          (links (getf all :links))
+-          (uid   (getf all :uid))
+-          (gid   (getf all :gid))
++          (links (cl-getf all :links))
++          (uid   (cl-getf all :uid))
++          (gid   (cl-getf all :gid))
+           (access-time
+-           (format-time-string "%Y-%m-%d %R" (getf all :access-time)))
++           (format-time-string "%Y-%m-%d %R" (cl-getf all :access-time)))
+           (modif-time
+-           (format-time-string "%Y-%m-%d %R" (getf all :modif-time)))
++           (format-time-string "%Y-%m-%d %R" (cl-getf all :modif-time)))
+           (status
+-           (format-time-string "%Y-%m-%d %R" (getf all :status)))
+-          (size (if human-size (anything-ff-human-size (getf all :size))
+-                    (getf all :size)))
+-          (mode (getf all :mode))
+-          (gid-change (getf all :gid-change))
+-          (inode (getf all :inode))
+-          (device-num (getf all :device-num))
++           (format-time-string "%Y-%m-%d %R" (cl-getf all :status)))
++          (size (if human-size (anything-ff-human-size (cl-getf all :size))
++                    (cl-getf all :size)))
++          (mode (cl-getf all :mode))
++          (gid-change (cl-getf all :gid-change))
++          (inode (cl-getf all :inode))
++          (device-num (cl-getf all :device-num))
+           (dired
+            (concat
+-            (getf all :mode) " "
+-            (number-to-string (getf all :links)) " "
+-            (getf all :uid) ":"
+-            (getf all :gid) " "
+-            (if human-size (anything-ff-human-size (getf all :size))
+-                (int-to-string (getf all :size))) " "
+-                (format-time-string "%Y-%m-%d %R" (getf all :modif-time))))
++            (cl-getf all :mode) " "
++            (number-to-string (cl-getf all :links)) " "
++            (cl-getf all :uid) ":"
++            (cl-getf all :gid) " "
++            (if human-size (anything-ff-human-size (cl-getf all :size))
++                (int-to-string (cl-getf all :size))) " "
++                (format-time-string "%Y-%m-%d %R" (cl-getf all :modif-time))))
+           (t all))))
+ 
+ (defun anything-ff-prefix-filename (fname &optional file-or-symlinkp new-file)
+@@ -4400,7 +4393,7 @@
+   (if (and (string-match tramp-file-name-regexp anything-pattern)
+            anything-ff-tramp-not-fancy)
+       (if anything-ff-transformer-show-only-basename
+-          (loop for i in files collect
++          (cl-loop for i in files collect
+                 (if (string-match "[.]\\{1,2\\}$" i)
+                     i (cons (anything-c-basename i) i)))
+           files)
+@@ -4408,7 +4401,7 @@
+ 
+ (defun anything-ff-highlight-files (files sources)
+   "Candidate transformer for `anything-c-source-find-files' without icons."
+-  (loop for i in files
++  (cl-loop for i in files
+         for disp = (if (and anything-ff-transformer-show-only-basename
+                             (not (string-match "[.]\\{1,2\\}$" i))
+                             (not (string-match ffap-url-regexp i))
+@@ -4446,31 +4439,31 @@
+   "Action transformer for `anything-c-source-find-files'."
+   (cond ((with-anything-current-buffer
+            (eq major-mode 'message-mode))
+-         (append (subseq actions 0 4)
++         (append (cl-subseq actions 0 4)
+                  '(("Gnus attach file(s)" . anything-ff-gnus-attach-files))
+-                 (subseq actions 4)))
++                 (cl-subseq actions 4)))
+         ((string-match (image-file-name-regexp) candidate)
+-         (append (subseq actions 0 4)
++         (append (cl-subseq actions 0 4)
+                  '(("Rotate image right `M-r'" . anything-ff-rotate-image-right)
+                    ("Rotate image left `M-l'" . anything-ff-rotate-image-left))
+-                 (subseq actions 4)))
++                 (cl-subseq actions 4)))
+         ((string-match "\.el$" (anything-aif (anything-marked-candidates)
+                                    (car it) candidate))
+-         (append (subseq actions 0 4)
++         (append (cl-subseq actions 0 4)
+                  '(("Byte compile lisp file(s) `M-B, C-u to load'"
+                     . anything-find-files-byte-compile)
+                    ("Load File(s) `M-L'" . anything-find-files-load-files))
+-                 (subseq actions 4)))
++                 (cl-subseq actions 4)))
+         ((and (string-match "\.html?$" candidate)
+               (file-exists-p candidate))
+-         (append (subseq actions 0 4)
++         (append (cl-subseq actions 0 4)
+                  '(("Browse url file" . browse-url-of-file))
+-                 (subseq actions 5)))
++                 (cl-subseq actions 5)))
+         ((or (string= (file-name-extension candidate) "pdf")
+              (string= (file-name-extension candidate) "PDF"))
+-         (append (subseq actions 0 4)
++         (append (cl-subseq actions 0 4)
+                  '(("Pdfgrep File(s)" . anything-ff-pdfgrep))
+-                 (subseq actions 5)))
++                 (cl-subseq actions 5)))
+         (t actions)))
+ 
+ (defun anything-ff-gnus-attach-files (candidate)
+@@ -4481,7 +4474,7 @@
+ (defun anything-ff-rotate-current-image-1 (file &optional num-arg)
+   "Rotate current image at NUM-ARG degrees.
+ This is a destructive operation on FILE made by external tool mogrify."
+-  (declare (special image-dired-display-image-buffer))
++  (cl-declare (special image-dired-display-image-buffer))
+   (setq file (file-truename file)) ; For symlinked images.
+   ;; When FILE is not an image-file, do nothing.
+   (when (string-match (image-file-name-regexp) file)
+@@ -4543,12 +4536,14 @@
+         (new-pattern   (anything-get-selection))
+         (num-lines-buf (with-current-buffer anything-buffer
+                          (count-lines (point-min) (point-max)))))
+-    (flet ((insert-in-minibuffer (fname)
+-             (with-selected-window (minibuffer-window)
+-               (unless follow
+-                 (delete-minibuffer-contents)
+-                 (set-text-properties 0 (length fname) nil fname)
+-                 (insert fname)))))
++    (cl-letf (((symbol-function 'insert-in-minibuffer)
++               (lambda (fname)
++                 (with-selected-window (minibuffer-window)
++                   (unless follow
++	             (delete-minibuffer-contents)
++	             (set-text-properties 0 (length fname) nil fname)
++	             (insert fname))))))
++
+       (cond ((and (string= (anything-ff-set-pattern anything-pattern)
+                            "Invalid tramp file name")
+                   (string-match tramp-file-name-regexp candidate))
+@@ -4556,7 +4551,7 @@
+              ;; second hit insert ":" and expand.
+              (if (string= candidate anything-pattern)
+                  (insert-in-minibuffer (concat candidate ":"))
+-                 (insert-in-minibuffer candidate)))
++               (insert-in-minibuffer candidate)))
+             (;; A symlink directory, expand it's truename.
+              (and (file-directory-p candidate) (file-symlink-p candidate))
+              (insert-in-minibuffer (file-name-as-directory
+@@ -4623,7 +4618,7 @@
+                             (abbreviate-file-name candidate))))
+               (error "Aborting completion: No valid file name at point"))))))
+ 
+-(defun* anything-find-files-history (&key (comp-read t))
++(cl-defun anything-find-files-history (&key (comp-read t))
+   "The `anything-find-files' history.
+ Show the first `anything-ff-history-max-length' elements of
+ `anything-ff-history' in an `anything-comp-read'."
+@@ -4633,7 +4628,7 @@
+     (when history
+       (setq anything-ff-history
+             (if (>= (length history) anything-ff-history-max-length)
+-                (subseq history 0 anything-ff-history-max-length)
++                (cl-subseq history 0 anything-ff-history-max-length)
+                 history))
+       (if comp-read
+           (anything-comp-read
+@@ -4708,7 +4703,7 @@
+     ;; Org link.
+     (when (and (stringp he) (string-match "^LINK: " he))
+       (setq he (replace-match "" t t he)))
+-    (loop for i in (list he ov-he w3m-l nt-prop)
++    (cl-loop for i in (list he ov-he w3m-l nt-prop)
+           thereis (and (stringp i) (string-match ffap-url-regexp i) i))))
+ 
+ (defun anything-find-library-at-point ()
+@@ -4727,12 +4722,12 @@
+                "'\\|\)\\|\(" ""
+                ;; If require use third arg, ignore it,
+                ;; always use library path found in `load-path'.
+-               (second (split-string (match-string 0 sexp))))))
++               (cl-second (split-string (match-string 0 sexp))))))
+             ((and sexp (string-match-p "^declare-function" sexp))
+              (find-library-name
+               (replace-regexp-in-string
+                "\"\\|ext:" ""
+-               (third (split-string sexp)))))
++               (cl-third (split-string sexp)))))
+             (t nil)))))
+ 
+ ;;; Anything completion for `write-file'.==> C-x C-w
+@@ -4845,21 +4840,21 @@
+          . (lambda (candidate)
+              (anything-dired-action candidate :action 'hardlink)))))))
+ 
+-(defun* anything-dired-action (candidate &key action follow (files (dired-get-marked-files)))
++(cl-defun anything-dired-action (candidate &key action follow (files (dired-get-marked-files)))
+   "Copy, rename or symlink file at point or marked files in dired to CANDIDATE.
+ ACTION is a key that can be one of 'copy, 'rename, 'symlink, 'relsymlink."
+   (when (get-buffer dired-log-buffer) (kill-buffer dired-log-buffer))
+-  (let ((fn     (case action
+-                  ('copy       'dired-copy-file)
+-                  ('rename     'dired-rename-file)
+-                  ('symlink    'make-symbolic-link)
+-                  ('relsymlink 'dired-make-relative-symlink)
+-                  ('hardlink   'dired-hardlink)))
+-        (marker (case action
++  (let ((fn     (cl-case action
++                  ((copy quote)       'dired-copy-file)
++                  ((rename quote)     'dired-rename-file)
++                  ((symlink quote)    'make-symbolic-link)
++                  ((relsymlink quote) 'dired-make-relative-symlink)
++                  ((hardlink quote)   'dired-hardlink)))
++        (marker (cl-case action
+                   ((copy rename)   dired-keep-marker-copy)
+-                  ('symlink        dired-keep-marker-symlink)
+-                  ('relsymlink     dired-keep-marker-relsymlink)
+-                  ('hardlink       dired-keep-marker-hardlink)))
++                  ((symlink quote)        dired-keep-marker-symlink)
++                  ((relsymlink quote)     dired-keep-marker-relsymlink)
++                  ((hardlink quote)       dired-keep-marker-hardlink)))
+         (dirflag (and (= (length files) 1)
+                       (file-directory-p (car files))
+                       (not (file-directory-p candidate)))))
+@@ -4906,7 +4901,7 @@
+ members of FLIST."
+   ;; At this point files have been renamed/copied at destination.
+   ;; That's mean DEST-CAND exists.
+-  (loop
++  (cl-loop
+         with dest = (expand-file-name dest-cand)
+         for src in flist
+         for basename-src = (anything-c-basename src)
+@@ -4936,27 +4931,27 @@
+ 
+ (add-hook 'anything-after-update-hook #'anything-ff-maybe-mark-candidates)
+ 
+-(defun* anything-dired-do-action-on-file (&key action)
++(cl-defun anything-dired-do-action-on-file (&key action)
+   (let* ((files     (dired-get-marked-files))
+          (len       (length files))
+          (fname     (if (> len 1)
+                         (format "* %d Files" len)
+                         (car files)))
+-         (source    (case action
+-                      ('copy     'anything-c-source-copy-files)
+-                      ('rename   'anything-c-source-rename-files)
+-                      ('symlink  'anything-c-source-symlink-files)
+-                      ('hardlink 'anything-c-source-hardlink-files)))
+-         (prompt-fm (case action
+-                      ('copy     "Copy %s to: ")
+-                      ('rename   "Rename %s to: ")
+-                      ('symlink  "Symlink %s to: ")
+-                      ('hardlink "Hardlink %s to: ")))
+-         (buffer    (case action
+-                      ('copy     "*Anything Copy Files*")
+-                      ('rename   "*Anything Rename Files*")
+-                      ('symlink  "*Anything Symlink Files*")
+-                      ('hardlink "*Anything Hardlink Files*")))
++         (source    (cl-case action
++                      ((copy quote)     'anything-c-source-copy-files)
++                      ((rename quote)   'anything-c-source-rename-files)
++                      ((symlink quote)  'anything-c-source-symlink-files)
++                      ((hardlink quote) 'anything-c-source-hardlink-files)))
++         (prompt-fm (cl-case action
++                      ((copy quote)     "Copy %s to: ")
++                      ((rename quote)   "Rename %s to: ")
++                      ((symlink quote)  "Symlink %s to: ")
++                      ((hardlink quote) "Hardlink %s to: ")))
++         (buffer    (cl-case action
++                      ((copy quote)     "*Anything Copy Files*")
++                      ((rename quote)   "*Anything Rename Files*")
++                      ((symlink quote)  "*Anything Symlink Files*")
++                      ((hardlink quote) "*Anything Hardlink Files*")))
+          (anything-mp-highlight-delay     nil))
+     (anything :sources source
+               :input (or (dired-dwim-target-directory)
+@@ -4967,7 +4962,7 @@
+               :buffer buffer)))
+ 
+ ;;;###autoload
+-(define-minor-mode anything-dired-mode ()
++(define-minor-mode anything-dired-mode
+   "Enable anything completion in Dired functions.
+ Bindings affected are C, R, S, H.
+ This is deprecated for Emacs24+ users, use `ac-mode' instead."
+@@ -4994,7 +4989,7 @@
+ 
+ (defalias 'anything-dired-bindings 'anything-dired-mode)
+ 
+-(defun* anything-c-read-file-name
++(cl-defun anything-c-read-file-name
+     (prompt
+      &key
+      (name "Read File Name")
+@@ -5044,10 +5039,11 @@
+   (when (eq must-match 'confirm-after-completion)
+     (setq must-match 'confirm))
+ 
+-  (flet ((action-fn (candidate)
+-           (if marked-candidates
+-               (anything-marked-candidates)
+-               (identity candidate))))
++  (cl-letf (((symbol-function 'action-fn)
++             (lambda (candidate)
++               (if marked-candidates (anything-marked-candidates)
++                 (identity candidate)))))
++
+ 
+     (let* ((anything-mp-highlight-delay nil)
+            ;; Be sure we don't erase the underlying minibuffer if some.
+@@ -5061,12 +5057,12 @@
+            (must-match-map (when must-match
+                              (let ((map (make-sparse-keymap)))
+                                (define-key map (kbd "RET")
+-                                 'anything-confirm-and-exit-minibuffer)
++                                           'anything-confirm-and-exit-minibuffer)
+                                map)))
+            (anything-map (if must-match-map
+                              (make-composed-keymap
+                               must-match-map anything-c-read-file-map)
+-                             anything-c-read-file-map)))
++                           anything-c-read-file-map)))
+ 
+       (or (anything
+            :sources
+@@ -5091,14 +5087,14 @@
+               (candidates
+                . (lambda ()
+                    (if test
+-                       (loop with hn = (anything-ff-tramp-hostnames)
+-                             for i in (anything-find-files-get-candidates
+-                                       must-match)
+-                             when (or (member i hn)            ; A tramp host
+-                                      (funcall test i)         ; Test ok
+-                                      (not (file-exists-p i))) ; A new file.
+-                             collect i)
+-                       (anything-find-files-get-candidates must-match))))
++                       (cl-loop with hn = (anything-ff-tramp-hostnames)
++                                for i in (anything-find-files-get-candidates
++                                          must-match)
++                                when (or (member i hn)            ; A tramp host
++                                         (funcall test i)         ; Test ok
++                                         (not (file-exists-p i))) ; A new file.
++                                collect i)
++                     (anything-find-files-get-candidates must-match))))
+               (filtered-candidate-transformer anything-c-find-files-transformer)
+               (persistent-action . ,persistent-action)
+               (candidate-number-limit . 9999)
+@@ -5130,9 +5126,9 @@
+          (require 'filecache nil t)
+          (unless anything-c-file-cache-initialized-p
+            (setq anything-c-file-cache-files
+-                 (loop for item in file-cache-alist append
+-                       (destructuring-bind (base &rest dirs) item
+-                         (loop for dir in dirs collect
++                 (cl-loop for item in file-cache-alist append
++                       (cl-destructuring-bind (base &rest dirs) item
++                         (cl-loop for dir in dirs collect
+                                (concat dir base)))))
+            (defadvice file-cache-add-file (after file-cache-list activate)
+              (add-to-list 'anything-c-file-cache-files (expand-file-name file)))
+@@ -5207,10 +5203,10 @@
+   (when (and db (stringp db)) (setq db (list db)))
+   (unless anything-c-locate-command
+     (setq anything-c-locate-command
+-          (case system-type
+-            ('gnu/linux "locate -i -r %s")
+-            ('berkeley-unix "locate -i %s")
+-            ('windows-nt "es -i -r %s")
++          (cl-case system-type
++            ((gnu/linux quote) "locate -i -r %s")
++            ((berkeley-unix quote) "locate -i %s")
++            ((windows-nt quote) "es -i -r %s")
+             (t "locate %s"))))
+   (let ((anything-c-locate-command
+          (if db
+@@ -5220,7 +5216,7 @@
+                       (mapconcat 'identity
+                                  ;; Remove eventually
+                                  ;; marked directories by error.
+-                                 (loop for i in db
++                                 (cl-loop for i in db
+                                        unless (file-directory-p i)
+                                        collect i) ":"))
+               anything-c-locate-command)
+@@ -5323,7 +5319,7 @@
+   ;; as grep doesn't accept quoted wildcards (e.g "dir/*.el").
+   (if anything-c-zgrep-recurse-flag
+       (mapconcat 'shell-quote-argument candidates " ")
+-      (loop for i in candidates append
++      (cl-loop for i in candidates append
+             (cond ( ;; Candidate is a directory and we use recursion.
+                    (and (file-directory-p i)
+                         (anything-c-grep-recurse-p))
+@@ -5423,7 +5419,7 @@
+          (tramp-prefix (concat "/" tramp-method ":" tramp-host ":"))
+          (fname        (if tramp-host
+                            (concat tramp-prefix loc-fname) loc-fname)))
+-    (case where
++    (cl-case where
+       (other-window (find-file-other-window fname))
+       (elscreen     (anything-elscreen-find-file fname))
+       (other-frame  (find-file-other-frame fname))
+@@ -5467,7 +5463,7 @@
+         new-buf)
+     (when (get-buffer buf)
+       (setq new-buf (read-string "GrepBufferName: " buf))
+-      (loop for b in (anything-c-buffer-list)
++      (cl-loop for b in (anything-c-buffer-list)
+             when (and (string= new-buf b)
+                       (not (y-or-n-p
+                             (format "Buffer `%s' already exists overwrite? "
+@@ -5497,7 +5493,7 @@
+ (defun anything-c-grep-guess-extensions (files)
+   "Try to guess file extensions in FILES list when using grep recurse.
+ These extensions will be added to command line with --include arg of grep."
+-  (loop
++  (cl-loop
+         with glob-list = nil
+         with lst = (if (file-directory-p (car files))
+                        (directory-files
+@@ -5619,7 +5615,7 @@
+ 
+ (defun anything-c-grep-cand-transformer (candidates sources)
+   "Filtered candidate transformer function for `anything-do-grep'."
+-  (loop for i in candidates
++  (cl-loop for i in candidates
+         for split  = (and i (anything-c-grep-split-line i))
+         for fname  = (car split)
+         for lineno = (nth 1 split)
+@@ -5723,7 +5719,7 @@
+                     (anything-marked-candidates)))
+          (win-conf (current-window-configuration))
+          ;; Non--fname buffers are ignored.
+-         (bufs (loop for buf in cands
++         (bufs (cl-loop for buf in cands
+                      for fname = (buffer-file-name (get-buffer buf))
+                      when fname
+                      collect (expand-file-name fname))))
+@@ -5846,19 +5842,21 @@
+   "Yank text at point in minibuffer."
+   (interactive)
+   (let (input)
+-    (flet ((insert-in-minibuffer (word)
+-             (with-selected-window (minibuffer-window)
+-               (let ((str anything-pattern))
+-                 (delete-minibuffer-contents)
+-                 (set-text-properties 0 (length word) nil word)
+-                 (insert (concat str word))))))
++    (cl-letf (((symbol-function 'insert-in-minibuffer)
++               (lambda (word)
++                 (with-selected-window (minibuffer-window)
++                   (let ((str anything-pattern))
++	             (delete-minibuffer-contents)
++	             (set-text-properties 0 (length word) nil word)
++	             (insert (concat str word)))))))
++
+       (with-anything-current-buffer
+-        ;; Start to initial point if C-w have never been hit.
+-        (unless anything-yank-point (setq anything-yank-point (point)))
+-        (and anything-yank-point (goto-char anything-yank-point))
+-        (forward-word 1)
+-        (setq input (buffer-substring-no-properties anything-yank-point (point)))
+-        (setq anything-yank-point (point))) ; End of last forward-word
++       ;; Start to initial point if C-w have never been hit.
++       (unless anything-yank-point (setq anything-yank-point (point)))
++       (and anything-yank-point (goto-char anything-yank-point))
++       (forward-word 1)
++       (setq input (buffer-substring-no-properties anything-yank-point (point)))
++       (setq anything-yank-point (point))) ; End of last forward-word
+       (insert-in-minibuffer input))))
+ 
+ (defun anything-reset-yank-point ()
+@@ -5916,7 +5914,7 @@
+   (with-anything-current-buffer
+     (anything-attrset 'ffap-line-location (anything-c-ffap-file-line-at-point)))
+   (anything-aif (anything-attr 'ffap-line-location)
+-    (destructuring-bind (file . line) it
++    (cl-destructuring-bind (file . line) it
+       (list (cons (format "%s (line %d)" file line) file)))))
+ 
+ ;;; Goto line after opening file by `anything-c-source-ffap-line'.
+@@ -6065,9 +6063,9 @@
+ ;; Show history.
+ (defvar anything-M-x-input-history nil)
+ 
+-(defun* anything-M-x-get-major-mode-command-alist (mode-map)
++(cl-defun anything-M-x-get-major-mode-command-alist (mode-map)
+   "Return alist of MODE-MAP."
+-  (loop for key being the key-seqs of mode-map using (key-bindings com)
++  (cl-loop for key being the key-seqs of mode-map using (key-bindings com)
+         for str-key  = (key-description key)
+         for ismenu   = (string-match "<menu-bar>" str-key)
+         unless ismenu collect (cons str-key com)))
+@@ -6077,7 +6075,7 @@
+ Some modes don't use conventional mode-map name
+ so we need to guess mode-map name. e.g python-mode ==> py-mode-map.
+ Return nil if no mode-map found."
+-  (loop
++  (cl-loop
+         ;; Start with a conventional mode-map name.
+         with mode-map    = (intern-soft (format "%s-map" mode))
+         with mode-string = (symbol-name mode)
+@@ -6101,7 +6099,7 @@
+   "filtered-candidate-transformer to show bindings in emacs commands.
+ Show global bindings and local bindings according to current `major-mode'."
+   (with-anything-current-buffer
+-    (loop with local-map = (anything-M-x-current-mode-map-alist)
++    (cl-loop with local-map = (anything-M-x-current-mode-map-alist)
+           for cand in candidates
+           for local-key  = (car (rassq cand local-map))
+           for key        = (substitute-command-keys (format "\\[%s]" cand))
+@@ -6204,7 +6202,7 @@
+                      (before anything-c-update-function-abbrev-regexp activate)
+                    (let ((char-list (append anything-pattern nil))
+                          (str "^"))
+-                     (dolist (c char-list)
++                     (cl-dolist (c char-list)
+                        (setq str (concat str (list c) "[^-]*-")))
+                      (setq str (concat (substring str 0 (1- (length str))) "$"))
+                      (setq anything-c-function-abbrev-regexp str))))))))
+@@ -6221,11 +6219,11 @@
+ 
+ (defun anything-c-advice-candidates ()
+   (require 'advice)
+-  (loop for (fname) in ad-advised-functions
++  (cl-loop for (fname) in ad-advised-functions
+         for function = (intern fname)
+         append
+-        (loop for class in ad-advice-classes append
+-              (loop for advice in (ad-get-advice-info-field function class)
++        (cl-loop for class in ad-advice-classes append
++              (cl-loop for advice in (ad-get-advice-info-field function class)
+                     for enabled = (ad-advice-enabled advice)
+                     collect
+                     (cons (format
+@@ -6241,7 +6239,7 @@
+       (describe-function (car func-class-advice))))
+ 
+ (defun anything-c-advice-toggle (func-class-advice)
+-  (destructuring-bind (function class advice) func-class-advice
++  (cl-destructuring-bind (function class advice) func-class-advice
+     (cond ((ad-advice-enabled advice)
+            (ad-advice-set-enabled advice nil)
+            (message "Disabled"))
+@@ -6331,7 +6329,7 @@
+     (with-no-warnings
+       (let ((bookmarks (bm-lists))
+             (buf (anything-candidate-buffer 'global)))
+-        (dolist (bm (sort* (append (car bookmarks) (cdr bookmarks))
++        (cl-dolist (bm (cl-sort (append (car bookmarks) (cdr bookmarks))
+                            '< :key 'overlay-start))
+           (let ((start (overlay-start bm))
+                 (end (overlay-end bm))
+@@ -6373,25 +6371,25 @@
+     (type . bookmark))
+   "See (info \"(emacs)Bookmarks\").")
+ 
+-(defun* anything-c-collect-bookmarks (&key local su sudo ssh)
++(cl-defun anything-c-collect-bookmarks (&key local su sudo ssh)
+   (let* ((lis-all (bookmark-all-names))
+-         (lis-loc (cond (local (loop for i in lis-all
++         (lis-loc (cond (local (cl-loop for i in lis-all
+                                      unless (string-match "^(ssh)\\|^(su)" i)
+                                      collect i))
+-                        (su (loop for i in lis-all
++                        (su (cl-loop for i in lis-all
+                                   when (string-match "^(su)" i)
+                                   collect i))
+-                        (sudo (loop for i in lis-all
++                        (sudo (cl-loop for i in lis-all
+                                     when (string-match "^(sudo)" i)
+                                     collect i))
+-                        (ssh (loop for i in lis-all
++                        (ssh (cl-loop for i in lis-all
+                                    when (string-match "^(ssh)" i)
+                                    collect i)))))
+     (sort lis-loc 'string-lessp)))
+ 
+ (defun anything-c-bookmark-root-logged-p ()
+   (catch 'break
+-    (dolist (i (mapcar #'buffer-name (buffer-list)))
++    (cl-dolist (i (mapcar #'buffer-name (buffer-list)))
+       (when (string-match (format "*tramp/%s ." anything-su-or-sudo) i)
+         (throw 'break t)))))
+ 
+@@ -6401,13 +6399,13 @@
+       (anything-c-highlight-not-logged files source)))
+ 
+ (defun anything-c-highlight-not-logged (files source)
+-  (loop for i in files
++  (cl-loop for i in files
+         collect (propertize i 'face anything-c-bookmarks-face3)))
+ 
+ (defun anything-c-highlight-bookmark (bookmarks source)
+   "Used as `candidate-transformer' to colorize bookmarks.
+ Work both with standard Emacs bookmarks and bookmark-extensions.el."
+-  (loop for i in bookmarks
++  (cl-loop for i in bookmarks
+         for isfile        = (bookmark-get-filename i)
+         for bufp          = (and (fboundp 'bmkext-get-buffer-name)
+                                  (bmkext-get-buffer-name i))
+@@ -6479,7 +6477,7 @@
+ 
+ (defun anything-c-bmkext-filter-setup-alist (fn &rest args)
+   "Return a filtered `bookmark-alist' sorted alphabetically."
+-  (loop
++  (cl-loop
+         with alist = (if args
+                          (apply #'(lambda (x) (funcall fn x)) args)
+                          (funcall fn))
+@@ -6520,7 +6518,7 @@
+                       (bookmark-jump
+                        (anything-bookmark-get-bookmark-from-name (car contacts)))
+                       (anything-aif (cdr contacts)
+-                          (loop for bmk in it do
++                          (cl-loop for bmk in it do
+                                 (bookmark-jump
+                                  (anything-bookmark-get-bookmark-from-name bmk)))))))
+                ("Send Mail"
+@@ -6534,7 +6532,7 @@
+                           (addressbook-set-mail-buffer1 bmk))
+                       (setq contacts (cdr contacts))
+                       (when contacts
+-                        (loop for bmk in contacts do
++                        (cl-loop for bmk in contacts do
+                               (addressbook-set-mail-buffer1 bmk 'append))))))
+                ("Edit Bookmark"
+                 . (lambda (candidate)
+@@ -6688,8 +6686,8 @@
+ 
+ (defun anything-c-bookmark-su-files-setup-alist ()
+   "Specialized filter function for bookmarks su/sudo files."
+-  (declare (special bmkext-su-or-sudo-regexp))
+-  (loop
++  (cl-declare (special bmkext-su-or-sudo-regexp))
++  (cl-loop
+         with l = (anything-c-bmkext-filter-setup-alist 'bmkext-remote-file-alist-only)
+         for i in l
+         for isfile = (bookmark-get-filename i)
+@@ -6713,7 +6711,7 @@
+ 
+ (defun anything-c-bookmark-ssh-files-setup-alist ()
+   "Specialized filter function for bookmarks ssh files."
+-  (loop
++  (cl-loop
+         with l = (anything-c-bmkext-filter-setup-alist 'bmkext-remote-file-alist-only)
+         for i in l
+         for isfile = (bookmark-get-filename i)
+@@ -6801,7 +6799,7 @@
+   (assoc-default elm anything-c-firefox-bookmarks-alist))
+ 
+ (defun anything-c-highlight-firefox-bookmarks (bookmarks source)
+-  (loop for i in bookmarks
++  (cl-loop for i in bookmarks
+         collect (propertize
+                  i 'face '((:foreground "YellowGreen"))
+                  'help-echo (anything-c-firefox-bookmarks-get-value i))))
+@@ -6873,7 +6871,7 @@
+     (funcall fn (anything-c-w3m-bookmarks-get-value elm) arg)))
+ 
+ (defun anything-c-highlight-w3m-bookmarks (bookmarks source)
+-  (loop for i in bookmarks
++  (cl-loop for i in bookmarks
+         collect (propertize
+                  i 'face 'anything-w3m-bookmarks-face
+                  'help-echo (anything-c-w3m-bookmarks-get-value i))))
+@@ -6928,7 +6926,7 @@
+   (let ((anything-buffer (anything-candidate-buffer 'global))
+         (library-list (anything-c-elisp-library-scan-list)))
+     (with-current-buffer anything-buffer
+-      (dolist (library library-list)
++      (cl-dolist (library library-list)
+         (insert (format "%s\n" library))))))
+ 
+ (defun anything-c-elisp-library-scan-list (&optional dirs string)
+@@ -6945,13 +6943,13 @@
+         (match-regexp (format "^.*\\.el%s$" (regexp-opt load-file-rep-suffixes)))
+         name
+         names)
+-    (dolist (dir dirs)
++    (cl-dolist (dir dirs)
+       (unless dir
+         (setq dir default-directory))
+       (if string-dir
+           (setq dir (expand-file-name string-dir dir)))
+       (when (file-directory-p dir)
+-        (dolist (file (file-name-all-completions
++        (cl-dolist (file (file-name-all-completions
+                        (file-name-nondirectory string) dir))
+           ;; Suffixes match `load-file-rep-suffixes'.
+           (setq name (if string-dir (concat string-dir file) file))
+@@ -7039,7 +7037,7 @@
+   "The default action for `anything-c-source-imenu'."
+   (let ((path (split-string elm anything-c-imenu-delimiter))
+         (alist anything-c-cached-imenu-alist))
+-    (dolist (elm path)
++    (cl-dolist (elm path)
+       (setq alist (assoc elm alist)))
+     (imenu alist)))
+ 
+@@ -7067,7 +7065,7 @@
+       (goto-char (point-min))
+       (forward-line 2)
+       (delete-region (point-min) (point))
+-      (loop while (and (not (eobp)) (search-forward "\001" (point-at-eol) t))
++      (cl-loop while (and (not (eobp)) (search-forward "\001" (point-at-eol) t))
+             for lineno-start = (point)
+             for lineno = (buffer-substring
+                           lineno-start
+@@ -7123,23 +7121,25 @@
+ (defun anything-c-etags-find-tag-file-directory (current-dir)
+   "Try to find the directory containing tag file.
+ If not found in CURRENT-DIR search in upper directory."
+-  (flet ((file-exists? (dir)
+-           (let ((tag-path (expand-file-name
+-                            anything-c-etags-tag-file-name dir)))
+-             (and (stringp tag-path)
+-                  (file-regular-p tag-path)
+-                  (file-readable-p tag-path)))))
+-    (loop with count = 0
+-          until (file-exists? current-dir)
+-          ;; Return nil if outside the value of
+-          ;; `anything-c-etags-tag-file-search-limit'.
+-          if (= count anything-c-etags-tag-file-search-limit)
+-          do (return nil)
+-          ;; Or search upper directories.
+-          else
+-          do (incf count)
+-          (setq current-dir (expand-file-name (concat current-dir "../")))
+-          finally return current-dir)))
++  (cl-letf (((symbol-function 'file-exists?)
++             (lambda (dir)
++               (let
++	           ((tag-path
++	             (expand-file-name anything-c-etags-tag-file-name dir)))
++                 (and (stringp tag-path) (file-regular-p tag-path)
++	              (file-readable-p tag-path))))))
++
++    (cl-loop with count = 0
++             until (file-exists? current-dir)
++             ;; Return nil if outside the value of
++             ;; `anything-c-etags-tag-file-search-limit'.
++             if (= count anything-c-etags-tag-file-search-limit)
++             do (cl-return nil)
++             ;; Or search upper directories.
++             else
++             do (cl-incf count)
++             (setq current-dir (expand-file-name (concat current-dir "../")))
++             finally return current-dir)))
+ 
+ (defun anything-c-source-etags-header-name (x)
+   "Create header name for this anything etags session."
+@@ -7157,7 +7157,7 @@
+                      (setq max (line-number-at-pos (point-max)))
+                      (kill-buffer))))
+           (progress-reporter (make-progress-reporter "Loading tag file..." 0 max)))
+-     (loop
++     (cl-loop
+            with fname
+            with cand
+            for i in split for count from 0
+@@ -7322,7 +7322,7 @@
+       (anything-c-simple-call-tree-analyze-maybe)
+       (let ((list (funcall function simple-call-tree-alist)))
+         (with-current-buffer (anything-candidate-buffer 'local)
+-          (dolist (entry list)
++          (cl-dolist (entry list)
+             (let ((funcs (concat "  " (mapconcat #'identity (cdr entry) "\n  "))))
+               (insert (car entry) message
+                       (if (string= funcs "  ")
+@@ -7349,7 +7349,7 @@
+                                              "" candidate)
+                    "\n")))
+     (setq anything-c-simple-call-tree-function-index -1))
+-  (incf anything-c-simple-call-tree-function-index)
++  (cl-incf anything-c-simple-call-tree-function-index)
+   (anything-c-simple-call-tree-find-definition candidate))
+ 
+ (defun anything-c-simple-call-tree-find-definition (candidate)
+@@ -7408,10 +7408,10 @@
+                    (not anything-c-auto-document-data)))
+       (or imenu--index-alist (imenu--make-index-alist t))
+       (setq anything-c-auto-document-data
+-            (destructuring-bind (commands options)
++            (cl-destructuring-bind (commands options)
+                 (adoc-construct anything-current-buffer)
+               (append
+-               (loop for (command . doc) in commands
++               (cl-loop for (command . doc) in commands
+                      for cmdname = (symbol-name command)
+                      collect
+                      (cons
+@@ -7419,7 +7419,7 @@
+                               (propertize cmdname 'face font-lock-function-name-face)
+                               (adoc-first-line doc))
+                       (assoc cmdname imenu--index-alist)))
+-               (loop with var-alist = (cdr (assoc "Variables" imenu--index-alist))
++               (cl-loop with var-alist = (cdr (assoc "Variables" imenu--index-alist))
+                      for (option doc default) in options
+                      for optname = (symbol-name option)
+                      collect
+@@ -7549,14 +7549,14 @@
+   "Source for browse and insert contents of kill-ring.")
+ 
+ (defun anything-c-kill-ring-candidates ()
+-  (loop for kill in (anything-fast-remove-dups kill-ring :test 'equal)
++  (cl-loop for kill in (anything-fast-remove-dups kill-ring :test 'equal)
+         unless (or (< (length kill) anything-kill-ring-threshold)
+                    (string-match "^[\\s\\t]+$" kill))
+         collect kill))
+ 
+ (defun anything-c-kill-ring-transformer (candidates source)
+   "Display only the `anything-c-kill-ring-max-lines-number' lines of candidate."
+-  (loop for i in candidates
++  (cl-loop for i in candidates
+         for nlines = (with-temp-buffer (insert i) (count-lines (point-min) (point-max)))
+         if (and anything-c-kill-ring-max-lines-number
+                 (> nlines anything-c-kill-ring-max-lines-number))
+@@ -7608,23 +7608,25 @@
+ ;; `anything-all-mark-rings' instead.
+ 
+ (defun anything-c-source-mark-ring-candidates ()
+-  (flet ((get-marks (pos)
+-           (save-excursion
+-             (goto-char pos)
+-             (beginning-of-line)
+-             (let ((line  (car (split-string (thing-at-point 'line) "[\n\r]"))))
+-               (when (string= "" line)
+-                 (setq line  "<EMPTY LINE>"))
+-               (format "%7d: %s" (line-number-at-pos) line)))))
++  (cl-letf (((symbol-function 'get-marks)
++             (lambda (pos)
++               (save-excursion
++                 (goto-char pos) (beginning-of-line)
++                 (let
++	             ((line (car (split-string (thing-at-point 'line) "[\n
++]"))))
++	           (when (string= "" line) (setq line "<EMPTY LINE>"))
++	           (format "%7d: %s" (line-number-at-pos) line))))))
++
+     (with-anything-current-buffer
+-      (loop
+-            with marks = (if (mark) (cons (mark-marker) mark-ring) mark-ring)
+-            with recip = nil
+-            for i in marks
+-            for m = (get-marks i)
+-            unless (member m recip)
+-            collect m into recip
+-            finally return recip))))
++     (cl-loop
++      with marks = (if (mark) (cons (mark-marker) mark-ring) mark-ring)
++      with recip = nil
++      for i in marks
++      for m = (get-marks i)
++      unless (member m recip)
++      collect m into recip
++      finally return recip))))
+ 
+ (defvar anything-mark-ring-cache nil)
+ (defvar anything-c-source-mark-ring
+@@ -7651,38 +7653,39 @@
+     (action . (("Goto line"
+                 . (lambda (candidate)
+                     (let ((items (split-string candidate ":")))
+-                      (anything-c-switch-to-buffer (second items))
++                      (anything-c-switch-to-buffer (cl-second items))
+                       (anything-goto-line (string-to-number (car items))))))))
+     (persistent-action . (lambda (candidate)
+                            (let ((items (split-string candidate ":")))
+-                             (anything-c-switch-to-buffer (second items))
++                             (anything-c-switch-to-buffer (cl-second items))
+                              (anything-goto-line (string-to-number (car items)))
+                              (anything-match-line-color-current-line))))
+     (persistent-help . "Show this line")))
+ 
+ (defun anything-c-source-global-mark-ring-candidates ()
+-  (flet ((buf-fn (m)
+-           (with-current-buffer (marker-buffer m)
+-             (goto-char m)
+-             (beginning-of-line)
+-             (let (line)
+-               (if (string= "" line)
+-                   (setq line  "<EMPTY LINE>")
+-                   (setq line (car (split-string (thing-at-point 'line)
+-                                                 "[\n\r]"))))
+-               (format "%7d:%s:    %s"
+-                       (line-number-at-pos) (marker-buffer m) line)))))
+-    (loop
+-          with marks = global-mark-ring
+-          with recip = nil
+-          for i in marks
+-          for gm = (unless (or (string-match
+-                                "^ " (format "%s" (marker-buffer i)))
+-                               (null (marker-buffer i)))
+-                     (buf-fn i))
+-          when (and gm (not (member gm recip)))
+-          collect gm into recip
+-          finally return recip)))
++  (cl-letf (((symbol-function 'buf-fn)
++             (lambda (m)
++               (with-current-buffer (marker-buffer m)
++                 (goto-char m) (beginning-of-line)
++                 (let (line)
++	           (if (string= "" line) (setq line "<EMPTY LINE>")
++	             (setq line
++		           (car (split-string (thing-at-point 'line) "[\n
++]"))))
++	           (format "%7d:%s:    %s" (line-number-at-pos) (marker-buffer m)
++		           line))))))
++
++    (cl-loop
++     with marks = global-mark-ring
++     with recip = nil
++     for i in marks
++     for gm = (unless (or (string-match
++                           "^ " (format "%s" (marker-buffer i)))
++                          (null (marker-buffer i)))
++                (buf-fn i))
++     when (and gm (not (member gm recip)))
++     collect gm into recip
++     finally return recip)))
+ 
+ 
+ 
+@@ -7698,7 +7701,7 @@
+ 
+ (defun anything-c-register-candidates ()
+   "Collecting register contents and appropriate commands."
+-  (loop for (char . val) in register-alist
++  (cl-loop for (char . val) in register-alist
+         for key    = (single-key-description char)
+         for string-actions =
+         (cond
+@@ -7763,7 +7766,7 @@
+ 
+ (defun anything-c-register-action-transformer (actions register-and-functions)
+   "Decide actions by the contents of register."
+-  (loop with func-actions =
++  (cl-loop with func-actions =
+         '((insert-register
+            "Insert Register" .
+            (lambda (c) (insert-register (car c))))
+@@ -7796,9 +7799,9 @@
+ ;;; Latex completion
+ (defun anything-c-latex-math-candidates ()
+   "Collect candidates for latex math completion."
+-  (declare (special LaTeX-math-menu))
+-  (loop for i in (cddr LaTeX-math-menu)
+-        for elm = (loop for s in i when (vectorp s)
++  (cl-declare (special LaTeX-math-menu))
++  (cl-loop for i in (cddr LaTeX-math-menu)
++        for elm = (cl-loop for s in i when (vectorp s)
+                         collect (cons (aref s 0) (aref s 1)))
+         append elm))
+ 
+@@ -7876,7 +7879,7 @@
+ (defvar anything-c-yaoddmuse-ew-cache nil)
+ 
+ (defun anything-yaoddmuse-get-candidates ()
+-  (declare (special yaoddmuse-pages-hash))
++  (cl-declare (special yaoddmuse-pages-hash))
+   (if anything-yaoddmuse-use-cache-file
+       (ignore-errors
+         (unless anything-c-yaoddmuse-ew-cache
+@@ -7960,13 +7963,13 @@
+   "Fetch the list of files on emacswiki and create cache file.
+ If load is non--nil load the file and feed `yaoddmuse-pages-hash'."
+   (interactive)
+-  (declare (special yaoddmuse-pages-hash))
++  (cl-declare (special yaoddmuse-pages-hash))
+   (yaoddmuse-update-pagename)
+   (save-excursion
+     (find-file anything-c-yaoddmuse-cache-file)
+     (erase-buffer)
+     (insert "(puthash \"EmacsWiki\" '(")
+-    (loop for i in (gethash "EmacsWiki" yaoddmuse-pages-hash)
++    (cl-loop for i in (gethash "EmacsWiki" yaoddmuse-pages-hash)
+           do
+           (insert (concat "(\"" (car i) "\") ")))
+     (insert ") yaoddmuse-pages-hash)\n")
+@@ -7982,7 +7985,7 @@
+         (library-list (yaoddmuse-get-library-list)))
+     (with-current-buffer anything-buffer
+       ;; Insert library name.
+-      (dolist (library library-list)
++      (cl-dolist (library library-list)
+         (insert (format "%s\n" library)))
+       ;; Sort lines.
+       (sort-lines nil (point-min) (point-max)))))
+@@ -7995,7 +7998,7 @@
+      . (lambda ()
+          (ignore-errors
+            (with-anything-current-buffer
+-             (loop initially (goto-char (point-min))
++             (cl-loop initially (goto-char (point-min))
+                    while (re-search-forward
+                           (format ee-anchor-format "\\([^\.].+\\)") nil t)
+                    for anchor = (match-string-no-properties 1)
+@@ -8205,14 +8208,14 @@
+   "View BBDB data of single CANDIDATE or marked candidates."
+   (anything-aif (anything-marked-candidates)
+       (let ((bbdb-append-records (length it)))
+-        (dolist (i it)
++        (cl-dolist (i it)
+           (bbdb-redisplay-one-record (anything-c-bbdb-get-record i))))
+     (bbdb-redisplay-one-record (anything-c-bbdb-get-record candidate))))
+ 
+ (defun anything-c-bbdb-collect-mail-addresses ()
+   "Return a list of all mail addresses of records in bbdb buffer."
+   (with-current-buffer bbdb-buffer-name
+-    (loop for i in bbdb-records
++    (cl-loop for i in bbdb-records
+           if (bbdb-record-net (car i))
+           collect (bbdb-dwim-net-address (car i)))))
+ 
+@@ -8319,38 +8322,37 @@
+         anything-ggs-max-length-num-flag 0)
+   (let ((request (concat anything-c-google-suggest-url
+                          (url-hexify-string input))))
+-    (flet ((fetch ()
+-             (loop
+-                   with result-alist = (xml-get-children
+-                                        (car (xml-parse-region
+-                                              (point-min) (point-max)))
+-                                        'CompleteSuggestion)
+-                   for i in result-alist
+-                   for data = (cdr (caadr (assoc 'suggestion i)))
+-                   for nqueries = (cdr (caadr (assoc 'num_queries i)))
+-                   for lqueries = (length (anything-c-ggs-set-number-result
+-                                           nqueries))
+-                   for ldata = (length data)
+-                   do
+-                   (progn
+-                     (when (> ldata anything-ggs-max-length-real-flag)
+-                       (setq anything-ggs-max-length-real-flag ldata))
+-                     (when (> lqueries anything-ggs-max-length-num-flag)
+-                       (setq anything-ggs-max-length-num-flag lqueries)))
+-                   collect (cons data nqueries) into cont
+-                   finally return cont)))
++    (cl-letf (((symbol-function 'fetch)
++               (lambda nil
++                 (cl-loop with result-alist =
++	                  (xml-get-children
++	                   (car (xml-parse-region (point-min) (point-max)))
++	                   'CompleteSuggestion)
++	                  for i in result-alist for data =
++	                  (cdr (caadr (assoc 'suggestion i))) for nqueries =
++	                  (cdr (caadr (assoc 'num_queries i))) for lqueries =
++	                  (length (anything-c-ggs-set-number-result nqueries)) for
++	                  ldata = (length data) do
++	                  (progn
++	                    (when (> ldata anything-ggs-max-length-real-flag)
++		              (setq anything-ggs-max-length-real-flag ldata))
++	                    (when (> lqueries anything-ggs-max-length-num-flag)
++		              (setq anything-ggs-max-length-num-flag lqueries)))
++	                  collect (cons data nqueries) into cont finally return
++	                  cont))))
++
+       (if anything-google-suggest-use-curl-p
+           (with-temp-buffer
+             (call-process "curl" nil t nil request)
+             (fetch))
+-          (with-current-buffer
+-              (url-retrieve-synchronously request)
+-            (fetch))))))
++        (with-current-buffer
++            (url-retrieve-synchronously request)
++          (fetch))))))
+ 
+ (defun anything-c-google-suggest-set-candidates (&optional request-prefix)
+   "Set candidates with result and number of google results found."
+   (let ((suggestions
+-         (loop with suggested-results = (anything-c-google-suggest-fetch
++         (cl-loop with suggested-results = (anything-c-google-suggest-fetch
+                                          (or (and request-prefix
+                                                   (concat request-prefix
+                                                           " " anything-pattern))
+@@ -8378,7 +8380,7 @@
+                for display = (format "%s%s(%s results)"
+                                      real spaces align-fnumresult)
+                collect (cons display real))))
+-    (if (loop for (disp . dat) in suggestions
++    (if (cl-loop for (disp . dat) in suggestions
+               thereis (equal dat anything-pattern))
+         suggestions
+         ;; if there is no suggestion exactly matching the input then
+@@ -8392,7 +8394,7 @@
+   (if num
+       (progn
+         (and (numberp num) (setq num (number-to-string num)))
+-        (loop for i in (reverse (split-string num "" t))
++        (cl-loop for i in (reverse (split-string num "" t))
+               for count from 1
+               append (list i) into C
+               when (= count 3)
+@@ -8442,14 +8444,13 @@
+ Return an alist with elements like (data . number_results)."
+   (let ((request (concat anything-c-yahoo-suggest-url
+                          (url-hexify-string input))))
+-    (flet ((fetch ()
+-             (loop
+-                   with result-alist = (xml-get-children
+-                                        (car (xml-parse-region
+-                                              (point-min) (point-max)))
+-                                        'Result)
+-                   for i in result-alist
+-                   collect (caddr i))))
++    (cl-letf (((symbol-function 'fetch)
++               (lambda nil
++                 (cl-loop with result-alist =
++	                  (xml-get-children
++	                   (car (xml-parse-region (point-min) (point-max))) 'Result)
++	                  for i in result-alist collect (caddr i)))))
++
+       (with-current-buffer
+           (url-retrieve-synchronously request)
+         (fetch)))))
+@@ -8505,7 +8506,7 @@
+     (,browse-url-xterm-program . browse-url-text-xterm))
+   "*Alist of \(executable . function\) to try to find a suitable url browser.")
+ 
+-(defun* anything-c-generic-browser (url name &rest args)
++(cl-defun anything-c-generic-browser (url name &rest args)
+   "Browse URL with NAME browser."
+   (let ((proc (concat name " " url)))
+     (message "Starting %s..." name)
+@@ -8531,7 +8532,7 @@
+ (defun anything-browse-url-default-browser (url &rest args)
+   "Find the first available browser and ask it to load URL."
+   (let ((default-browser-fn
+-         (loop for (exe . fn) in anything-browse-url-default-browser-alist
++         (cl-loop for (exe . fn) in anything-browse-url-default-browser-alist
+                thereis (and exe (executable-find exe) fn))))
+     (if default-browser-fn
+         (apply default-browser-fn url args)
+@@ -8571,7 +8572,7 @@
+ ;;
+ (defun anything-emms-stream-edit-bookmark (elm)
+   "Change the information of current emms-stream bookmark from anything."
+-  (declare (special emms-stream-list))
++  (cl-declare (special emms-stream-list))
+   (let* ((cur-buf anything-current-buffer)
+          (bookmark (assoc elm emms-stream-list))
+          (name     (read-from-minibuffer "Description: "
+@@ -8595,7 +8596,7 @@
+ (defun anything-emms-stream-delete-bookmark (candidate)
+   "Delete emms-streams bookmarks from anything."
+   (let* ((cands   (anything-marked-candidates))
+-         (bmks    (loop for bm in cands collect
++         (bmks    (cl-loop for bm in cands collect
+                         (car (assoc bm emms-stream-list))))
+          (bmk-reg (mapconcat 'regexp-quote bmks "\\|^")))
+     (when (y-or-n-p (format "Really delete radios\n -%s: ? "
+@@ -8603,7 +8604,7 @@
+       (save-window-excursion
+         (emms-streams)
+         (goto-char (point-min))
+-        (loop while (re-search-forward bmk-reg nil t)
++        (cl-loop while (re-search-forward bmk-reg nil t)
+               do (progn (beginning-of-line)
+                         (emms-stream-delete-bookmark))
+               finally do (progn
+@@ -8615,13 +8616,13 @@
+     (init . (lambda ()
+               (emms-stream-init)))
+     (candidates . (lambda ()
+-                    (declare (special emms-stream-list))
++                    (cl-declare (special emms-stream-list))
+                     (mapcar 'car emms-stream-list)))
+     (action . (("Play" . (lambda (elm)
+-                           (declare (special emms-stream-list))
++                           (cl-declare (special emms-stream-list))
+                            (let* ((stream (assoc elm emms-stream-list))
+                                   (fn (intern (concat "emms-play-" (symbol-name (car (last stream))))))
+-                                  (url (second stream)))
++                                  (url (cl-second stream)))
+                              (funcall fn url))))
+                ("Delete" . anything-emms-stream-delete-bookmark)
+                ("Edit" . anything-emms-stream-edit-bookmark)))
+@@ -8648,13 +8649,13 @@
+ 
+ (defun anything-c-emms-files-modifier (candidates source)
+   (let ((current-playlist (with-current-emms-playlist
+-                              (loop with cur-list = (emms-playlist-tracks-in-region
++                              (cl-loop with cur-list = (emms-playlist-tracks-in-region
+                                                      (point-min) (point-max))
+                                     for i in cur-list
+                                     for name = (assoc-default 'name i)
+                                     when name
+                                     collect name))))
+-    (loop for i in candidates
++    (cl-loop for i in candidates
+           if (member (cdr i) current-playlist)
+           collect (cons (propertize (car i)
+                                     'face 'anything-emms-playlist)
+@@ -8671,7 +8672,7 @@
+ (defvar anything-c-source-emms-files
+   '((name . "Emms files")
+     (candidates . (lambda ()
+-                    (loop for v being the hash-values in emms-cache-db
++                    (cl-loop for v being the hash-values in emms-cache-db
+                           for name      = (assoc-default 'name v)
+                           for artist    = (or (assoc-default 'info-artist v) "unknown")
+                           for genre     = (or (assoc-default 'info-genre v) "unknown")
+@@ -8699,7 +8700,7 @@
+   "List online Jabber contacts."
+   (with-no-warnings
+     (let (jids)
+-      (dolist (item (jabber-concat-rosters) jids)
++      (cl-dolist (item (jabber-concat-rosters) jids)
+         (when (get item 'connected)
+           (push (if (get item 'name)
+                     (cons (get item 'name) item)
+@@ -8724,7 +8725,7 @@
+     (candidate-number-limit)
+     (candidates
+      . (lambda ()
+-         (loop for vname in (all-completions "anything-c-source-" obarray)
++         (cl-loop for vname in (all-completions "anything-c-source-" obarray)
+                for var = (intern vname)
+                for name = (ignore-errors (assoc-default 'name (symbol-value var)))
+                if name collect
+@@ -8758,7 +8759,7 @@
+     (candidate-number-limit)))
+ 
+ (defun anything-c-anything-commands-candidates ()
+-  (loop for (cmd . desc) in (anything-c-list-preconfigured-anything)
++  (cl-loop for (cmd . desc) in (anything-c-list-preconfigured-anything)
+         collect (cons (if (where-is-internal cmd nil t)
+                           (substitute-command-keys (format "M-x %s (\\[%s]) : %s" cmd cmd desc))
+                           (substitute-command-keys (format "\\[%s] : %s" cmd desc)))
+@@ -8859,7 +8860,7 @@
+ 
+ (defun anything-create--actions (&rest ignored)
+   "Default actions for `anything-create' / `anything-c-source-create'."
+-  (remove-if-not
++  (cl-remove-if-not
+    (lambda (pair) (and (consp pair) (functionp (cdr pair))))
+    (append anything-create--actions-private
+            '(("find-file" . find-file)
+@@ -8886,7 +8887,7 @@
+                      (format "%s (%s)" name minibuffer-history-variable)))
+     (candidates
+      . (lambda ()
+-         (let ((history (loop for i in
++         (let ((history (cl-loop for i in
+                               (symbol-value minibuffer-history-variable)
+                               unless (string= "" i) collect i)))
+            (if (consp (car history))
+@@ -8907,7 +8908,7 @@
+      . (lambda ()
+          (if (cdr (elscreen-get-screen-to-name-alist))
+              (sort
+-              (loop for sname in (elscreen-get-screen-to-name-alist)
++              (cl-loop for sname in (elscreen-get-screen-to-name-alist)
+                     append (list (format "[%d] %s" (car sname) (cdr sname))))
+               #'(lambda (a b) (compare-strings a nil nil b nil nil))))))
+     (action
+@@ -8916,7 +8917,7 @@
+                            (elscreen-goto (- (aref candidate 1) (aref "0" 0)))))
+         ("Kill Screen(s)" .
+                           (lambda (candidate)
+-                            (dolist (i (anything-marked-candidates))
++                            (cl-dolist (i (anything-marked-candidates))
+                               (elscreen-goto (- (aref i 1) (aref "0" 0)))
+                               (elscreen-kill))))
+         ("Only Screen" .
+@@ -8974,7 +8975,7 @@
+     (type . timer)))
+ 
+ (defun anything-c-timer-real-to-display (timer)
+-  (destructuring-bind (triggered t1 t2 t3 repeat-delay func args idle-delay _)
++  (cl-destructuring-bind (triggered t1 t2 t3 repeat-delay func args idle-delay _)
+       (append timer nil)                ;use `append' to convert vector->list
+     (format "%s repeat=%5S %s(%s)"
+             (let ((time (list t1 t2 t3)))
+@@ -9020,7 +9021,7 @@
+            (call-process "xrandr" nil (current-buffer) nil
+                          "--screen" (anything-c-xrandr-screen) "-q")
+            (goto-char 1)
+-           (loop with modes = nil
++           (cl-loop with modes = nil
+                  while (re-search-forward "   \\([0-9]+x[0-9]+\\)" nil t)
+                  for mode = (match-string 1)
+                  unless (member mode modes)
+@@ -9068,7 +9069,7 @@
+ (defvar anything-c-ucs-max-len 0)
+ (defun anything-c-calculate-ucs-max-len ()
+   "Calculate the length of longest `ucs-names' candidate."
+-  (loop with count = 0
++  (cl-loop with count = 0
+         for (n . v) in (ucs-names)
+         for len = (length n)
+         if (> len count)
+@@ -9085,7 +9086,7 @@
+                         (get-buffer-create "*anything ucs*"))
+     ;; `ucs-names' fn will not run again, data is cached in
+     ;; var `ucs-names'.
+-    (loop for (n . v) in (ucs-names)
++    (cl-loop for (n . v) in (ucs-names)
+           for len = (length n)
+           for diff = (+ (- anything-c-ucs-max-len len) 2)
+           unless (string= "" n)
+@@ -9212,7 +9213,7 @@
+ 
+ (defun anything-c-apt-candidate-transformer (candidates)
+   "Show installed CANDIDATES and the ones to deinstall in a different color."
+-  (loop for cand in candidates
++  (cl-loop for cand in candidates
+         for name = (anything-c-apt-display-to-real cand)
+         collect (cond ((string= (assoc-default
+                                  name anything-c-apt-installed-packages)
+@@ -9234,7 +9235,7 @@
+             (with-temp-buffer
+               (call-process-shell-command "dpkg --get-selections"
+                                           nil (current-buffer))
+-              (loop for i in (split-string (buffer-string) "\n" t)
++              (cl-loop for i in (split-string (buffer-string) "\n" t)
+                     for p = (split-string i)
+                     collect (cons (car p) (cadr p)))))
+       (setq anything-c-apt-all-packages
+@@ -9282,16 +9283,16 @@
+   "Run 'apt-get purge' shell command on PACKAGE."
+   (anything-c-apt-generic-action :action 'purge))
+ 
+-(defun* anything-c-apt-generic-action (&key action)
++(cl-defun anything-c-apt-generic-action (&key action)
+   "Run 'apt-get ACTION'.
+ Support install, remove and purge actions."
+   (ansi-term (getenv "SHELL") "anything apt")
+   (term-line-mode)
+-  (let ((command   (case action
+-                     ('install   "sudo apt-get install ")
+-                     ('reinstall "sudo apt-get install --reinstall ")
+-                     ('uninstall "sudo apt-get remove ")
+-                     ('purge     "sudo apt-get purge ")
++  (let ((command   (cl-case action
++                     ((install quote)   "sudo apt-get install ")
++                     ((reinstall quote) "sudo apt-get install --reinstall ")
++                     ((uninstall quote) "sudo apt-get remove ")
++                     ((purge quote)     "sudo apt-get purge ")
+                      (t          (error "Unknow action"))))
+         (beg       (point))
+         end
+@@ -9363,13 +9364,13 @@
+                               (setq anything-c-cache-world (anything-c-gentoo-get-world))))))))
+ 
+ 
+-(defun* anything-gentoo-install (candidate &key action)
++(cl-defun anything-gentoo-install (candidate &key action)
+   (setq anything-c-external-commands-list nil)
+   (ansi-term (getenv "SHELL") "Gentoo emerge")
+   (term-line-mode)
+-  (let ((command (case action
+-                   ('install "sudo emerge -av ")
+-                   ('uninstall "sudo emerge -avC ")
++  (let ((command (cl-case action
++                   ((install quote) "sudo emerge -av ")
++                   ((uninstall quote) "sudo emerge -avC ")
+                    (t (error "Unknow action"))))
+         (elms (mapconcat 'identity (anything-marked-candidates) " "))
+         (beg (point)) end)
+@@ -9432,7 +9433,7 @@
+   (let* ((portage-buf (get-buffer-create "*anything-gentoo*"))
+          (buf (anything-candidate-buffer 'portage-buf)))
+     (with-current-buffer buf
+-      (dolist (i anything-c-cache-gentoo)
++      (cl-dolist (i anything-c-cache-gentoo)
+         (insert (concat i "\n"))))))
+ 
+ (defun anything-c-gentoo-setup-cache ()
+@@ -9461,7 +9462,7 @@
+   (let* ((use-buf (get-buffer-create "*anything-gentoo-use*"))
+          (buf (anything-candidate-buffer 'use-buf)))
+     (with-current-buffer buf
+-      (dolist (i anything-c-gentoo-use-flags)
++      (cl-dolist (i anything-c-gentoo-use-flags)
+         (insert (concat i "\n"))))))
+ 
+ 
+@@ -9475,7 +9476,7 @@
+ 
+ (defun anything-c-gentoo-get-url (elm)
+   "Return a list of urls from eix output."
+-  (loop
++  (cl-loop
+         with url-list = (split-string
+                          (with-temp-buffer
+                            (call-process "eix" nil t nil
+@@ -9505,7 +9506,7 @@
+ 
+ (defun anything-c-highlight-world (eix)
+   "Highlight all installed package."
+-  (loop for i in eix
++  (cl-loop for i in eix
+         if (member i anything-c-cache-world)
+         collect (propertize i 'face 'anything-gentoo-match-face)
+         else
+@@ -9513,7 +9514,7 @@
+ 
+ (defun anything-c-highlight-local-use (use-flags)
+   (let ((local-uses (anything-c-gentoo-get-local-use)))
+-    (loop for i in use-flags
++    (cl-loop for i in use-flags
+           if (member i local-uses)
+           collect (propertize i 'face 'anything-gentoo-match-face)
+           else
+@@ -9607,11 +9608,11 @@
+          (cond ((and (eq collection obarray) test)
+                 (all-completions "" collection test))
+                ((and (vectorp collection) test)
+-                (loop for i across collection when (funcall test i) collect i))
++                (cl-loop for i across collection when (funcall test i) collect i))
+                ((vectorp collection)
+-                (loop for i across collection collect i))
++                (cl-loop for i across collection collect i))
+                ((and alistp test)
+-                (loop for i in collection when (funcall test i) collect i))
++                (cl-loop for i in collection when (funcall test i) collect i))
+                ((and (symbolp collection) (boundp collection))
+                 (symbol-value collection))
+                (alistp collection)
+@@ -9625,7 +9626,7 @@
+ Do nothing, just return candidate list unmodified."
+   candidates)
+ 
+-(defun* anything-comp-read (prompt collection
++(cl-defun anything-comp-read (prompt collection
+                                    &key
+                                    test
+                                    initial-input
+@@ -9719,10 +9720,11 @@
+ that use `anything-comp-read' See `anything-M-x' for example."
+   (when (get-buffer anything-action-buffer)
+     (kill-buffer anything-action-buffer))
+-  (flet ((action-fn (candidate)
+-           (if marked-candidates
+-               (anything-marked-candidates)
+-               (identity candidate))))
++  (cl-letf (((symbol-function 'action-fn)
++             (lambda (candidate)
++               (if marked-candidates (anything-marked-candidates)
++                 (identity candidate)))))
++
+     ;; Assume completion have been already required,
+     ;; so always use 'confirm.
+     (when (eq must-match 'confirm-after-completion)
+@@ -9731,12 +9733,12 @@
+            (must-match-map (when must-match
+                              (let ((map (make-sparse-keymap)))
+                                (define-key map (kbd "RET")
+-                                 'anything-confirm-and-exit-minibuffer)
++                                           'anything-confirm-and-exit-minibuffer)
+                                map)))
+            (anything-map (if must-match-map
+                              (make-composed-keymap
+                               must-match-map (or keymap anything-map))
+-                             (or keymap anything-map)))
++                           (or keymap anything-map)))
+            (src-hist `((name . ,(format "%s History" name))
+                        (candidates
+                         . (lambda ()
+@@ -9748,13 +9750,13 @@
+                                 (if (and default (not (string= default "")))
+                                     (delq nil (cons default
+                                                     (delete default all)))
+-                                    all)
++                                  all)
+                                 :test 'equal)))))
+                        (filtered-candidate-transformer
+                         . (lambda (candidates sources)
+-                            (loop for i in candidates
+-                                  do (set-text-properties 0 (length i) nil i)
+-                                  collect i)))
++                            (cl-loop for i in candidates
++                                     do (set-text-properties 0 (length i) nil i)
++                                     collect i)))
+                        (persistent-action . ,persistent-action)
+                        (persistent-help . ,persistent-help)
+                        (mode-line . ,mode-line)
+@@ -9768,7 +9770,7 @@
+                            (setq cands (append (list anything-pattern) cands)))
+                          (if (and default (not (string= default "")))
+                              (delq nil (cons default (delete default cands)))
+-                             cands))))
++                           cands))))
+                   (filtered-candidate-transformer ,fc-transformer)
+                   (requires-pattern . ,requires-pattern)
+                   (persistent-action . ,persistent-action)
+@@ -9783,11 +9785,11 @@
+                            (unless (or must-match (string= anything-pattern ""))
+                              (setq cands (append (list anything-pattern) cands)))
+                            (with-current-buffer (anything-candidate-buffer 'global)
+-                             (loop for i in
+-                                   (if (and default (not (string= default "")))
+-                                       (delq nil (cons default (delete default cands)))
+-                                       cands)
+-                                   do (insert (concat i "\n")))))))
++                             (cl-loop for i in
++                                      (if (and default (not (string= default "")))
++                                          (delq nil (cons default (delete default cands)))
++                                        cands)
++                                      do (insert (concat i "\n")))))))
+                     (candidates-in-buffer)
+                     (filtered-candidate-transformer ,fc-transformer)
+                     (requires-pattern . ,requires-pattern)
+@@ -9798,9 +9800,9 @@
+            (src-list (list src-hist
+                            (if candidates-in-buffer
+                                src-1
+-                               (if volatile
+-                                   (append src '((volatile)))
+-                                   src))))
++                             (if volatile
++                                 (append src '((volatile)))
++                               src))))
+            (anything-execute-action-at-once-if-one exec-when-only-one)
+            (ret (or
+                  (anything
+@@ -9881,7 +9883,7 @@
+                                       (not (string= default "nil"))
+                                       (not (string= default "")))
+                              (insert (concat default "\n")))
+-                           (loop with all = (all-completions "" collection test)
++                           (cl-loop with all = (all-completions "" collection test)
+                                  for sym in all
+                                  unless (and default (eq sym default))
+                                  do (insert (concat sym "\n"))))))
+@@ -9947,7 +9949,7 @@
+                                         init hist default inherit-input-method
+                                         name buffer t)))
+ 
+-(defun* anything-completing-read-default
++(cl-defun anything-completing-read-default
+     (prompt collection &optional
+             predicate require-match
+             initial-input hist def
+@@ -9958,7 +9960,7 @@
+ Don't use it directly, use instead `anything-comp-read' in your programs.
+ 
+ See documentation of `completing-read' and `all-completions' for details."
+-  (declare (special anything-completion-mode))
++  (cl-declare (special anything-completion-mode))
+   (let* ((current-command this-command)
+          (str-command     (symbol-name current-command))
+          (buf-name        (format "*ac-mode-%s*" str-command))
+@@ -9984,7 +9986,7 @@
+       ;; a nil value, so we exit from here, disable `ac-mode'
+       ;; and run the command again with it original behavior.
+       ;; `ac-mode' will be restored on exit.
+-      (return-from anything-completing-read-default
++      (cl-return-from anything-completing-read-default
+         (unwind-protect
+              (progn
+                (ac-mode -1)
+@@ -10024,10 +10026,10 @@
+       ;; initial value when exiting.
+       (setq this-command current-command))))
+ 
+-(defun* anything-generic-read-file-name
++(cl-defun anything-generic-read-file-name
+     (prompt &optional dir default-filename mustmatch initial predicate)
+   "An anything replacement of `read-file-name'."
+-  (declare (special anything-completion-mode))
++  (cl-declare (special anything-completion-mode))
+   (let* ((default (and default-filename
+                        (if (listp default-filename)
+                            (car default-filename)
+@@ -10062,7 +10064,7 @@
+       (setq def-com 'incompatible))
+     (when (eq def-com 'ido) (setq def-com 'ido-read-file-name))
+     (unless (or (not entry) def-com)
+-      (return-from anything-generic-read-file-name
++      (cl-return-from anything-generic-read-file-name
+         (unwind-protect
+              (progn
+                (ac-mode -1)
+@@ -10136,7 +10138,7 @@
+   :group 'anything
+   :global t
+   :lighter anything-completion-mode-string
+-  (declare (special completing-read-function))
++  (cl-declare (special completing-read-function))
+   (cond ((and anything-completion-mode
+               (memq 'file anything-completion-types))
+          (setq completing-read-function 'anything-completing-read-default
+@@ -10200,7 +10202,7 @@
+            (pcomplete-autolist pcomplete-autolist)
+            (pcomplete-suffix-list pcomplete-suffix-list))
+       (with-anything-current-buffer
+-        (loop with table  = (pcomplete-completions)
++        (cl-loop with table  = (pcomplete-completions)
+               with entry  = (condition-case nil
+                                 ;; On Emacs24 `try-completion' return
+                                 ;; pattern when more than one result.
+@@ -10341,7 +10343,7 @@
+            '((name . "Lisp completion")
+              (init . (lambda ()
+                        (with-current-buffer (anything-candidate-buffer 'global)
+-                         (loop for sym in candidates
++                         (cl-loop for sym in candidates
+                                for len = (length sym)
+                                when (> len lgst-len) do (setq lgst-len len)
+                                do (insert (concat sym "\n"))))))
+@@ -10366,8 +10368,8 @@
+ 
+ (defun anything-lisp-completion-transformer (candidates source)
+   "Anything candidates transformer for lisp completion."
+-  (declare (special lgst-len))
+-  (loop for c in candidates
++  (cl-declare (special lgst-len))
++  (cl-loop for c in candidates
+         for sym = (intern c)
+         for annot = (cond ((commandp sym) " (Com)")
+                           ((fboundp sym)  " (Fun)")
+@@ -10436,7 +10438,7 @@
+   ;; to use `completion-at-point'.
+   (let ((tab-always-indent (if (eq tab-always-indent 'complete)
+                                t tab-always-indent)))
+-    (incf anything-lisp-completion-counter)
++    (cl-incf anything-lisp-completion-counter)
+     (unwind-protect
+          (if (> anything-lisp-completion-counter 1)
+              (anything-lisp-completion-or-file-name-at-point)
+@@ -10473,7 +10475,7 @@
+                (not (string= default "nil"))
+                (funcall test (intern default)))
+       (insert (concat default "\n")))
+-    (loop with all = (all-completions "" obarray test)
++    (cl-loop with all = (all-completions "" obarray test)
+           for sym in all
+           unless (and default (eq sym default))
+           do (insert (concat sym "\n")))))
+@@ -10492,12 +10494,12 @@
+   (if anything-c-external-commands-list
+       anything-c-external-commands-list
+       (setq anything-c-external-commands-list
+-            (loop
++            (cl-loop
+                   with paths = (split-string (getenv "PATH") path-separator)
+                   with completions = ()
+                   for dir in paths
+                   when (and (file-exists-p dir) (file-accessible-directory-p dir))
+-                  for lsdir = (loop for i in (directory-files dir t)
++                  for lsdir = (cl-loop for i in (directory-files dir t)
+                                     for bn = (file-name-nondirectory i)
+                                     when (and (not (member bn completions))
+                                               (not (file-directory-p i))
+@@ -10506,20 +10508,28 @@
+                   append lsdir into completions
+                   finally return (if sort (sort completions 'string-lessp) completions)))))
+ 
++(defun anything--run-or-raise-sentinel (real-com process event)
++  "Handle PROCESS EVENT while retaining the original REAL-COM."
++  (when (and (string= event "finished\n")
++             anything-raise-command
++             (not (anything-c-get-pid-from-process-name real-com)))
++    (shell-command (format anything-raise-command "emacs")))
++  (message "%s process...Finished." process))
++
+ (defun anything-run-or-raise (exe &optional file)
+   "Generic command that run asynchronously EXE.
+ If EXE is already running just jump to his window if `anything-raise-command'
+ is non--nil.
+ When FILE argument is provided run EXE with FILE.
+ In this case EXE must be provided as \"EXE %s\"."
+-  (lexical-let* ((real-com (car (split-string (replace-regexp-in-string
++  (let* ((real-com (car (split-string (replace-regexp-in-string
+                                                "%s" "" exe))))
+                  (proc     (if file (concat real-com " " file) real-com)))
+     (if (get-process proc)
+         (if anything-raise-command
+             (shell-command  (format anything-raise-command real-com))
+             (error "Error: %s is already running" real-com))
+-        (when (loop for i in anything-c-external-commands-list thereis real-com)
++        (when (cl-loop for i in anything-c-external-commands-list thereis real-com)
+           (message "Starting %s..." real-com)
+           (if file
+               (start-process-shell-command
+@@ -10530,12 +10540,7 @@
+               (start-process-shell-command proc nil real-com))
+           (set-process-sentinel
+            (get-process proc)
+-           #'(lambda (process event)
+-               (when (and (string= event "finished\n")
+-                          anything-raise-command
+-                          (not (anything-c-get-pid-from-process-name real-com)))
+-                 (shell-command  (format anything-raise-command "emacs")))
+-               (message "%s process...Finished." process))))
++           (apply-partially #'anything--run-or-raise-sentinel real-com)))
+         (setq anything-c-external-commands-list
+               (cons real-com
+                     (delete real-com anything-c-external-commands-list))))))
+@@ -10549,7 +10554,7 @@
+   "Returns a list of buffer names corresponding to FILENAME."
+   (let ((name     (expand-file-name filename))
+         (buf-list ()))
+-    (dolist (buf (buffer-list) buf-list)
++    (cl-dolist (buf (buffer-list) buf-list)
+       (let ((bfn (buffer-file-name buf)))
+         (when (and bfn (string= name bfn))
+           (push (buffer-name buf) buf-list))))))
+@@ -10591,7 +10596,7 @@
+         (dired-delete-file
+          file 'dired-recursive-deletes delete-by-moving-to-trash))
+     (when buffers
+-      (dolist (buf buffers)
++      (cl-dolist (buf buffers)
+         (when (y-or-n-p (format "Kill buffer %s, too? " buf))
+           (kill-buffer buf))))))
+ 
+@@ -10661,7 +10666,7 @@
+     (setq anything-external-command-history
+           (cons real-prog-name
+                 (delete real-prog-name
+-                        (loop for i in anything-external-command-history
++                        (cl-loop for i in anything-external-command-history
+                               when (executable-find i) collect i))))))
+ 
+ (defun anything-c-find-file-or-marked (candidate)
+@@ -10699,7 +10704,7 @@
+                       len
+                       (mapconcat (lambda (f) (format "- %s\n" f)) files ""))))
+         (message "(No deletions performed)")
+-        (dolist (i files)
++        (cl-dolist (i files)
+           (set-text-properties 0 (length i) nil i)
+           (anything-c-delete-file i anything-ff-signal-error-on-dot-files))
+         (message "%s File(s) deleted" len))))
+@@ -10709,15 +10714,15 @@
+ With optional arg MERGE call `ediff-merge-buffers'."
+   (let ((lg-lst (length (anything-marked-candidates)))
+         buf1 buf2)
+-    (case lg-lst
++    (cl-case lg-lst
+       (0
+        (error "Error:You have to mark at least 1 buffer"))
+       (1
+        (setq buf1 anything-current-buffer
+-             buf2 (first (anything-marked-candidates))))
++             buf2 (cl-first (anything-marked-candidates))))
+       (2
+-       (setq buf1 (first (anything-marked-candidates))
+-             buf2 (second (anything-marked-candidates))))
++       (setq buf1 (cl-first (anything-marked-candidates))
++             buf2 (cl-second (anything-marked-candidates))))
+       (t
+        (error "Error:To much buffers marked!")))
+     (if merge
+@@ -10741,7 +10746,7 @@
+ 
+ (defun anything-delete-marked-bookmarks (ignore)
+   "Delete this bookmark or all marked bookmarks."
+-  (dolist (i (anything-marked-candidates))
++  (cl-dolist (i (anything-marked-candidates))
+     (bookmark-delete (anything-bookmark-get-bookmark-from-name i)
+                      'batch)))
+ 
+@@ -10753,7 +10758,7 @@
+   "Open buffer in new screen, if marked buffers open all in elscreens."
+   (anything-require-or-error 'elscreen 'anything-find-buffer-on-elscreen)
+   (anything-aif (anything-marked-candidates)
+-      (dolist (i it)
++      (cl-dolist (i it)
+         (let ((target-screen (elscreen-find-screen-by-buffer
+                               (get-buffer i) 'create)))
+           (elscreen-goto target-screen)))
+@@ -10813,7 +10818,7 @@
+                            'find-file-other-window
+                            'find-file)))))
+ 
+-(defun* anything-c-action-file-line-goto (file-line-content &optional (find-file-function #'find-file))
++(cl-defun anything-c-action-file-line-goto (file-line-content &optional (find-file-function #'find-file))
+   (apply #'anything-goto-file-line
+          (if (stringp file-line-content)
+              ;; Case: filtered-candidate-transformer is skipped
+@@ -10841,7 +10846,7 @@
+                              'default-directory (anything-candidate-buffer)))))
+                   (string-to-number lineno) content)))))
+ 
+-(defun* anything-goto-file-line (file lineno content &optional (find-file-function #'find-file))
++(cl-defun anything-goto-file-line (file lineno content &optional (find-file-function #'find-file))
+   (anything-aif (anything-attr 'before-jump-hook)
+       (funcall it))
+   (when file (funcall find-file-function file))
+@@ -11059,7 +11064,7 @@
+ (defun anything-c-transform-buffer-display-string (buffers)
+   "Setup display string for buffer candidates
+ using `anything-c-buffer-display-string-functions'."
+-  (loop for buf in buffers
++  (cl-loop for buf in buffers
+         if (consp buf)
+         collect buf
+         else
+@@ -11073,7 +11078,7 @@
+       (format "%s: %s [%s]" buf it default-directory)))
+ 
+ (defun anything-c-buffer-display-string--eshell (buf)
+-  (declare (special eshell-history-ring))
++  (cl-declare (special eshell-history-ring))
+   (when (eq major-mode 'eshell-mode)
+     (format "%s: %s [%s]" buf
+             (ignore-errors (ring-ref eshell-history-ring 0))
+@@ -11127,12 +11132,12 @@
+ (defun anything-c-mark-interactive-functions (functions)
+   "Mark interactive functions (commands) with (i) after the function name."
+   (let (list)
+-    (loop for function in functions
++    (cl-loop for function in functions
+           do (push (cons (concat function
+                                  (when (commandp (intern-soft function)) " (i)"))
+                          function)
+                    list)
+-          finally (return (nreverse list)))))
++          finally (cl-return (nreverse list)))))
+ 
+ 
+ ;;; Adaptive Sorting of Candidates
+@@ -11232,7 +11237,7 @@
+           ;; truncate history if needed
+           (if (> (length (cdr selection-info)) anything-c-adaptive-history-length)
+               (setcdr selection-info
+-                      (subseq (cdr selection-info) 0 anything-c-adaptive-history-length))))))))
++                      (cl-subseq (cdr selection-info) 0 anything-c-adaptive-history-length))))))))
+ 
+ (defun anything-c-adaptative-maybe-load-history ()
+   (when (and anything-c-use-adaptative-sorting
+@@ -11270,10 +11275,10 @@
+                ;; pairs
+                (mapcar (lambda (candidate-info)
+                          (let ((count 0))
+-                           (dolist (pattern-info (cdr candidate-info))
++                           (cl-dolist (pattern-info (cdr candidate-info))
+                              (if (not (equal (car pattern-info)
+                                              anything-pattern))
+-                                 (incf count (cdr pattern-info))
++                                 (cl-incf count (cdr pattern-info))
+ 
+                                  ;; if current pattern is equal to the previously
+                                  ;; used one then this candidate has priority
+@@ -11281,7 +11286,7 @@
+                                  ;; it only has to compete with other candidates
+                                  ;; which were also selected with the same pattern
+                                  (setq count (+ 10000 (cdr pattern-info)))
+-                                 (return)))
++                                 (cl-return)))
+                            (cons (car candidate-info) count)))
+                        (cdr source-info)))
+               sorted)
+@@ -11293,11 +11298,11 @@
+                                           (> (cdr first) (cdr second)))))
+ 
+                 ;; put those candidates first which have the highest usage count
+-                (dolist (info usage)
+-                  (when (member* (car info) candidates
++                (cl-dolist (info usage)
++                  (when (cl-member (car info) candidates
+                                  :test 'anything-c-adaptive-compare)
+                     (push (car info) sorted)
+-                    (setq candidates (remove* (car info) candidates
++                    (setq candidates (cl-remove (car info) candidates
+                                               :test 'anything-c-adaptive-compare))))
+ 
+                 ;; and append the rest
+@@ -11349,14 +11354,14 @@
+       (anything-goto-line 2)
+       (let ((lineno (with-anything-current-buffer
+                       (line-number-at-pos (car anything-current-position)))))
+-        (block exit
++        (cl-block exit
+           (while (<= (progn (skip-chars-forward " ")
+                             (or (number-at-point) lineno))
+                      lineno)
+             (forward-line 1)
+             (when (eobp)
+               (forward-line -1)
+-              (return-from exit))))
++              (cl-return-from exit))))
+         (forward-line -1)
+         (and (bobp) (forward-line 1))
+         (and (anything-pos-header-line-p) (forward-line -2))
+@@ -11368,7 +11373,7 @@
+ ;;
+ ;;
+ ;; Plug-in: info-index
+-(defun* anything-c-info-init (&optional (file (anything-attr 'info-file)))
++(cl-defun anything-c-info-init (&optional (file (anything-attr 'info-file)))
+   (let (result)
+     (unless (anything-candidate-buffer)
+       (save-window-excursion
+@@ -11377,7 +11382,7 @@
+               (tobuf (anything-candidate-buffer 'global))
+               (infobuf (current-buffer))
+               s e)
+-          (dolist (node (or (anything-attr 'index-nodes) (Info-index-nodes)))
++          (cl-dolist (node (or (anything-attr 'index-nodes) (Info-index-nodes)))
+             (Info-goto-node node)
+             (goto-char (point-min))
+             (while (search-forward "\n* " nil t)
+@@ -11443,7 +11448,7 @@
+ (add-to-list 'anything-compile-source-functions 'anything-compile-source--candidates-file)
+ 
+ (defun anything-p-candidats-file-init ()
+-  (destructuring-bind (file &optional updating)
++  (cl-destructuring-bind (file &optional updating)
+       (anything-mklist (anything-attr 'candidates-file))
+     (setq file (anything-interpret-value file))
+     (with-current-buffer (anything-candidate-buffer (find-file-noselect file))
+@@ -11502,45 +11507,50 @@
+       (goto-char (point-min))
+       (if (functionp regexp) (setq regexp (funcall regexp)))
+       (let (hierarchy curhead)
+-        (flet ((matched ()
+-                 (if (numberp subexp)
+-                     (cons (match-string-no-properties subexp) (match-beginning subexp))
+-                     (cons (buffer-substring (point-at-bol) (point-at-eol))
+-                           (point-at-bol))))
+-               (hierarchies (headlines)
+-                 (1+ (loop for (_ . hierarchy) in headlines
+-                           maximize hierarchy)))
+-               (vector-0-n (v n)
+-                 (loop for i from 0 to hierarchy
+-                       collecting (aref curhead i)))
+-               (arrange (headlines)
+-                 (unless (null headlines) ; FIX headlines empty bug!
+-                   (loop with curhead = (make-vector (hierarchies headlines) "")
+-                         for ((str . pt) . hierarchy) in headlines
+-                         do (aset curhead hierarchy str)
+-                         collecting
+-                         (cons
+-                          (format "H%d:%s" (1+ hierarchy)
+-                                  (mapconcat 'identity (vector-0-n curhead hierarchy) " / "))
+-                          pt)))))
++        (cl-letf (((symbol-function 'matched)
++                   (lambda nil
++                     (if (numberp subexp)
++	                 (cons (match-string-no-properties subexp)
++	                       (match-beginning subexp))
++                       (cons (buffer-substring (point-at-bol) (point-at-eol))
++	                     (point-at-bol)))))
++                  ((symbol-function 'hierarchies)
++                   (lambda (headlines)
++                     (1+ (cl-loop for (_ . hierarchy) in headlines maximize hierarchy))))
++                  ((symbol-function 'vector-0-n)
++                   (lambda (v n)
++                     (cl-loop for i from 0 to hierarchy collecting (aref curhead i))))
++                  ((symbol-function 'arrange)
++                   (lambda (headlines)
++                     (unless (null headlines)
++                       (cl-loop with curhead = (make-vector (hierarchies headlines) "")
++	                        for ((str . pt) . hierarchy) in headlines do
++	                        (aset curhead hierarchy str) collecting
++	                        (cons
++		                 (format "H%d:%s" (1+ hierarchy)
++			                 (mapconcat 'identity
++				                    (vector-0-n curhead hierarchy)
++				                    " / "))
++		                 pt))))))
++
+           (if (listp regexp)
+               (arrange
+                (sort
+-                (loop for re in regexp
+-                      for hierarchy from 0
+-                      do (goto-char (point-min))
+-                      appending
+-                      (loop
+-                            while (re-search-forward re nil t)
+-                            collect (cons (matched) hierarchy)))
++                (cl-loop for re in regexp
++                         for hierarchy from 0
++                         do (goto-char (point-min))
++                         appending
++                         (cl-loop
++                          while (re-search-forward re nil t)
++                          collect (cons (matched) hierarchy)))
+                 (lambda (a b) (> (cdar b) (cdar a)))))
+-              (loop while (re-search-forward regexp nil t)
+-                    collect (matched))))))))
++            (cl-loop while (re-search-forward regexp nil t)
++                     collect (matched))))))))
+ 
+ 
+ (defun anything-headline-make-candidate-buffer (regexp subexp)
+   (with-current-buffer (anything-candidate-buffer 'local)
+-    (loop for (content . pos) in (anything-headline-get-candidates regexp subexp)
++    (cl-loop for (content . pos) in (anything-headline-get-candidates regexp subexp)
+           do (insert
+               (format "%5d:%s\n"
+                       (with-anything-current-buffer
+@@ -11581,7 +11591,7 @@
+ (defun anything-c-uniq-list (lst)
+   "Like `remove-duplicates' in CL.
+ But cut deeper duplicates and test by `equal'. "
+-  (reverse (remove-duplicates (reverse lst) :test 'equal)))
++  (reverse (cl-remove-duplicates (reverse lst) :test 'equal)))
+ (defvar anything-additional-type-attributes nil)
+ (defun anything-c-arrange-type-attribute (type spec)
+   "Override type attributes by `define-anything-type-attribute'.
+@@ -11598,13 +11608,13 @@
+                 anything-additional-type-attributes))
+   (add-to-list 'anything-additional-type-attributes
+                (cons type
+-                     (loop with typeattr = (assoc-default
++                     (cl-loop with typeattr = (assoc-default
+                                             type anything-type-attributes)
+                            for (attr . value) in spec
+                            if (listp value)
+                            collect (cons attr
+                                          (anything-c-uniq-list
+-                                          (loop for v in value
++                                          (cl-loop for v in value
+                                                 if (eq v 'REST)
+                                                 append
+                                                 (assoc-default attr typeattr)
+@@ -11705,7 +11715,7 @@
+   (define-anything-type-attribute 'command
+       `((action ("Call interactively" . anything-c-call-interactively)
+                 ,@actions)
+-        (coerce . anything-c-symbolify)
++        (cl-coerce . anything-c-symbolify)
+         (persistent-action . describe-function))
+     "Command. (string or symbol)")
+ 
+@@ -11713,7 +11723,7 @@
+       `((action . ,actions)
+         (action-transformer anything-c-transform-function-call-interactively)
+         (candidate-transformer anything-c-mark-interactive-functions)
+-        (coerce . anything-c-symbolify))
++        (cl-coerce . anything-c-symbolify))
+     "Function. (string or symbol)"))
+ 
+ (define-anything-type-attribute 'variable
+@@ -11721,7 +11731,7 @@
+        ("Add variable to kill ring" . anything-c-kill-new)
+        ("Go to variable's definition" . find-variable)
+        ("Set variable" . anything-c-set-variable))
+-      (coerce . anything-c-symbolify))
++      (cl-coerce . anything-c-symbolify))
+   "Variable.")
+ 
+ (define-anything-type-attribute 'sexp
+@@ -11731,7 +11741,7 @@
+   "String representing S-Expressions.")
+ 
+ (define-anything-type-attribute 'bookmark
+-    `((coerce . anything-bookmark-get-bookmark-from-name)
++    `((cl-coerce . anything-bookmark-get-bookmark-from-name)
+       (action
+        ("Jump to bookmark" . anything-c-bookmark-jump)
+        ("Jump to BM other window" . bookmark-jump-other-window)
+@@ -12298,28 +12308,25 @@
+          special-display-buffer-names
+          special-display-regexps
+          anything-persistent-action-use-special-display
+-         (history (loop with hist
++         (history (cl-loop with hist
+                         for i in extended-command-history
+                         for com = (intern i)
+                         when (fboundp com)
+                         collect i into hist finally return hist)))
+-    (flet ((pers-help (candidate)
+-             (let ((hbuf (get-buffer (help-buffer))))
+-               (if (and in-help (string= candidate help-cand))
+-                   (progn
+-                     ;; When M-x is started from a help buffer,
+-                     ;; Don't kill it as it is anything-current-buffer.
+-                     (unless (equal hbuf anything-current-buffer)
+-                       (kill-buffer hbuf))
+-                     (setq in-help nil))
+-                   ;; Be sure anything-current-buffer
+-                   ;; have not a dedicated window.
+-                   (set-window-dedicated-p
+-                    (get-buffer-window anything-current-buffer) nil)
+-                   (describe-function (intern candidate))
+-                   (message nil) ; Erase the new stupid message Type "q"[...]
+-                   (setq in-help t))
+-               (setq help-cand candidate))))
++    (cl-letf (((symbol-function 'pers-help)
++               (lambda (candidate)
++                 (let ((hbuf (get-buffer (help-buffer))))
++                   (if (and in-help (string= candidate help-cand))
++	               (progn
++	                 (unless (equal hbuf anything-current-buffer)
++	                   (kill-buffer hbuf))
++	                 (setq in-help nil))
++	             (set-window-dedicated-p
++	              (get-buffer-window anything-current-buffer) nil)
++	             (describe-function (intern candidate)) (message nil)
++	             (setq in-help t))
++                   (setq help-cand candidate)))))
++
+       (let* ((command (anything-comp-read
+                        "M-x " obarray
+                        :test 'commandp
+@@ -12435,7 +12442,7 @@
+ (defun anything-eval-expression-with-eldoc ()
+   "Preconfigured anything for `anything-c-source-evaluation-result' with `eldoc' support. "
+   (interactive)
+-  (declare (special eldoc-idle-delay))
++  (cl-declare (special eldoc-idle-delay))
+   (let ((timer (run-with-idle-timer eldoc-idle-delay
+                                     'repeat 'anything-eldoc-show-in-eval))
+         (minibuffer-completing-symbol t) ; Enable lisp completion.
+@@ -12598,7 +12605,7 @@
+   (anything-run-or-raise program)
+   (setq anything-external-command-history
+         (cons program (delete program
+-                              (loop for i in anything-external-command-history
++                              (cl-loop for i in anything-external-command-history
+                                     when (executable-find i) collect i)))))
+ 
+ ;;;###autoload
+@@ -12654,7 +12661,7 @@
+                  (persistent-help . "Show brief doc in mode-line")
+                  (candidates-in-buffer)
+                  (filtered-candidate-transformer . (lambda (candidates source)
+-                                                     (loop for c in candidates
++                                                     (cl-loop for c in candidates
+                                                            collect (propertize c 'face (intern c)))))
+                  (action . (lambda (candidate)
+                              (describe-face (intern candidate)))))
+--- a/anything-gtags.el
++++ b/anything-gtags.el
+@@ -1,4 +1,4 @@
+-;;; anything-gtags.el --- GNU GLOBAL anything.el interface
++;;; anything-gtags.el --- GNU GLOBAL anything.el interface -*- lexical-binding: nil; -*-
+ ;; $Id: anything-gtags.el,v 1.27 2010-02-06 12:33:13 rubikitch Exp $
+ 
+ ;; Copyright (C) 2008, 2009, 2010  rubikitch
+@@ -210,7 +210,7 @@
+         (+ s 16)))))
+ 
+ (defun aggs-set-anything-current-position ()
+-  (declare (special c-source-file))
++  (cl-declare (special c-source-file))
+   ;; It's needed because `anything' saves
+   ;; *GTAGS SELECT* buffer's position,
+   (save-window-excursion
+@@ -220,7 +220,7 @@
+ (defun ag-hijack-gtags-select-mode ()
+   ;; `save' C source file / `buffer': gtags-select-mode gtags-select-buffer
+   ;; They are defined at `gtags-goto-tag'.
+-  (declare (special save buffer))
++  (cl-declare (special save buffer))
+   (let* ((c-source-file save)
+          (gtags-select-buffer buffer)
+          (anything-candidate-number-limit 9999)
+@@ -254,12 +254,12 @@
+ (defun aggs-candidate-buffer-by-filename (filename)
+   (get-buffer-create (concat "*anything gtags*" filename)))
+ (defun aggs-meta-source-init ()
+-  (declare (special gtags-select-buffer))
++  (cl-declare (special gtags-select-buffer))
+   (aggs-set-anything-current-position)
+   (with-current-buffer gtags-select-buffer
+     (goto-char (point-min))
+     (let (files prev-filename)
+-      (loop while (re-search-forward " [0-9]+ \\([^ ]+\\) " (point-at-eol) t)
++      (cl-loop while (re-search-forward " [0-9]+ \\([^ ]+\\) " (point-at-eol) t)
+             for filename = (match-string 1)
+             for bol = (point-at-bol)
+             for eol = (point-at-eol)
+@@ -274,7 +274,7 @@
+             (forward-line 1)
+             (setq prev-filename filename))
+       (anything-set-sources
+-       (loop for file in (nreverse files) collect
++       (cl-loop for file in (nreverse files) collect
+              (append `((name . ,file)
+                        (init . (lambda ()
+                                  (anything-candidate-buffer
+--- a/anything-match-plugin.el
++++ b/anything-match-plugin.el
+@@ -1,4 +1,4 @@
+-;;; anything-match-plugin.el --- Multiple regexp matching methods for anything
++;;; anything-match-plugin.el --- Multiple regexp matching methods for anything -*- lexical-binding: nil; -*-
+ 
+ ;; Author: rubikitch <rubikitch@ruby-lang.org>
+ 
+@@ -165,7 +165,7 @@
+ ;;; Code:
+ 
+ (require 'anything)
+-(require 'cl)
++(require 'cl-lib)
+ 
+ 
+ ;;;; Match-plugin
+@@ -178,7 +178,7 @@
+ (defun anything-mp-set-matching-method (var key)
+   "Default function to set matching methods in anything match plugin."
+   (set-default var key)
+-  (case (symbol-value var)
++  (cl-case (symbol-value var)
+     (multi1 (setq anything-mp-default-match-functions
+                   '(anything-mp-exact-match anything-mp-1-match)
+                   anything-mp-default-search-functions
+@@ -262,7 +262,7 @@
+ but \"foo\ bar\"=> (\"foobar\")."
+   (if (string= pattern "")
+       '("")
+-      (loop for s in (split-string
++      (cl-loop for s in (split-string
+                       (replace-regexp-in-string anything-mp-space-regexp
+                                                 "\000\000" pattern)
+                       " " t)
+@@ -340,7 +340,7 @@
+           (concat "^" (anything-mp-1-make-regexp pattern))))
+   anything-mp-1-pattern-real)
+ 
+-(defun* anything-mp-1-match (str &optional (pattern anything-pattern))
++(cl-defun anything-mp-1-match (str &optional (pattern anything-pattern))
+   (string-match (anything-mp-1-get-pattern pattern) str))
+ 
+ (defun anything-mp-1-search (pattern &rest ignore)
+@@ -364,7 +364,7 @@
+           (concat "^.*" (anything-mp-1-make-regexp pattern))))
+   anything-mp-2-pattern-real)
+ 
+-(defun* anything-mp-2-match (str &optional (pattern anything-pattern))
++(cl-defun anything-mp-2-match (str &optional (pattern anything-pattern))
+   (string-match (anything-mp-2-get-pattern pattern) str))
+ 
+ (defun anything-mp-2-search (pattern &rest ignore)
+@@ -397,7 +397,7 @@
+   (unless (string= pattern "")
+     (if (string-match "^!" pattern)
+         (anything-mp-3-get-patterns-internal (concat ". " pattern))
+-      (loop for pat in (anything-mp-make-regexps pattern)
++      (cl-loop for pat in (anything-mp-make-regexps pattern)
+             collect (if (string= "!" (substring pat 0 1))
+                         (cons 'not (substring pat 1))
+                       (cons 'identity pat))))))
+@@ -414,11 +414,11 @@
+ cons cell against STR (a candidate).
+ i.e (identity (string-match \"foo\" \"foo bar\")) => t."
+   (let ((pat (anything-mp-3-get-patterns (or pattern anything-pattern))))
+-    (loop for (predicate . regexp) in pat
++    (cl-loop for (predicate . regexp) in pat
+           always (funcall predicate (string-match regexp str)))))
+ 
+ (defun anything-mp-3-search-base (pattern searchfn1 searchfn2)
+-  (loop with pat = (if (stringp pattern)
++  (cl-loop with pat = (if (stringp pattern)
+                        (anything-mp-3-get-patterns pattern)
+                        pattern)
+         while (funcall searchfn1 (or (cdar pat) "") nil t)
+@@ -427,7 +427,7 @@
+         for (b . e) = (if (eq searchfn2 're-search-backward)
+                           (cons eol bol)
+                         (cons bol eol))
+-        if (loop for (pred . str) in (cdr pat) always
++        if (cl-loop for (pred . str) in (cdr pat) always
+                  (progn (goto-char b)
+                         (funcall pred (funcall searchfn2 str e t))))
+         do (goto-char e) and return t
+@@ -458,7 +458,7 @@
+   (let* ((pat (anything-mp-3-get-patterns (or pattern anything-pattern)))
+          (first (car pat)))
+     (and (funcall (car first) (anything-mp-prefix-match str (cdr first)))
+-         (loop for (predicate . regexp) in (cdr pat)
++         (cl-loop for (predicate . regexp) in (cdr pat)
+                always (funcall predicate (string-match regexp str))))))
+   
+ (defun anything-mp-3p-search (pattern &rest ignore)
+@@ -518,7 +518,7 @@
+ (defun anything-mp-highlight-match-internal (end)
+   (when (anything-window)
+     (set-buffer anything-buffer)
+-    (let ((requote (loop for (pred . re) in
++    (let ((requote (cl-loop for (pred . re) in
+                          (anything-mp-3-get-patterns anything-pattern)
+                          when (and (eq pred 'identity)
+                                     (>= (length re)
+@@ -546,30 +546,33 @@
+   (let ((anything-match-plugin-enabled
+          (member 'anything-compile-source--match-plugin
+                  anything-compile-source-functions)))
+-    (flet ((disable-match-plugin ()
+-             (setq anything-compile-source-functions
+-                   (delq 'anything-compile-source--match-plugin
+-                         anything-compile-source-functions))
+-             (setq anything-mp-initial-highlight-delay
+-                   anything-mp-highlight-delay)
+-             (setq anything-mp-highlight-delay nil))
+-           (enable-match-plugin ()
+-             (unless anything-mp-initial-highlight-delay
+-               (setq anything-mp-initial-highlight-delay
+-                     anything-mp-highlight-delay))
+-             (setq anything-compile-source-functions
+-                   (cons 'anything-compile-source--match-plugin
+-                         anything-compile-source-functions))
+-             (unless anything-mp-highlight-delay
+-               (setq anything-mp-highlight-delay
+-                     anything-mp-initial-highlight-delay))))
++    (cl-letf (((symbol-function 'disable-match-plugin)
++               (lambda nil
++                 (setq anything-compile-source-functions
++	               (delq 'anything-compile-source--match-plugin
++		             anything-compile-source-functions))
++                 (setq anything-mp-initial-highlight-delay
++	               anything-mp-highlight-delay)
++                 (setq anything-mp-highlight-delay nil)))
++              ((symbol-function 'enable-match-plugin)
++               (lambda nil
++                 (unless anything-mp-initial-highlight-delay
++                   (setq anything-mp-initial-highlight-delay
++	                 anything-mp-highlight-delay))
++                 (setq anything-compile-source-functions
++	               (cons 'anything-compile-source--match-plugin
++		             anything-compile-source-functions))
++                 (unless anything-mp-highlight-delay
++                   (setq anything-mp-highlight-delay
++	                 anything-mp-initial-highlight-delay)))))
++
+       (if anything-match-plugin-enabled
+           (when (y-or-n-p "Really disable match-plugin? ")
+             (disable-match-plugin)
+             (message "Anything-match-plugin disabled"))
+-          (when (y-or-n-p "Really enable match-plugin? ")
+-            (enable-match-plugin)
+-            (message "Anything-match-plugin enabled"))))))
++        (when (y-or-n-p "Really enable match-plugin? ")
++          (enable-match-plugin)
++          (message "Anything-match-plugin enabled"))))))
+ 
+ 
+ ;;;; Grep-candidates plug-in
+@@ -630,7 +633,7 @@
+           (unless search-from-end
+             (insert "cat " allfiles))
+         (when search-from-end (insert " | "))
+-        (loop with exist-ary = (file-exists-p (concat (car files) ".ary"))
++        (cl-loop with exist-ary = (file-exists-p (concat (car files) ".ary"))
+               for (flag . re) in (anything-mp-3-get-patterns-internal query)
+               for i from 0
+               do
+--- a/anything.el
++++ b/anything.el
+@@ -1,4 +1,4 @@
+-;;; anything.el --- open anything / QuickSilver-like candidate-selection framework
++;;; anything.el --- open anything / QuickSilver-like candidate-selection framework -*- lexical-binding: nil; -*-
+ 
+ ;; Copyright (C) 2007              Tamas Patrovics
+ ;;               2008 ~ 2016       rubikitch <rubikitch@ruby-lang.org>
+@@ -629,7 +629,7 @@
+ 
+ ;;; Code:
+ 
+-(require 'cl)
++(require 'cl-lib)
+ 
+ (defvar anything-version "1.3.9")
+ 
+@@ -753,7 +753,7 @@
+     (define-key map (kbd "C-7")             'anything-select-with-digit-shortcut)
+     (define-key map (kbd "C-8")             'anything-select-with-digit-shortcut)
+     (define-key map (kbd "C-9")             'anything-select-with-digit-shortcut)
+-    (loop for c from ?A to ?Z do
++    (cl-loop for c from ?A to ?Z do
+           (define-key map (make-string 1 c) 'anything-select-with-digit-shortcut))
+     (define-key map (kbd "C-i")             'anything-select-action)
+     (define-key map (kbd "C-z")             'anything-execute-persistent-action)
+@@ -792,7 +792,7 @@
+     (define-key map "\C-c\C-x\C-b"          'anything-send-bug-report-from-anything)
+     ;; Use `describe-mode' key in `global-map'.
+     (define-key map [f1] nil) ; Allow to eval keymap whithout errors.
+-    (dolist (k (where-is-internal 'describe-mode global-map))
++    (cl-dolist (k (where-is-internal 'describe-mode global-map))
+       (define-key map k 'anything-help))
+     map)
+   "Keymap for anything.")
+@@ -1068,7 +1068,7 @@
+ 
+ (defun anything-log-eval-internal (exprs)
+   "Eval EXPRS and write results to anything log buffer."
+-  (dolist (expr exprs)
++  (cl-dolist (expr exprs)
+     (condition-case err
+         (anything-log "%S = %S" expr (eval expr))
+       (error (anything-log "%S = ERROR!" expr)))))
+@@ -1076,9 +1076,9 @@
+ (defun anything-log-get-current-function ()
+   "Get function name calling `anything-log'.
+ The original idea is from `tramp-debug-message'."
+-  (loop with exclude-func-re = "^anything-\\(?:interpret\\|log\\|.*funcall\\)"
++  (cl-loop with exclude-func-re = "^anything-\\(?:interpret\\|log\\|.*funcall\\)"
+         for btn from 1 to 40            ;avoid inf-loop
+-        for btf = (second (backtrace-frame btn))
++        for btf = (cl-second (backtrace-frame btn))
+         for fn  = (if (symbolp btf) (symbol-name btf) "")
+         if (and (string-match "^anything" fn)
+                 (not (string-match exclude-func-re fn)))
+@@ -1185,13 +1185,13 @@
+      (setq post-command-hook '(t))
+      (setq-default post-command-hook nil)
+      (unwind-protect (progn ,@body)
+-       (loop for (var . value) in --orig-vars
++       (cl-loop for (var . value) in --orig-vars
+              do (set var value))
+        (setq post-command-hook (car --post-command-hook-pair))
+        (setq-default post-command-hook (cdr --post-command-hook-pair))
+        (anything-log "restore variables"))))
+ 
+-(defun* anything-attr (attribute-name &optional
++(cl-defun anything-attr (attribute-name &optional
+                                       (src (anything-get-current-source)))
+   "Get the value of ATTRIBUTE-NAME of SRC.
+ if SRC is omitted, use current source.
+@@ -1199,21 +1199,21 @@
+   (anything-aif (assq attribute-name src)
+       (cdr it)))
+ 
+-(defun* anything-attr* (attribute-name
++(cl-defun anything-attr* (attribute-name
+                         &optional (src (anything-get-current-source)))
+   "Pass the value of ATTRIBUTE-NAME of SRC to `anything-interpret-value'.
+ if SRC is omitted, use current source.
+ It is useful to write your sources."
+   (anything-interpret-value (anything-attr attribute-name src)))
+ 
+-(defun* anything-attr-defined (attribute-name
++(cl-defun anything-attr-defined (attribute-name
+                                &optional (src (anything-get-current-source)))
+   "Return non-nil if ATTRIBUTE-NAME of SRC is defined.
+ if SRC is omitted, use current source.
+ It is useful to write your sources."
+   (and (assq attribute-name src) t))
+ 
+-(defun* anything-attrset (attribute-name value
++(cl-defun anything-attrset (attribute-name value
+                                          &optional
+                                          (src (anything-get-current-source)))
+   "Set the value of ATTRIBUTE-NAME of SRC to VALUE.
+@@ -1256,7 +1256,7 @@
+ Iswitchb. The -my- part is added to avoid collisions with
+ existing Anything function names."
+   (unless (and (listp sources)
+-               (loop for name in sources always (stringp name)))
++               (cl-loop for name in sources always (stringp name)))
+     (error "Invalid data in `anything-set-source-filter': %S" sources))
+   (setq anything-source-filter sources)
+   (anything-log-eval anything-source-filter)
+@@ -1304,7 +1304,7 @@
+                 anything-sources anything-compile-source-functions))
+        (anything-log-eval anything-compiled-sources)))))
+ 
+-(defun* anything-get-selection (&optional (buffer nil buffer-s)
++(cl-defun anything-get-selection (&optional (buffer nil buffer-s)
+                                           force-display-part)
+   "Return the currently selected item or nil.
+ if BUFFER is nil or unspecified, use anything-buffer as default value.
+@@ -1352,7 +1352,7 @@
+   "Return the source for the current selection.
+ Use it in init, candidates, action, candidate-transformer,
+ filtered-candidate-transformer functions."
+-  (declare (special source))
++  (cl-declare (special source))
+   ;; The name `anything-get-current-source' should be used in init function etc.
+   (cond ((and (boundp 'anything-source-name) (stringp anything-source-name))
+          source)
+@@ -1363,7 +1363,7 @@
+             ;; is non--nil and there is candidates in buffer.
+             (get-text-property (point) 'anything-source)
+             ;; Return nil when no--candidates.
+-            (block exit
++            (cl-block exit
+               ;; This goto-char shouldn't be necessary, but point is moved to
+               ;; point-min somewhere else which shouldn't happen.
+               (goto-char (overlay-start anything-selection-overlay))
+@@ -1372,10 +1372,10 @@
+                      (source-name
+                       (save-excursion
+                         (unless header-pos
+-                          (return-from exit nil))
++                          (cl-return-from exit nil))
+                         (goto-char header-pos)
+                         (anything-current-line-contents))))
+-                (loop for source in (anything-get-sources) thereis
++                (cl-loop for source in (anything-get-sources) thereis
+                       (and (equal (assoc-default 'name source) source-name)
+                            source)))))))))
+ 
+@@ -1410,7 +1410,7 @@
+ DOC is displayed in `anything-type-attributes' docstring.
+ 
+ Use this function is better than setting `anything-type-attributes' directly."
+-  (loop for i in definition do
++  (cl-loop for i in definition do
+         ;; without `ignore-errors', error at emacs22
+         (ignore-errors (setf i (delete nil i))))
+   (anything-add-type-attribute type definition)
+@@ -1478,7 +1478,7 @@
+ 
+ 
+ ;; (@* "Core: API helper")
+-(defun* anything-empty-buffer-p (&optional (buffer anything-buffer))
++(cl-defun anything-empty-buffer-p (&optional (buffer anything-buffer))
+   "Check if BUFFER have candidates.
+ Default value for BUFFER is `anything-buffer'."
+   (zerop (buffer-size (and buffer (get-buffer buffer)))))
+@@ -1529,12 +1529,12 @@
+   (let ((anything-source-name (assoc-default 'name source))
+         result)
+     (anything-log-eval anything-source-name func args)
+-    (dolist (func (if (functionp func) (list func) func) result)
++    (cl-dolist (func (if (functionp func) (list func) func) result)
+       (setq result (apply func args)))))
+ 
+ (defun anything-funcall-foreach (sym)
+   "Call the function SYM for each source if any."
+-  (dolist (source (anything-get-sources))
++  (cl-dolist (source (anything-get-sources))
+     (anything-aif (assoc-default sym source)
+         (anything-funcall-with-source source it))))
+ 
+@@ -1561,21 +1561,21 @@
+       (let ((count-multi 1))
+         (if (anything-pos-multiline-p)
+             (save-excursion
+-              (loop while (and (not (if in-current-source
++              (cl-loop while (and (not (if in-current-source
+                                         (save-excursion
+                                           (forward-line 2)
+                                           (or (anything-pos-header-line-p) (eobp)))
+                                         (eobp)))
+                                (search-forward anything-candidate-separator nil t))
+-                    do (incf count-multi)
++                    do (cl-incf count-multi)
+                     finally return count-multi))
+             (save-excursion
+-              (loop with ln = 0
++              (cl-loop with ln = 0
+                     while (not (if in-current-source
+                                    (or (anything-pos-header-line-p) (eobp))
+                                    (eobp)))
+                     unless (anything-pos-header-line-p)
+-                    do (incf ln)
++                    do (cl-incf ln)
+                     do (forward-line 1) finally return ln)))))))
+ 
+ (defmacro with-anything-quittable (&rest body)
+@@ -1593,7 +1593,7 @@
+ The result of each function will be the new `car' of ARG-LST.
+ 
+ This function allows easy sequencing of transformer functions."
+-  (dolist (func func-lst)
++  (cl-dolist (func func-lst)
+     (setcar arg-lst (apply func arg-lst)))
+   (car arg-lst))
+ 
+@@ -1724,7 +1724,7 @@
+       (anything-enable-shortcuts . t)
+       (anything-candidate-number-limit . 4))
+ "
+-  (loop for (key value) on keys by #'cddr
++  (cl-loop for (key value) on keys by #'cddr
+         for symname = (substring (symbol-name key) 1)
+         for origsym = (intern symname)
+         for sym = (if (boundp origsym)
+@@ -1786,7 +1786,7 @@
+ ;;; Anything resume
+ ;;
+ ;;
+-(defun* anything-resume (&optional
++(cl-defun anything-resume (&optional
+                          (any-buffer anything-last-buffer)
+                          buffer-pattern (any-resume t))
+   "Resurrect previously invoked `anything'.
+@@ -1806,7 +1806,7 @@
+ ;;; rubikitch: experimental
+ ;;; I use this and check it whether I am convenient.
+ ;;; I may introduce an option to control the behavior.
+-(defun* anything-resume-window-only (&optional
++(cl-defun anything-resume-window-only (&optional
+                                      (any-buffer anything-last-buffer)
+                                      buffer-pattern)
+   (interactive)
+@@ -1865,7 +1865,7 @@
+           (orig-anything-last-frame-or-window-configuration
+            anything-last-frame-or-window-configuration)
+           anything-pattern
+-          (anything-buffer (or (getf same-as-anything :buffer)
++          (anything-buffer (or (cl-getf same-as-anything :buffer)
+                                (nth 5 same-as-anything)
+                                "*Anything*"))
+           anything-sources
+@@ -1899,7 +1899,7 @@
+     (anything-new-timer
+      'anything-shortcut-update-timer
+      (run-with-idle-timer 0.03 0.03 'anything-move-digit-overlay-maybe)))
+-  (loop for (var . val) in anything-let-variables
++  (cl-loop for (var . val) in anything-let-variables
+         do (set var val))
+   (anything-frame-or-window-configuration 'save)
+   (setq anything-sources (anything-normalize-sources any-sources))
+@@ -1945,7 +1945,7 @@
+ (defun anything-current-position (save-or-restore)
+   "Restore or save current position in `anything-current-buffer'.
+ Argument SAVE-OR-RESTORE is one of save or restore."
+-  (case save-or-restore
++  (cl-case save-or-restore
+     (save
+      (anything-log "Save position at %S" (cons (point) (window-start)))
+      (setq anything-current-position (cons (point) (window-start))))
+@@ -1969,7 +1969,7 @@
+ window or frame configuration is saved/restored according to values of
+ `anything-save-configuration-functions'."
+   (anything-log-eval anything-save-configuration-functions)
+-  (case save-or-restore
++  (cl-case save-or-restore
+     (save    (setq anything-last-frame-or-window-configuration
+                    (funcall (cdr anything-save-configuration-functions))))
+     (restore (funcall (car anything-save-configuration-functions)
+@@ -2106,7 +2106,7 @@
+     (set (make-local-variable 'anything-selection-point) nil)
+     (anything-initialize-persistent-action)
+     (anything-log-eval anything-display-function anything-let-variables)
+-    (loop for (var . val) in anything-let-variables
++    (cl-loop for (var . val) in anything-let-variables
+           do (set (make-local-variable var) val))
+     (setq cursor-type nil)
+     (setq mode-name "Anything"))
+@@ -2131,7 +2131,7 @@
+                (assoc-default anything-enable-shortcuts anything-shortcut-keys-alist))
+          (unless anything-digit-overlays
+            (setq anything-digit-overlays
+-                 (loop for key across anything-shortcut-keys
++                 (cl-loop for key across anything-shortcut-keys
+                        for overlay = (make-overlay (point-min) (point-min)
+                                                    (get-buffer buffer))
+                        do (overlay-put overlay 'before-string
+@@ -2155,8 +2155,8 @@
+   (let ((hooks '((post-command-hook anything-check-minibuffer-input)
+                  (minibuffer-setup-hook anything-print-error-messages))))
+     (if (eq setup-or-cleanup 'setup)
+-        (dolist (args hooks) (apply 'add-hook args))
+-        (dolist (args (reverse hooks)) (apply 'remove-hook args)))))
++        (cl-dolist (args hooks) (apply 'add-hook args))
++        (cl-dolist (args (reverse hooks)) (apply 'remove-hook args)))))
+ 
+ 
+ ;; (@* "Core: clean up")
+@@ -2235,10 +2235,10 @@
+ Anything plug-ins are realized by this function."
+   (mapcar
+    (lambda (source)
+-     (loop with source = (if (listp source) source (symbol-value source))
++     (cl-loop with source = (if (listp source) source (symbol-value source))
+            for f in funcs
+            do (setq source (funcall f source))
+-           finally (return source)))
++           finally (cl-return source)))
+    sources))
+ 
+ 
+@@ -2266,7 +2266,7 @@
+       (anything-aif (assoc-default 'delayed-init source)
+           (with-current-buffer anything-current-buffer
+             (anything-funcall-with-source source it)
+-            (dolist (f (if (functionp it) (list it) it))
++            (cl-dolist (f (if (functionp it) (list it) it))
+               (add-to-list 'anything-delayed-init-executed name)))))))
+ 
+ (defun anything-get-candidates (source)
+@@ -2321,7 +2321,7 @@
+ \(anything-transform-mapcar 'upcase '((\"1st\" . \"foo\") (\"2nd\" . \"bar\")))
+ => ((\"1st\" . \"FOO\") (\"2nd\" . \"BAR\"))
+ "
+-  (loop for arg in args
++  (cl-loop for arg in args
+         if (consp arg)
+         collect (cons (car arg) (funcall function (cdr arg)))
+         else
+@@ -2421,14 +2421,14 @@
+   `(unless (gethash ,cand ,hash)
+      (puthash ,cand t ,hash)
+      (push ,cand ,newmatches)
+-     (incf ,item-count)
++     (cl-incf ,item-count)
+      (when (= ,item-count ,limit)
+        (setq exit t)
+-       (return))))
++       (cl-return))))
+ 
+ (defun anything-take-first-elements (seq n)
+   (if (> (length seq) n)
+-      (setq seq (subseq seq 0 n))
++      (setq seq (cl-subseq seq 0 n))
+       seq))
+ 
+ (defun anything-match-from-candidates (cands matchfns limit)
+@@ -2436,14 +2436,14 @@
+     (condition-case nil
+         (let ((item-count 0) exit)
+           (clrhash anything-match-hash)
+-          (dolist (match matchfns)
++          (cl-dolist (match matchfns)
+             (let (newmatches)
+-              (dolist (candidate cands)
++              (cl-dolist (candidate cands)
+                 (when (funcall match (anything-candidate-get-display candidate))
+                   (anything-accumulate-candidates-internal
+                    candidate newmatches anything-match-hash item-count limit)))
+               (setq matches (append matches (reverse newmatches)))
+-              (if exit (return)))))
++              (if exit (cl-return)))))
+       (invalid-regexp (setq matches nil)))
+     matches))
+ 
+@@ -2480,7 +2480,7 @@
+           (if (not (assq 'multiline source))
+               (mapc 'anything-insert-match-with-digit-overlay matches)
+               (let ((start (point)) separate)
+-                (dolist (match matches)
++                (cl-dolist (match matches)
+                   (if separate
+                       (anything-insert-candidate-separator)
+                       (setq separate t))
+@@ -2488,7 +2488,7 @@
+                 (put-text-property start (point) 'anything-multiline t)))))))
+ 
+ (defun anything-insert-match-with-digit-overlay (match)
+-  (declare (special source))
++  (cl-declare (special source))
+   (anything-insert-match match 'insert source))
+ 
+ (defun anything-put-digit-overlay-maybe ()
+@@ -2499,13 +2499,13 @@
+                        anything-digit-overlays)
+                   (point-at-bol)
+                   (point-at-bol))
+-    (incf anything-digit-shortcut-count)))
++    (cl-incf anything-digit-shortcut-count)))
+ 
+ (defun anything-move-digit-overlay-maybe ()
+   (with-anything-window
+     (save-excursion
+       (goto-char (window-start))
+-      (loop for overlay in anything-digit-overlays
++      (cl-loop for overlay in anything-digit-overlays
+             unless (eobp)
+             do
+             (anything-skip-noncandidate-line 'forward)
+@@ -2570,7 +2570,7 @@
+           normal-sources)
+       (unwind-protect ; Process normal sources and store delayed one's.
+            (setq delayed-sources
+-                 (loop for source in (remove-if-not 'anything-update-source-p
++                 (cl-loop for source in (cl-remove-if-not 'anything-update-source-p
+                                                     (anything-get-sources))
+                        if (anything-delayed-source-p source)
+                        collect source
+@@ -2652,7 +2652,7 @@
+   (anything-aif (anything-funcall-with-source
+                  source 'anything-candidate-buffer)
+       (kill-buffer it))
+-  (dolist (attr '(update init))
++  (cl-dolist (attr '(update init))
+     (anything-aif (assoc-default attr source)
+         (anything-funcall-with-source source it)))
+   (anything-remove-candidate-cache source))
+@@ -2757,7 +2757,7 @@
+     (anything-output-filter--post-process)))
+ 
+ (defun anything-output-filter--process-source (process string source limit)
+-  (dolist (candidate (anything-transform-candidates
++  (cl-dolist (candidate (anything-transform-candidates
+                       (anything-output-filter--collect-candidates
+                        (split-string string "\n")
+                        (assoc 'incomplete-line source))
+@@ -2768,15 +2768,15 @@
+           (anything-insert-candidate-separator)
+           (anything-insert-match candidate 'insert-before-markers source)
+           (put-text-property start (point) 'anything-multiline t)))
+-    (incf (cdr (assoc 'item-count source)))
++    (cl-incf (cdr (assoc 'item-count source)))
+     (when (>= (assoc-default 'item-count source) limit)
+       (anything-kill-async-process process)
+-      (return))))
++      (cl-return))))
+ 
+ (defun anything-output-filter--collect-candidates (lines incomplete-line-info)
+   (anything-log-eval (cdr incomplete-line-info))
+   (butlast
+-   (loop for line in lines collect
++   (cl-loop for line in lines collect
+          (if (cdr incomplete-line-info)
+              (prog1
+                  (concat (cdr incomplete-line-info) line)
+@@ -3096,7 +3096,7 @@
+         (let* ((pair (funcall get-key-func))
+                (key (car pair))
+                (action-index (cdr pair))
+-               (overlay (ignore-errors (nth (position key anything-shortcut-keys)
++               (overlay (ignore-errors (nth (cl-position key anything-shortcut-keys)
+                                             anything-digit-overlays))))
+           (if (not (and overlay (overlay-buffer overlay)))
+               (when (numberp key)
+@@ -3232,11 +3232,11 @@
+ 
+ (defun anything-help-event-loop ()
+   (ignore-errors
+-    (loop for event = (read-event) do
+-          (case event
++    (cl-loop for event = (read-event) do
++          (cl-case event
+             ((?\C-v ? )  (scroll-up))
+             ((?\M-v ?b) (scroll-down))
+-            (t (return))))))
++            (t (cl-return))))))
+ 
+ (defun anything-help ()
+   "Help of `anything'."
+@@ -3260,7 +3260,7 @@
+   (message "Calculating all anything-related values...")
+   (insert "If you debug some variables or forms, set `anything-debug-forms'
+ to a list of forms.\n\n")
+-  (dolist (v (or vars
++  (cl-dolist (v (or vars
+                  anything-debug-forms
+                  (apropos-internal "^anything-" 'boundp)))
+     (insert "** "
+@@ -3272,7 +3272,7 @@
+ ;; (@* "Core: misc")
+ (defun anything-kill-buffer-hook ()
+   "Remove tick entry from `anything-tick-hash' when killing a buffer."
+-  (loop for key being the hash-keys in anything-tick-hash
++  (cl-loop for key being the hash-keys in anything-tick-hash
+         if (string-match (format "^%s/" (regexp-quote (buffer-name))) key)
+         do (remhash key anything-tick-hash)))
+ (add-hook 'kill-buffer-hook 'anything-kill-buffer-hook)
+@@ -3484,7 +3484,7 @@
+ 
+ To customize `anything-candidates-in-buffer' behavior, use search,
+ get-line and search-from-end attributes. See also `anything-sources' docstring."
+-  (declare (special source))
++  (cl-declare (special source))
+   (anything-candidates-in-buffer-1
+    (anything-candidate-buffer)
+    anything-pattern
+@@ -3533,10 +3533,10 @@
+     (anything-search-from-candidate-buffer-internal
+      (lambda ()
+        (clrhash anything-cib-hash)
+-       (dolist (searcher search-fns)
++       (cl-dolist (searcher search-fns)
+          (goto-char start-point)
+          (setq newmatches nil)
+-         (loop with item-count = 0
++         (cl-loop with item-count = 0
+                while (funcall searcher pattern)
+                for cand = (funcall get-line-fn (point-at-bol) (point-at-eol))
+                do (anything-accumulate-candidates-internal
+@@ -3548,11 +3548,11 @@
+                              (forward-line 1))))
+                return nil)
+          (setq matches (append matches (nreverse newmatches)))
+-         (if exit (return)))
++         (if exit (cl-return)))
+        (delq nil matches)))))
+ 
+ (defun anything-initial-candidates-from-candidate-buffer (endp get-line-fn limit search-from-end)
+-  (delq nil (loop with next-line-fn =
++  (delq nil (cl-loop with next-line-fn =
+                   (if search-from-end
+                       (lambda (x) (goto-char (max (1- (point-at-bol)) 1)))
+                       #'forward-line)
+@@ -3604,7 +3604,7 @@
+                                                         anything-candidate-buffer-alist)
+                                                  anything-candidate-buffer-alist))))
+               (kill-buffers-func ()
+-                                 (loop for b in (buffer-list)
++                                 (cl-loop for b in (buffer-list)
+                                        if (string-match (format "^%s" (regexp-quote global-bname))
+                                                         (buffer-name b))
+                                        do (kill-buffer b)))
+@@ -3729,7 +3729,7 @@
+ (defun anything-initialize-persistent-action ()
+   (set (make-local-variable 'anything-persistent-action-display-window) nil))
+ 
+-(defun* anything-execute-persistent-action (&optional (attr 'persistent-action) onewindow)
++(cl-defun anything-execute-persistent-action (&optional (attr 'persistent-action) onewindow)
+   "Perform the associated action ATTR without quitting anything.
+ ATTR default is 'persistent-action', but it can be anything else.
+ In this case you have to add this new attribute to your source.
+@@ -3787,7 +3787,7 @@
+                        (or (member name
+                                    (mapcar (lambda (x) (or (car-safe x) x))
+                                            special-display-buffer-names))
+-                           (remove-if-not
++                           (cl-remove-if-not
+                             (lambda (x) (string-match (or (car-safe x) x) name))
+                             special-display-regexps)))
+             '("."))))
+@@ -3832,7 +3832,7 @@
+   "Marked candadates.  List of \(source . real\) pair.")
+ 
+ (defun anything-this-visible-mark ()
+-  (loop for o in anything-visible-mark-overlays
++  (cl-loop for o in anything-visible-mark-overlays
+         when (equal (point-at-bol) (overlay-start o))
+         return o))
+ 
+@@ -3864,15 +3864,18 @@
+       (anything-make-visible-mark))
+     (anything-next-line)))
+ 
++(defun anything--display-visible-marks (overlays)
++  "Display captured OVERLAYS after the Anything session has ended."
++  (with-output-to-temp-buffer "*anything visible marks*"
++    (cl-dolist (o overlays) (princ (overlay-get o 'string)))))
++
+ (defun anything-display-all-visible-marks ()
+   "Show all `anything' visible marks strings."
+   (interactive)
+   (with-anything-window
+-    (lexical-let ((overlays (reverse anything-visible-mark-overlays)))
+-      (anything-run-after-quit
+-       (lambda ()
+-         (with-output-to-temp-buffer "*anything visible marks*"
+-           (dolist (o overlays) (princ (overlay-get o 'string)))))))))
++    (anything-run-after-quit
++     (apply-partially #'anything--display-visible-marks
++                      (reverse anything-visible-mark-overlays)))))
+ 
+ (defun anything-marked-candidates ()
+   "Return marked candidates of current source if any.
+@@ -3882,7 +3885,7 @@
+   (with-current-buffer (anything-buffer-get)
+     (let ((cands
+            (if anything-marked-candidates
+-               (loop with current-src = (anything-get-current-source)
++               (cl-loop with current-src = (anything-get-current-source)
+                      for (source . real) in (reverse anything-marked-candidates)
+                      when (equal current-src source)
+                      collect (anything-coerce-selection real source))
+@@ -3905,7 +3908,7 @@
+ (defun anything-revive-visible-mark ()
+   "Restore marked candidates when anything update display."
+   (with-current-buffer anything-buffer
+-    (dolist (o anything-visible-mark-overlays)
++    (cl-dolist (o anything-visible-mark-overlays)
+       (goto-char (point-min))
+       (while (and (search-forward (overlay-get o 'string) nil t)
+                   (anything-current-source-name= (overlay-get o 'source)))
+@@ -3929,11 +3932,11 @@
+      (if prev (car (last points)) curpos))
+     (t
+      (nth (if prev
+-              (loop for pt in points
++              (cl-loop for pt in points
+                     for i from 0
+                     if (<= curpos pt)
+                     return (1- i))
+-              (loop for pt in points
++              (cl-loop for pt in points
+                     for i from 0
+                     if (< curpos pt)
+                     return i))
+@@ -4452,7 +4455,7 @@
+ 
+ (defun anything-dumped-variables-in-bug-report ()
+   (let ((hash (make-hash-table)))
+-    (loop for var in (apropos-internal "anything-" 'boundp)
++    (cl-loop for var in (apropos-internal "anything-" 'boundp)
+           for vname = (symbol-name var)
+           unless (or (string-match "-map$" vname)
+                      (string-match "^anything-c-source-" vname)
+@@ -4479,7 +4482,7 @@
+   (anything-run-after-quit 'anything-send-bug-report))
+ 
+ ;; Debugging function.
+-(defun* anything-test-candidates
++(cl-defun anything-test-candidates
+     (sources &optional (input "")
+              (compile-source-functions
+               anything-compile-source-functions-default))

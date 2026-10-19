@@ -145,6 +145,11 @@
 ;; (defvaralias 'lazy-highlight-face 'isearch-lazy-highlight)
 
 ;; foreign-regexp
+;; Prefer the local cl-lib port over ELPA's legacy implementation.
+(add-to-list 'load-path
+             (expand-file-name "../vendor/foreign-regexp"
+                               (file-name-directory
+                                (or load-file-name buffer-file-name))))
 (when (require 'foreign-regexp nil t)
   (eval-after-load "foreign-regexp"
     (progn

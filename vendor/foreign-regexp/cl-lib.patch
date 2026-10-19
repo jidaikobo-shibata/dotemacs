@@ -1,0 +1,681 @@
+--- a/foreign-regexp.el
++++ b/foreign-regexp.el
+@@ -1,4 +1,4 @@
+-;;; foreign-regexp.el --- search and replace by foreign regexp.
++;;; foreign-regexp.el --- search and replace by foreign regexp. -*- lexical-binding: nil; -*-
+ 
+ ;; Copyright (C) 2010-2014 K-talo Miyazaki, all rights reserved.
+ 
+@@ -79,7 +79,7 @@
+ ;; python (only tested on 2.x), choose one of them as your taste,
+ ;; is required as external command.
+ ;;
+-;; Also features `cl', `menu-bar' and `re-builder' are required.
++;; Also features `cl-lib', `menu-bar' and `re-builder' are required.
+ ;;
+ ;; For better multilingual support, Emacs (>= 21) may be required.
+ ;;
+@@ -571,10 +571,14 @@
+ 
+ 
+ (eval-and-compile
+-  (require 'cl)
++  (require 'cl-lib)
+   (require 'menu-bar)
+   (require 'easymenu))
+ (require 're-builder)
++(require 'foreign-regexp-closures)
++
++;; The generated advice is compiled before this option's defcustom below.
++(defvar foreign-regexp/regexp-type nil)
+ 
+ 
+ ;;; ===========================================================================
+@@ -617,15 +621,9 @@
+                  c)))))
+ 
+ ;; ----------------------------------------------------------------------------
+-;;  (foreign-regexp/alambda parms &body body) => RESULT OF BODYFORM
+-;; ----------------------------------------------------------------------------
+-(defmacro* foreign-regexp/alambda (parms &body body)
+-  "An utility macro.
+-This macro allows anonymous functions to refer themselves
+-through a symbol `self'."
+-  (declare (indent 1))
+-  `(labels ((self ,parms ,@body))
+-     #'self))
++;;  Self-referencing callbacks
++;; ----------------------------------------------------------------------------
++;; Escaped self-referencing callbacks live in foreign-regexp-closures.el.
+ 
+ ;; ----------------------------------------------------------------------------
+ ;;  (foreign-regexp/catch-case var bodyform &rest handlers) => RESULT OF BODYFORM
+@@ -652,17 +650,17 @@
+ 
+ See also the function `throw' for more info."
+   (declare (indent 2))
+-  (let* ((g-retval (gensym))
++  (let* ((g-retval (cl-gensym "foreign-regexp-"))
+          (bodyform (list 'setq g-retval bodyform))
+          var-lst
+          clause-lst)
+-    (dolist (h handlers)
++    (cl-dolist (h handlers)
+       (let* ((tag-lst
+               (cond
+                ((listp (car h)) (car h))
+                (t (list (car h)))))
+-             (var-tag-val (gensym)))
+-        (dolist (tag tag-lst)
++             (var-tag-val (cl-gensym "foreign-regexp-")))
++        (cl-dolist (tag tag-lst)
+           (push (list var-tag-val `(quote ,var-tag-val)) var-lst)
+           (setq bodyform
+                 `(setq ,var-tag-val (catch (quote ,tag)
+@@ -712,49 +710,35 @@
+ ;;  (foreign-regexp/search/with-regarding-these-string-as-foreign-regexp
+ ;;             (string-list &optional limit) &rest body) => RESULT OF BODYFORM
+ ;; ----------------------------------------------------------------------------
++(defun foreign-regexp/.call-with-initial-contents (pattern command)
++  "Run COMMAND with the previously captured PATTERN in its minibuffer."
++  (foreign-regexp/read-from-minibuf/with-initial-contents
++   pattern
++   (let ((this-command command))
++     (call-interactively command))))
++
++(defun foreign-regexp/search/.dispatch (strings limit original search regexp &optional bound noerror count)
++  "Dispatch REGEXP to SEARCH only when it is a member of STRINGS by identity."
++  (if (memq regexp strings)
++      (funcall search regexp bound noerror count limit)
++    (funcall original regexp bound noerror count)))
++
+ (defmacro foreign-regexp/search/with-regarding-these-string-as-foreign-regexp (args &rest body)
+-  "Run BODY with applying `foreign-regexp/search/forward' and
+-`foreign-regexp/search/backward' to member of STRING-LIST in
+-substitution for `re-search-forward' and `re-search-backward'.
+-
+-Note that the equivalence of the STRING are tested in `eq'.
+-
+-When LIMIT is a number, match will be limited to the LIMIT.
+-When LIMIT is NIL, match won't be limited.
+-
+-\(FN (STRING-LIST &OPTIONAL LIMIT) &REST BODY)"
++  "Run BODY using foreign search for strings in ARGS (STRING-LIST &optional LIMIT).
++Membership is tested by identity, as in the original implementation."
+   (declare (indent 1))
+-  (let ((g-orig-re-fwd-fn  (gensym))
+-        (g-orig-re-bkwd-fn (gensym))
+-        (g-regexp-lst      (gensym))
+-        (g-limit           (gensym))
+-        (g-args            (gensym)))
+-    `(lexical-let ((,g-orig-re-fwd-fn  (symbol-function 're-search-forward))
+-                   (,g-orig-re-bkwd-fn (symbol-function 're-search-backward)))
+-       (unwind-protect
+-           (lexical-let ((,g-regexp-lst ,(nth 0 args))
+-                         (,g-limit      ,(nth 1 args)))
+-             (setf (symbol-function 're-search-forward)
+-                   (lambda (regexp &optional bound noerror count)
+-                     (cond
+-                      ((memq regexp ,g-regexp-lst)
+-                       (funcall #'foreign-regexp/search/forward
+-                                regexp bound noerror count ,g-limit))
+-                      (t
+-                       (funcall ,g-orig-re-fwd-fn 
+-                                regexp bound noerror count)))))
+-             (setf (symbol-function 're-search-backward)
+-                   (lambda (regexp &optional bound noerror count)
+-                     (cond
+-                      ((memq regexp ,g-regexp-lst)
+-                       (funcall #'foreign-regexp/search/backward
+-                                regexp bound noerror count ,g-limit))
+-                      (t
+-                       (funcall ,g-orig-re-bkwd-fn
+-                                regexp bound noerror count)))))
+-             ,@body)
+-         (setf (symbol-function 're-search-forward)  ,g-orig-re-fwd-fn)
+-         (setf (symbol-function 're-search-backward) ,g-orig-re-bkwd-fn)))))
++  (let ((strings (make-symbol "strings"))
++        (limit (make-symbol "limit")))
++    `(let ((,strings ,(car args)) (,limit ,(cadr args)))
++       (cl-letf (((symbol-function 're-search-forward)
++                  (apply-partially #'foreign-regexp/search/.dispatch
++                                   ,strings ,limit (symbol-function 're-search-forward)
++                                   #'foreign-regexp/search/forward))
++                 ((symbol-function 're-search-backward)
++                  (apply-partially #'foreign-regexp/search/.dispatch
++                                   ,strings ,limit (symbol-function 're-search-backward)
++                                   #'foreign-regexp/search/backward)))
++         ,@body))))
+ 
+ ;; ----------------------------------------------------------------------------
+ ;;  (foreign-regexp/search/with-regarding-string-as-foreign-regexp
+@@ -1285,7 +1269,7 @@
+ ;; ----------------------------------------------------------------------------
+ (defun foreign-regexp/search-option-indicator/make-indicator-aux ()
+   "Auxiliary function of `foreign-regexp/search-option-indicator/make-indicator'."
+-  (reduce '(lambda (str elm)
++  (cl-reduce '(lambda (str elm)
+              (concat str
+                      (cond
+                       ((zerop (length str)) "")
+@@ -1367,25 +1351,14 @@
+           
+           ;; Do not toggle search options of *Minibuf-N* while reading
+           ;; regexps, toggle re-options of CURRENT BUFFER instead.
+-          (lexical-let ((cur-buf (current-buffer)))
+-            (mapcar
+-             (lambda (lst)
+-               (lexical-let ((hook (nth 0 lst)) (toggle-fn (nth 1 lst)))
+-                 (add-hook hook
+-                           (foreign-regexp/alambda ()
+-                                                   (with-current-buffer cur-buf
+-                                                     (progv (list hook) (list (symbol-value hook))
+-                                                       ;; Do not call this hook recursively.
+-                                                       (remove-hook hook #'self)
+-                                                       ;; Run `foreign-regexp/toggle-*' in current buffer.
+-                                                       (funcall toggle-fn t)))
+-                                                   ;; Exit from function `foreign-regexp/toggle-*'
+-                                                   ;; in *Minibuf-N*.
+-                                                   (foreign-regexp/.signal-option-changed)))))
+-             '((foreign-regexp/case-fold-will-change-hook        foreign-regexp/toggle-case-fold)
+-               (foreign-regexp/dot-match-will-change-hook        foreign-regexp/toggle-dot-match)
+-               (foreign-regexp/ext-regexp-will-change-hook       foreign-regexp/toggle-ext-regexp)
+-               (foreign-regexp/eval-replacement-will-change-hook foreign-regexp/toggle-eval-replacement))))
++          (dolist (entry
++                    '((foreign-regexp/case-fold-will-change-hook foreign-regexp/toggle-case-fold)
++                      (foreign-regexp/dot-match-will-change-hook foreign-regexp/toggle-dot-match)
++                      (foreign-regexp/ext-regexp-will-change-hook foreign-regexp/toggle-ext-regexp)
++                      (foreign-regexp/eval-replacement-will-change-hook foreign-regexp/toggle-eval-replacement)))
++            (add-hook (car entry)
++                      (foreign-regexp/.make-option-hook
++                       (current-buffer) (car entry) (cadr entry))))
+           
+           ;; Whenever search option is changed, restart `read-from-minibuffer' to
+           ;; redisplay prompt.
+@@ -1582,7 +1555,7 @@
+                :active   t
+                :help "dummy")))
+           `((nil :name nil :tag "None")
+-            ,@(let ((alst (copy-list
++            ,@(let ((alst (cl-copy-list
+                            (and (boundp 'foreign-regexp/regexp-type/.type-alst) ;; For compiler
+                                 foreign-regexp/regexp-type/.type-alst))))
+                 (sort alst
+@@ -1915,7 +1888,7 @@
+     (foreign-regexp/replace/parse-search-result result offset)
+     
+     ;; Detect index of neighborhood overlay of a pointer.
+-    (position (car (member-if
++    (cl-position (car (cl-member-if
+                     #'(lambda (ov)
+                         (<= (point) (overlay-start ov)))
+                     (foreign-regexp/replace/ovs-on-match/get-all)))
+@@ -1955,8 +1928,8 @@
+     (let ((data    nil)
+           (cur-buf (current-buffer)))
+       ;;(message "[foreign-regexp] Parsing search results from external command...")
+-      (dolist (lst (reverse result))
+-        (dolist (item lst)
++      (cl-dolist (lst (reverse result))
++        (cl-dolist (item lst)
+           (let* ((pos-lst     (nth 0 item))
+                  (beg         (+ (nth 0 pos-lst) offset))
+                  (end         (+ (nth 1 pos-lst) offset))
+@@ -2041,18 +2014,20 @@
+     (push-mark)
+     (undo-boundary)
+     (unwind-protect
+-        (flet ((update-real-match-data (idx)
+-                                       (setq real-match-data
+-                                             (let ((ov (foreign-regexp/replace/ovs-on-match/get-nth idx)))
+-                                               (when ov
+-                                                 (list (overlay-start ov)
+-                                                       (overlay-end   ov)))))
+-                                       (set-match-data real-match-data)
+-                                       real-match-data)
+-               (update-next-replacement (idx)
+-                                        (setq next-replacement
+-                                              (overlay-get (foreign-regexp/replace/ovs-on-match/get-nth idx)
+-                                                           'foreign-regexp/replace/replacement))))
++        (cl-letf (((symbol-function 'update-real-match-data)
++                   (lambda (idx)
++                     (setq real-match-data
++	                   (let
++	                       ((ov (foreign-regexp/replace/ovs-on-match/get-nth idx)))
++	                     (when ov (list (overlay-start ov) (overlay-end ov)))))
++                     (set-match-data real-match-data) real-match-data))
++                  ((symbol-function 'update-next-replacement)
++                   (lambda (idx)
++                     (setq next-replacement
++	                   (overlay-get
++	                    (foreign-regexp/replace/ovs-on-match/get-nth idx)
++	                    'foreign-regexp/replace/replacement)))))
++
+           ;; Loop finding occurrences that perhaps should be replaced.
+           (while (and idx
+                       keep-going
+@@ -2366,7 +2341,7 @@
+ (defun foreign-regexp/replace/ovs-on-match/dispose ()
+   "Delete overlays on matched strings created by external command
+ `foreign-regexp/replace'."
+-  (dolist (ov foreign-regexp/replace/ovs-on-match/data)
++  (cl-dolist (ov foreign-regexp/replace/ovs-on-match/data)
+     (overlay-put ov 'foreign-regexp/replace/replacement nil)
+     (overlay-put ov 'priority nil)
+     (delete-overlay ov))
+@@ -2458,7 +2433,7 @@
+           (coding nil)
+           (case-fold-search case-fold))
+       ;; Map over all the buffers
+-      (dolist (buf buffers)
++      (cl-dolist (buf buffers)
+         (when (buffer-live-p buf)
+           (let ((matches 0)     ;; count of matched lines
+                 (lines 1)       ;; line count
+@@ -2650,7 +2625,7 @@
+          (data   (or (foreign-regexp/search/cache/get    buf regexp limit)
+                      (foreign-regexp/search/cache/update buf regexp limit)))
+          (pt     (point))
+-         (be-lst (car (member-if #'(lambda (be-lst)
++         (be-lst (car (cl-member-if #'(lambda (be-lst)
+                                      (<= pt (nth 0 be-lst)))
+                                  data)))
+          (beg    (and be-lst (nth 0 be-lst)))
+@@ -2658,7 +2633,7 @@
+     (cond
+      ((and be-lst
+            (if bound (<= end bound) t))
+-      (set-match-data (copy-list be-lst))
++      (set-match-data (cl-copy-list be-lst))
+       (goto-char end)
+       (cond
+        ((and count
+@@ -2696,7 +2671,7 @@
+          (data   (reverse (or (foreign-regexp/search/cache/get    buf regexp limit)
+                               (foreign-regexp/search/cache/update buf regexp limit))))
+          (pt     (point))
+-         (be-lst (car (member-if
++         (be-lst (car (cl-member-if
+                        #'(lambda (be-lst)
+                            (<= (nth 1 be-lst) pt))
+                        data)))
+@@ -2705,7 +2680,7 @@
+     (cond
+      ((and be-lst
+            (if bound (<= bound beg) t))
+-      (set-match-data (copy-list be-lst))
++      (set-match-data (cl-copy-list be-lst))
+       (goto-char beg)
+       (cond
+        ((and count
+@@ -2873,8 +2848,8 @@
+                         nil))
+                parsed-result)
+           ;; Remove replacement from result.
+-          (dolist (lst (reverse result))
+-            (dolist (item lst)
++          (cl-dolist (lst (reverse result))
++            (cl-dolist (item lst)
+               (setq parsed-result
+                     (cons (mapcar #'(lambda (elm)
+                                       ;; Translate index to count.
+@@ -3224,10 +3199,10 @@
+    ALL OTHERS:
+        The rule won't be applied."
+   (let ((regexp-lst nil)
+-        (cooked-rules    (copy-list rules))
+-        (cooked-ex-rules (copy-list exclude-rules)))
+-    (dolist (cur-rules (list rules exclude-rules))
+-      (dolist (rule cur-rules)
++        (cooked-rules    (cl-copy-list rules))
++        (cooked-ex-rules (cl-copy-list exclude-rules)))
++    (cl-dolist (cur-rules (list rules exclude-rules))
++      (cl-dolist (rule cur-rules)
+         (when (assq 'foreign-regexp-type rule)
+           (let ((regexp-type (cdr (assq 'regexp-type rule)))
+                 (regexp     (cdr (assq 'regexp     rule))))
+@@ -3388,12 +3363,12 @@
+   "When the current buffer is *RE-Builder*, exit `re-builder'
+ and then run BODY with binding current RE to RE-VAR.
+ 
+-NOTE: RE-VAR will be defined as lexical variable by this macro."
++RE-VAR is bound during BODY; deferred isearch hooks capture it explicitly."
+   (declare (indent 1))
+   `(progn
+-     (case reb-re-syntax
++     (cl-case reb-re-syntax
+        ((foreign-regexp)
+-        (lexical-let ((,re-var (and (eq (get-buffer reb-buffer)
++        (let ((,re-var (and (eq (get-buffer reb-buffer)
+                                         (current-buffer))
+                                     (with-current-buffer (get-buffer reb-buffer)
+                                       (buffer-substring (point-min) (point-max))))))
+@@ -3457,12 +3432,7 @@
+   
+   (foreign-regexp/re-builder/exec-with-current-re regexp
+                                                   (add-hook 'isearch-mode-hook
+-                                                            (foreign-regexp/alambda ()
+-                                                                                    (remove-hook 'isearch-mode-hook
+-                                                                                                 #'self)
+-                                                                                    (isearch-push-state)
+-                                                                                    (setq isearch-string  regexp
+-                                                                                          isearch-message regexp)))
++                                                            (foreign-regexp/.make-isearch-setup-hook regexp))
+                                                   (foreign-regexp/isearch-forward)))
+ 
+ ;; ----------------------------------------------------------------------------
+@@ -3477,12 +3447,7 @@
+   
+   (foreign-regexp/re-builder/exec-with-current-re regexp
+                                                   (add-hook 'isearch-mode-hook
+-                                                            (foreign-regexp/alambda ()
+-                                                                                    (remove-hook 'isearch-mode-hook
+-                                                                                                 #'self)
+-                                                                                    (isearch-push-state)
+-                                                                                    (setq isearch-string  regexp
+-                                                                                          isearch-message regexp)))
++                                                            (foreign-regexp/.make-isearch-setup-hook regexp))
+                                                   (foreign-regexp/isearch-backward)))
+ 
+ ;; ----------------------------------------------------------------------------
+@@ -3576,7 +3541,7 @@
+ ;; ----------------------------------------------------------------------------
+ 
+ (defadvice reb-next-match (around foreign-regexp/re-builder/next-match ())
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (foreign-regexp/re-builder/assert-available)
+      (foreign-regexp/search/with-regarding-string-as-foreign-regexp
+@@ -3591,7 +3556,7 @@
+ (put 'reb-next-match  'foreign-regexp/search/ongoing-search-cmd-p t)
+ 
+ (defadvice reb-prev-match (around foreign-regexp/re-builder/prev-match ())
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (foreign-regexp/re-builder/assert-available)
+      (foreign-regexp/search/with-regarding-string-as-foreign-regexp
+@@ -3606,7 +3571,7 @@
+ (put 'reb-prev-match 'foreign-regexp/search/ongoing-search-cmd-p t)
+ 
+ (defadvice reb-copy (around foreign-regexp/re-builder/copy ())
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (foreign-regexp/re-builder/assert-available)
+      (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+@@ -3632,7 +3597,7 @@
+ 
+ (defadvice reb-update-modestring (around foreign-regexp/re-builder/update-mode-string ())
+   "Put search option indicator on modeline."
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (setq reb-mode-string
+            (concat
+@@ -3648,7 +3613,7 @@
+ (foreign-regexp/ad-activate 'reb-update-modestring)
+ 
+ (defadvice reb-read-regexp (around foreign-regexp/re-builder/read-regexp ())
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (setq ad-return-value
+            (buffer-substring-no-properties (point-min) (point-max))))
+@@ -3656,7 +3621,7 @@
+ (foreign-regexp/ad-activate 'reb-read-regexp)
+ 
+ (defadvice reb-insert-regexp (around foreign-regexp/re-builder/insert-regexp ())
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (when reb-regexp
+        (insert reb-regexp)))
+@@ -3664,7 +3629,7 @@
+ (foreign-regexp/ad-activate 'reb-insert-regexp)
+ 
+ (defadvice reb-update-regexp (around foreign-regexp/re-builder/update-regexp ())
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (let ((regexp (reb-read-regexp)))
+        (with-current-buffer reb-target-buffer
+@@ -3680,7 +3645,7 @@
+ (foreign-regexp/ad-activate 'reb-update-regexp)
+ 
+ (defadvice reb-count-subexps (around foreign-regexp/re-builder/count-subexps (re))
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (foreign-regexp/re-builder/assert-available)
+      
+@@ -3694,7 +3659,7 @@
+                  ;; Match limit.
+                  (limit  (if (numberp reb-auto-match-limit)
+                              reb-auto-match-limit nil)))
+-             (dolist (be-lst (or (foreign-regexp/search/cache/get    buf regexp limit)
++             (cl-dolist (be-lst (or (foreign-regexp/search/cache/get    buf regexp limit)
+                                  (foreign-regexp/search/cache/update buf regexp limit)))
+                (setq retval (max retval (1- (/ (length be-lst) 2))))))
+            (setq ad-return-value retval)))))
+@@ -3702,7 +3667,7 @@
+ (foreign-regexp/ad-activate 'reb-count-subexps)
+ 
+ (defadvice reb-update-overlays (around foreign-regexp/re-builder/update-overlays (&optional subexp))
+-  (case reb-re-syntax
++  (cl-case reb-re-syntax
+     ((foreign-regexp)
+      (foreign-regexp/re-builder/assert-available)
+ 
+@@ -3770,7 +3735,7 @@
+                  ((listp alt-type)
+                   (let (retval)
+                     (while alt-type
+-                      (case (car alt-type)
++                      (cl-case (car alt-type)
+                         ((const)
+                          (setq alt-type (cdr alt-type)))
+                         ((:tag)
+@@ -3949,29 +3914,28 @@
+ ;;
+ ;; ----------------------------------------------------------------------------
+ 
++(defun foreign-regexp/nonincremental-repeat-search-forward (original &rest args)
++  "Repeat a foreign search, or delegate to ORIGINAL with ARGS."
++  (if (and (eq menu-bar-last-search-type 'foreign-regexp)
++           foreign-regexp/history)
++      (foreign-regexp/search/forward (car foreign-regexp/history))
++    (apply original args)))
++
++(defun foreign-regexp/nonincremental-repeat-search-backward (original &rest args)
++  "Repeat a foreign search backward, or delegate to ORIGINAL with ARGS."
++  (if (and (eq menu-bar-last-search-type 'foreign-regexp)
++           foreign-regexp/history)
++      (foreign-regexp/search/backward (car foreign-regexp/history))
++    (apply original args)))
++
+ (when (require 'menu-bar nil t)
+   (when (fboundp 'nonincremental-repeat-search-forward)
+-    (defadvice nonincremental-repeat-search-forward (around foreign-regexp/nonincremental-repeat-search-forward ())
+-      (cond
+-       ((and (eq menu-bar-last-search-type 'foreign-regexp)
+-             foreign-regexp/history)
+-        (setq ad-return-value
+-              (foreign-regexp/search/forward (car foreign-regexp/history))))
+-       (t
+-        ad-do-it)))
+-    (foreign-regexp/ad-activate 'nonincremental-repeat-search-forward)
++    (advice-add 'nonincremental-repeat-search-forward :around
++                #'foreign-regexp/nonincremental-repeat-search-forward)
+     (put 'nonincremental-repeat-search-forward 'foreign-regexp/search/ongoing-search-cmd-p t))
+-
+   (when (fboundp 'nonincremental-repeat-search-backward)
+-    (defadvice nonincremental-repeat-search-backward (around foreign-regexp/nonincremental-repeat-search-backward ())
+-      (cond
+-       ((and (eq menu-bar-last-search-type 'foreign-regexp)
+-             foreign-regexp/history)
+-        (setq ad-return-value
+-              (foreign-regexp/search/backward (car foreign-regexp/history))))
+-       (t
+-        ad-do-it)))
+-    (foreign-regexp/ad-activate 'nonincremental-repeat-search-backward)
++    (advice-add 'nonincremental-repeat-search-backward :around
++                #'foreign-regexp/nonincremental-repeat-search-backward)
+     (put 'nonincremental-repeat-search-backward 'foreign-regexp/search/ongoing-search-cmd-p t)))
+ 
+ ;; ----------------------------------------------------------------------------
+@@ -4050,8 +4014,8 @@
+ (defmacro foreign-regexp/transition/.setup (sym-table)
+   "Define transitions among each command."
+   (let ((retval (list 'progn)))
+-    (dolist (rec (symbol-value sym-table))
+-      (let ((table                 (copy-list (symbol-value sym-table)))
++    (cl-dolist (rec (symbol-value sym-table))
++      (let ((table                 (cl-copy-list (symbol-value sym-table)))
+             (label                 (cadr (memq :label   rec)))
+             (op-kind               (cadr (memq :op-kind rec)))
+             (command               (cadr (memq :command rec)))
+@@ -4059,11 +4023,11 @@
+         
+         (setq table (delq rec table))
+         
+-        (dolist (targ-rec table)
++        (cl-dolist (targ-rec table)
+           (let ((targ-label   (cadr (memq :label   targ-rec)))
+                 (targ-op-kind (cadr (memq :op-kind targ-rec)))
+                 (targ-command (cadr (memq :command targ-rec))))
+-            (case op-kind
++            (cl-case op-kind
+               ((re-builder-cmd)
+                ;; Nothing to do.
+                ;;
+@@ -4100,7 +4064,7 @@
+                                              (quote ,targ-command)
+                                              (quote ,ad-name-make-transition-to))
+                       
+-                      (lexical-let ((regexp isearch-string))
++                      (let ((regexp isearch-string))
+                         (unwind-protect
+                             (progn
+                               ;; When `isearch-string' is empty,
+@@ -4114,12 +4078,12 @@
+                           ;; `isearch-exit' throws something in some case,
+                           ;; so another foreign-regexp command should be called
+                           ;; from within protected form.
+-                          ,@(case targ-op-kind
++                          ,@(cl-case targ-op-kind
+                               ((re-builder-cmd)
+                                ;; NOTE: Do not run `re-builder' with timer,
+                                ;;       or window won't be switched to
+                                ;;       *RE-Builder* properly.
+-                               `((case reb-re-syntax
++                               `((cl-case reb-re-syntax
+                                    ((foreign-regexp)
+                                     (let ((this-command (quote ,targ-command)))
+                                       (call-interactively (function ,targ-command)))
+@@ -4129,15 +4093,8 @@
+                                    (t
+                                     (error "[foreign-regexp] RE-Builder syntax is not `foreign-regexp'.")))))
+                               ((minibuf-cmd)
+-                               `((run-with-idle-timer
+-                                  0 nil
+-                                  (lambda ()
+-                                    ;; Call another foreign-regexp command with setting
+-                                    ;; initial contents to `read-from-minibuffer'.
+-                                    (foreign-regexp/read-from-minibuf/with-initial-contents
+-                                     regexp
+-                                     (let ((this-command (quote ,targ-command)))
+-                                       (call-interactively (function ,targ-command))))))))))))
++                               `((run-with-idle-timer 0 nil #'foreign-regexp/.call-with-initial-contents
++                                      regexp (quote ,targ-command))))))))
+                     ;; Should be turned on by `isearch-mode-hook'.
+                     (foreign-regexp/ad-disable (quote ,targ-command) 'around (quote ,ad-name-make-transition-to))
+                     (foreign-regexp/ad-activate (quote ,targ-command))
+@@ -4175,7 +4132,7 @@
+                                                    (format
+                                                     "foreign-regexp/transition/%s/allow-transition-to-%s"
+                                                     label targ-label)))
+-                     (g-transition-allowed-p      (gensym)))
++                     (g-transition-allowed-p      (cl-gensym "foreign-regexp-")))
+ 
+                  ;; For two purposes below, we wrap each foreign-regexp
+                  ;; command, which runs `read-from-minibuffer' to
+@@ -4284,15 +4241,13 @@
+                                                                                (quote ,command)
+                                                                                (quote ,ad-name-catch-transition-to))
+                                                         
+-                                                        (lexical-let ((regexp (cadr var))
+-                                                                      (orig-messasge-fn
+-                                                                       (symbol-function 'message)))
+-                                                          ,@(case targ-op-kind
++                                                        (let ((regexp (cadr var)))
++                                                          ,@(cl-case targ-op-kind
+                                                               ((re-builder-cmd)
+                                                                ;; NOTE: Do not run `re-builder' with timer,
+                                                                ;;       or window won't be switched to
+                                                                ;;       *RE-Builder* properly.
+-                                                               `((case reb-re-syntax
++                                                               `((cl-case reb-re-syntax
+                                                                    ((foreign-regexp)
+                                                                     (let ((this-command (quote ,targ-command)))
+                                                                       (call-interactively (function ,targ-command)))
+@@ -4302,28 +4257,11 @@
+                                                                    (t
+                                                                     (error "[foreign-regexp] RE-Builder syntax is not `foreign-regexp'.")))))
+                                                               ((isearch-cmd)
+-                                                               `((run-with-idle-timer
+-                                                                  0 nil
+-                                                                  (lambda ()
+-                                                                    (add-hook 'isearch-mode-hook
+-                                                                              (foreign-regexp/alambda ()
+-                                                                                                      (remove-hook 'isearch-mode-hook
+-                                                                                                                   #'self)
+-                                                                                                      (isearch-push-state)
+-                                                                                                      (setq isearch-string  regexp
+-                                                                                                            isearch-message regexp)))
+-                                                                    (let ((this-command (quote ,targ-command)))
+-                                                                      (call-interactively (function ,targ-command)))))))
++                                                               `((run-with-idle-timer 0 nil #'foreign-regexp/.call-isearch-with-regexp
++                                      regexp (quote ,targ-command))))
+                                                               ((minibuf-cmd)
+-                                                               `((run-with-idle-timer
+-                                                                  0 nil
+-                                                                  (lambda ()
+-                                                                    ;; Call another foreign-regexp command with setting
+-                                                                    ;; initial contents to `read-from-minibuffer'.
+-                                                                    (foreign-regexp/read-from-minibuf/with-initial-contents
+-                                                                     regexp
+-                                                                     (let ((this-command (quote ,targ-command)))
+-                                                                       (call-interactively (function ,targ-command)))))))))
++                                                               `((run-with-idle-timer 0 nil #'foreign-regexp/.call-with-initial-contents
++                                      regexp (quote ,targ-command)))))
+                                                           ;; FIXME: Turn off an annoying message
+                                                           ;;        "Back to top level.".
+                                                           (top-level)))))
+@@ -4443,7 +4381,7 @@
+ ;;                                       script-quote-meta
+ ;;                                       wsp-regexp-for-align) => VOID
+ ;; ----------------------------------------------------------------------------
+-(defun* foreign-regexp/regexp-type/define (&key name
++(cl-defun foreign-regexp/regexp-type/define (&key name
+                                                 tag
+                                                 input-coding-system
+                                                 output-coding-system
+@@ -4579,7 +4517,7 @@
+ (defun foreign-regexp/regexp-type/forget (name)
+   "Remove an regexp type NAME from `foreign-regexp/regexp-type/.type-alst'."
+   (setq foreign-regexp/regexp-type/.type-alst
+-        (remove-if '(lambda (pair) (eq name (car pair)))
++        (cl-remove-if '(lambda (pair) (eq name (car pair)))
+                    foreign-regexp/regexp-type/.type-alst)))
+ 
+ ;; ----------------------------------------------------------------------------
+@@ -5634,7 +5572,6 @@
+  :indicator-separator            "")
+ 
+ ;; Local variables:
+-;; byte-compile-warnings: (not cl-functions free-vars)
+ ;; End:
+ 
+ ;;; foreign-regexp.el ends here
