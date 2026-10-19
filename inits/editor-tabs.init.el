@@ -94,6 +94,10 @@
     (define-key map (kbd "C-M-<left>") #'my/editor-tabs-previous)
     (define-key map (kbd "C-M-<right>") #'my/editor-tabs-next)
     (define-key map (kbd "C-t") #'my/editor-tabs-new)
+    ;; Also accept the Super events observed with the desktop modifier mapping.
+    (define-key map (kbd "M-s-<left>") #'my/editor-tabs-previous)
+    (define-key map (kbd "M-s-<right>") #'my/editor-tabs-next)
+    (define-key map (kbd "s-t") #'my/editor-tabs-new)
     (define-key map (kbd "C-x <left>") #'my/editor-tabs-previous)
     (define-key map (kbd "C-x C-<left>") #'my/editor-tabs-previous)
     (define-key map (kbd "C-x <right>") #'my/editor-tabs-next)

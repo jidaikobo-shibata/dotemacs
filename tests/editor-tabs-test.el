@@ -97,15 +97,12 @@
         (global-before global-tab-line-mode))
     (my/with-test-tabs
       (my/editor-tabs-mode 1)
-      (dolist (key '("C-M-<left>"))
+      (dolist (key '("C-M-<left>" "M-s-<left>"))
         (should (eq (key-binding (kbd key)) #'my/editor-tabs-previous)))
-      (dolist (key '("C-M-<right>"))
+      (dolist (key '("C-M-<right>" "M-s-<right>"))
         (should (eq (key-binding (kbd key)) #'my/editor-tabs-next)))
-      (dolist (key '("C-t"))
+      (dolist (key '("C-t" "s-t"))
         (should (eq (key-binding (kbd key)) #'my/editor-tabs-new)))
-      ;; Anything and Super shortcuts keep their original bindings even on tabs.
-      (dolist (key '("M-s-<left>" "M-s-<right>" "s-t"))
-        (should (equal (cdr (assoc key bindings)) (key-binding (kbd key)))))
       (should (eq tab-line-tabs-function #'my/editor-tabs--tabs)))
     (dolist (binding bindings)
       (should (equal (cdr binding) (key-binding (kbd (car binding))))))
@@ -122,8 +119,8 @@
           created)
       (unwind-protect
           (progn
-            (dotimes (_ 2)
-              (call-interactively (key-binding (kbd "C-t")))
+            (dolist (key '("C-t" "s-t"))
+              (call-interactively (key-binding (kbd key)))
               (push (current-buffer) created)
               (should-not buffer-file-name)
               (should (= (buffer-size) 0))
