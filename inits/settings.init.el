@@ -10,6 +10,11 @@
 (defcustom my/font-height 160 "Default font height." :type 'integer)
 (defcustom my/use-mozc (eq system-type 'gnu/linux)
   "Whether to enable Mozc integration." :type 'boolean)
+(defcustom my/pgtk-use-native-ime nil
+  "Use GTK's input method instead of Emacs Mozc on PGTK frames.
+When using native input, modifier remapping must already be correct before
+events reach GTK.  Configure xremap and `my/swap-control-super' together."
+  :type 'boolean)
 (defcustom my/swap-control-super (eq system-type 'gnu/linux)
   "Whether to swap Control and Super on X or PGTK." :type 'boolean)
 (defcustom my/mac-command-modifier 'super "Command modifier on macOS." :type 'symbol)

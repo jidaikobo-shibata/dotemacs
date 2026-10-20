@@ -3,6 +3,8 @@
 ;; provide mozc.init.
 ;;; Code:
 
+(require 'settings.init)
+
 (add-to-list 'load-path "/usr/share/emacs/site-lisp/emacs-mozc")
 (set-language-environment "Japanese")
 (setq default-input-method "japanese-mozc")
@@ -255,22 +257,22 @@ The filtering is active only while `y-or-n-p' uses `read-key'."
 
 (advice-add 'yank :before #'my-delete-selection-before-yank)
 
-(defun my/mozc-use-emacs-input-method (&optional frame)
-  "Use Emacs Mozc instead of GTK input handling on PGTK FRAME.
-GTK sees keys before Emacs remaps Control/Super, so its Mozc cannot interpret
-the same control keys as Emacs.  Leave other display backends untouched."
+(defun my/mozc-configure-pgtk-input-method (&optional frame)
+  "Select GTK input or Emacs Mozc for PGTK FRAME.
+GTK sees keys before Emacs remaps Control/Super.  Native input therefore
+requires correctly mapped modifiers before GTK receives them."
   (when (featurep 'mozc)
     (with-selected-frame (or frame (selected-frame))
       (when (and (eq window-system 'pgtk)
                  (fboundp 'pgtk-use-im-context))
-        (setq pgtk-use-im-context-on-new-connection nil)
-        (pgtk-use-im-context nil)))))
+        (setq pgtk-use-im-context-on-new-connection my/pgtk-use-native-ime)
+        (pgtk-use-im-context my/pgtk-use-native-ime)))))
 
 ;; Startup should not abort before the key bindings above are installed.
 ;; Also handle PGTK frames created later by an Emacs daemon.
 (when (my/ensure-mozc-loaded)
-  (add-hook 'after-make-frame-functions #'my/mozc-use-emacs-input-method)
-  (my/mozc-use-emacs-input-method))
+  (add-hook 'after-make-frame-functions #'my/mozc-configure-pgtk-input-method)
+  (my/mozc-configure-pgtk-input-method))
 
 ;;; ------------------------------------------------------------
 ;;; provides

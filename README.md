@@ -43,10 +43,14 @@ macOSでは `examples/macos-settings.el` を `local/settings.el` へコピーす
 Ubuntuでは個人ファイルを作らなくても従来の設定値を使用する。
 フォントは MyricaM M を優先し、未導入なら候補から選択する。
 MozcのLispと `mozc_emacs_helper` がなければMozc連携を無効化する。
-PGTKでMozc連携を使う場合は、GTK側のIMEを無効にしてEmacs専用Mozcへ統一する。
+PGTKでMozc連携を使う場合の既定はEmacs専用Mozc。
 変換キーで有効化し、無変換キーで確定して無効化する。
-Ctrl/Superの入れ替え後のキーをMozcへ渡し、入力経路による変換キーの差を避ける。
-この設定の反映にはEmacsの再起動が必要。
+GTK側のIMEを使う場合は、個人設定 `local/settings.el` で
+`my/pgtk-use-native-ime` を `t` にする。候補はGTK側のウィンドウに表示される。
+GTKはEmacs内の修飾キー交換より先に入力を受け取るため、xremap等で
+Ctrl/Superを交換している場合はEmacsを対象外とし、個人設定の
+`my/swap-control-super` も `nil` にする。両方を揃えてEmacsを再起動する。
+他アプリ向けの交換や、修飾キーを使うxremapのアプリ別設定も確認する。
 macOSで標準IMEを利用するときはOS側の入力切替を使用する。
 
 ### 保存先と保持期間
