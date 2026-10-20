@@ -43,6 +43,10 @@ macOSでは `examples/macos-settings.el` を `local/settings.el` へコピーす
 Ubuntuでは個人ファイルを作らなくても従来の設定値を使用する。
 フォントは MyricaM M を優先し、未導入なら候補から選択する。
 MozcのLispと `mozc_emacs_helper` がなければMozc連携を無効化する。
+PGTKでMozc連携を使う場合は、GTK側のIMEを無効にしてEmacs専用Mozcへ統一する。
+変換キーで有効化し、無変換キーで確定して無効化する。
+Ctrl/Superの入れ替え後のキーをMozcへ渡し、入力経路による変換キーの差を避ける。
+この設定の反映にはEmacsの再起動が必要。
 macOSで標準IMEを利用するときはOS側の入力切替を使用する。
 
 ### 保存先と保持期間
