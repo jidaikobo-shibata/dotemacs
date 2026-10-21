@@ -200,6 +200,8 @@ The filtering is active only while `y-or-n-p' uses `read-key'."
 
 ;; Mozcロード後にキーバインドを設定
 (with-eval-after-load 'mozc
+  ;; Avoid candidate overlays overlapping the buffer text on PGTK frames.
+  (setq mozc-candidate-style 'echo-area)
   (my/define-muhenkan-keys mozc-mode-map #'my/muhenkan-command)
   ;; Keep default mouse selection behavior even when mozc-mode keymap is active.
   (define-key mozc-mode-map [down-mouse-1] #'mouse-drag-region)
