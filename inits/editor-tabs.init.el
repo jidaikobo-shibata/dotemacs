@@ -93,7 +93,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-M-<left>") #'my/editor-tabs-previous)
     (define-key map (kbd "C-M-<right>") #'my/editor-tabs-next)
-    (define-key map (kbd "C-t") #'my/editor-tabs-new)
+    ;; Leave C-t available for the global smartrep prefix.
     ;; Also accept the Super events observed with the desktop modifier mapping.
     (define-key map (kbd "M-s-<left>") #'my/editor-tabs-previous)
     (define-key map (kbd "M-s-<right>") #'my/editor-tabs-next)

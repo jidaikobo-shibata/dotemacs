@@ -101,8 +101,8 @@
         (should (eq (key-binding (kbd key)) #'my/editor-tabs-previous)))
       (dolist (key '("C-M-<right>" "M-s-<right>"))
         (should (eq (key-binding (kbd key)) #'my/editor-tabs-next)))
-      (dolist (key '("C-t" "s-t"))
-        (should (eq (key-binding (kbd key)) #'my/editor-tabs-new)))
+      (should (eq (key-binding (kbd "s-t")) #'my/editor-tabs-new))
+      (should (equal (key-binding (kbd "C-t")) (cdr (assoc "C-t" bindings))))
       (should (eq tab-line-tabs-function #'my/editor-tabs--tabs)))
     (dolist (binding bindings)
       (should (equal (cdr binding) (key-binding (kbd (car binding))))))
@@ -110,6 +110,22 @@
     (should (eq global-before global-tab-line-mode))
     (should-not (advice-member-p #'my/editor-tabs--neighbour
                                 'foeb/switch-to-neighbour-buffer))))
+
+(ert-deftest editor-tabs-preserves-global-smartrep-prefix ()
+  (let* ((original-map (current-global-map))
+         (test-map (copy-keymap original-map)))
+    (unwind-protect
+        (progn
+          (define-key test-map (kbd "C-t") (make-sparse-keymap))
+          (define-key test-map (kbd "C-t n") #'mc/mark-next-like-this)
+          (define-key test-map (kbd "C-t C-t") #'mc/mark-next-like-this)
+          (use-global-map test-map)
+          (my/with-test-tabs
+            (should (keymapp (key-binding (kbd "C-t"))))
+            (should (eq (key-binding (kbd "C-t n")) #'mc/mark-next-like-this))
+            (should (eq (key-binding (kbd "C-t C-t")) #'mc/mark-next-like-this))
+            (should (eq (key-binding (kbd "s-t")) #'my/editor-tabs-new))))
+      (use-global-map original-map))))
 
 (ert-deftest editor-tabs-new-opens-distinct-unsaved-tabs-at-end ()
   (my/with-test-tabs
@@ -119,8 +135,8 @@
           created)
       (unwind-protect
           (progn
-            (dolist (key '("C-t" "s-t"))
-              (call-interactively (key-binding (kbd key)))
+            (dotimes (_ 2)
+              (call-interactively (key-binding (kbd "s-t")))
               (push (current-buffer) created)
               (should-not buffer-file-name)
               (should (= (buffer-size) 0))
